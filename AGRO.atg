@@ -1,0 +1,267 @@
+using System;
+using AGRO_GRAMM;
+
+COMPILER PROGRAM
+
+const int // types
+	  undef = 0, t_int = 1, t_float = 2, t_char = 3, t_id = 4;
+
+const int // object kinds
+	  var = 0, proc = 1;
+
+SymbolTable   sTable;
+
+/*--------------------------------------------------------------------------*/    
+
+bool IsFunctionCall(){
+    scanner.ResetPeek();
+    Token x = la; 
+    while (x.kind == _id ) 
+        x = scanner.Peek();
+    return x.kind == _pl;
+}
+
+bool IsMethodCall() { 
+    scanner.ResetPeek();
+    Token x = la; 
+    while (x.kind == _id || x.kind == _dot) 
+        x = scanner.Peek();
+    return x.kind == _pl;
+} 
+
+bool IsTypeFunction() {
+    scanner.ResetPeek();
+    Token next = scanner.Peek();
+    next = scanner.Peek();
+    return next.kind == _pl;
+}
+
+bool IsDecVars(){
+    scanner.ResetPeek();
+    Token x = scanner.Peek();
+    while (x.kind == _id || x.kind == _comma) 
+        x = scanner.Peek();
+    return x.kind == _semicolon;
+}
+
+CHARACTERS
+
+letter		= 'A'..'Z' + 'a'..'z'.
+digit		= '0'..'9'.
+tab			= '\t'.
+cr			= '\r'.
+lf			= '\n'.
+newLine		= cr + lf.
+notQuote	= ANY - '"' - "\r\n".
+
+TOKENS
+
+id			= letter { letter | digit }.
+cte_I		= digit { digit }.
+cte_F		= digit { digit } "." digit { digit }.
+ctr_Str 	= '"' {notQuote} '"'.
+cbl         = "{".
+cbr         = "}".
+bl          = "[".
+br          = "]".
+pl          = "(".
+pr          = ")".
+comma       = ",".
+semicolon   = ";".
+add         = "+".
+sub         = "-".
+mul         = "*".
+div         = "/".
+equal       = "=".
+dot         = ".".
+sadd        = "+=".
+ssub        = "-=".
+sdiv        = "/=".
+smul        = "*=".
+increment   = "++".
+decrement   = "--".
+colon       = ":".
+less        = "<".
+greater     = ">".
+lesseq      = "<=".
+greatereq   = ">=".
+equaleq     = "==".
+different   = "!=".
+
+COMMENTS FROM "%%" TO "\r\n"
+
+IGNORE tab + cr + lf
+
+PRODUCTIONS
+
+PROGRAM= 
+    (.
+     Console.WriteLine("Entering PROGRAM"); 
+     sTable = new SymbolTable();
+    .)
+    { DECLARATION } MAIN
+    
+.
+
+DECLARATION=
+    
+    /*IF( IsTypeFunction() ) DEC_FUNC (. Console.WriteLine("Entering DEC_FUNC"); .) |*/ DEC_VARS //| DEC_CLASS
+.
+
+DEC_VARS                                    (. string name; int type; .)
+=
+    /*( COMPOUND_TYPE     < out type >
+    IDENT                  < out name >   (. sTable.putSymbol(name, type, var); .)
+    { comma IDENT          < out name >   (. sTable.putSymbol(name, type, var); .)   
+    } semicolon ) |*/
+    ( SIMPLE_TYPE       < out type >
+     IDENT                 < out name >   (. sTable.putSymbol(name, type, var); .)
+     [ bl cte_I br [ bl cte_I br ] ] 
+     { comma IDENT         < out name >   (. sTable.putSymbol(name, type, var); .)
+     [ bl cte_I br [ bl cte_I br ] ] } semicolon )
+.
+/*
+DEC_FUNC=
+    TYPE_FUNC IDENT pl [ PARAMS_FUNC ] pr cbl [ ( IF( IsDecVars() ) DEC_VARS | STATUTE ) { ( IF( IsDecVars() ) DEC_VARS | STATUTE ) } ] [ RETURN ] cbr
+.
+
+DEC_CLASS=
+    "class" IDENT [ colon IDENT ] cbl { CLASS_DEF } cbr
+.
+
+COMPOUND_TYPE   < out int type >
+=
+    IDENT       < out type >
+.
+*/
+SIMPLE_TYPE         < out int type >
+=                  (. type = undef; .) 
+    ("int"          (. type = t_int; .)   |
+    "float"        (. type = t_float; .) |
+    "char"         (. type = t_char; .))
+.
+
+MAIN=               (. sTable = sTable.newChildSymbolTable(); .)
+    "main" cbl ( /*IF( IsDecVars() )*/ DEC_VARS /*| STATUTE */) { /*IF( IsDecVars() )*/ DEC_VARS }/*| STATUTE } */cbr
+                    (. sTable = sTable.parentSymbolTable; .)
+.
+/*
+STATUTE=
+    INPUT       |
+    PRINT       |
+    IF( IsFunctionCall() ) FUNC_CALL  |
+    IF( IsMethodCall() ) METHOD_CALL  |
+    CONDITIONAL |
+    WHILE       |
+    FOR         |
+    ASSIGN      
+.
+
+TYPE_FUNC=
+    "int" | "float" | "char" | "void"
+.
+
+PARAMS_FUNC=
+    SIMPLE_TYPE IDENT { comma SIMPLE_TYPE IDENT }
+.
+
+RETURN=
+    "return" EXP semicolon
+.
+
+EXP=
+    TERM { (add | sub) TERM }
+.
+
+CLASS_DEF=
+    ( "+" | "-" ) ( IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS )
+.
+
+ASSIGN=
+    VARIABLE_ASSIGN ( ( ( SHORT_ASSIGN | equal ) EXP ) | STEP ) semicolon
+.
+
+INPUT=
+    "input" pl VARIABLE_ASSIGN pr semicolon
+.
+
+PRINT=
+    "print" pl  EXP { comma EXP } pr semicolon
+.
+
+CONDITIONAL=
+    "if" pl HYPER_EXP pr BLOCK [ "else" BLOCK ]
+.
+
+WHILE=
+    "while" pl HYPER_EXP pr BLOCK
+.
+
+FOR=
+    "for" pl ASSIGN semicolon HYPER_EXP semicolon ASSIGN pr BLOCK
+.
+
+FUNC_CALL=
+    IDENT pl [ EXP { comma EXP } ] pr semicolon
+.
+
+METHOD_CALL=
+    IDENT dot IDENT { dot IDENT } pl [ EXP { comma EXP } ] pr semicolon
+.
+
+TERM=
+    FACT { ( mul | div ) FACT }
+.
+
+SHORT_ASSIGN=
+    sadd | ssub | smul | sdiv
+.
+
+VARIABLE_ASSIGN=
+    IDENT [ ( dot IDENT { dot IDENT } ) | ( bl EXP br [ bl EXP br ] ) ]
+.
+
+VARIABLE_FACT=
+    IDENT [ ( bl EXP br [ bl EXP br ] ) | ( dot IDENT pl [ EXP { comma EXP } ] pr ) | ( pl [ EXP { comma EXP } ] pr ) ]
+.
+
+HYPER_EXP=
+    SUPER_EXP { REL_EXP SUPER_EXP }
+.
+
+BLOCK=
+    cbl { STATUTE } cbr
+.
+
+FACT=
+    ( pl EXP pr )                                   |
+    ( [ ( "+" | "-" ) ] ( cte_I | cte_F ) )         |
+    ( ctr_Str )                                     |
+    ( VARIABLE_FACT )                                   
+.
+
+STEP=
+    increment | decrement
+.
+
+REL_EXP=
+    "and"   |   "&&"    |
+    "or"    |   "||"
+.
+
+SUPER_EXP=
+    EXP [ REL_OP EXP ]
+.
+
+REL_OP=
+    ( greater | less )  |
+    ( greatereq | lesseq ) |
+    ( equaleq | different )
+.
+*/
+IDENT       < out string name >
+=
+    id      (. name = t.val; .)
+.
+
+END PROGRAM.

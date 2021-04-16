@@ -1,0 +1,97 @@
+class Jarvis {
+
+    + int publicInt;
+
+    - int privateInt;
+
+    + void analyze(int df) {
+
+        float mean;
+
+        float std;
+
+        print("Hola");
+
+        dataframe z,cc,aa;
+    
+
+        suma(1,2);
+        i = sizes();
+        a = personas.size();
+        personas.head(10);
+        a.a = pero.sisirve();
+        
+        persona.size = a;
+    }
+
+} 
+
+
+
+Jarvis jarvis; 
+
+Dataframe personas; 
+
+int elementos, i;
+
+char filename[20];
+
+int suma (int a, int b){    
+    float mean;
+
+        float std;
+
+        print("Hola");
+
+        dataframe z,cc,aa;
+
+        elementos = personas.size();
+
+    return a+b;
+}
+
+main {
+
+    input(filename); 
+
+    personas.readCSV(filename); 
+    Dataframe e,i;
+
+
+    personas.head(10); 
+
+    i = 0;
+
+    while (i<elementos) {
+
+        print( personas.at(name,i) , personas.at(age,i) );
+
+        
+
+        i ++;
+
+    }
+
+    personas.corr();
+
+    
+
+    personas.summary();
+
+    
+
+    print(personas);
+
+    
+
+    personas.LinearRegressionFit(age,height);
+
+    
+
+    personas.LinearRegressionPredict(age);
+
+    
+
+    jarvis.analyze(personas);
+
+}
