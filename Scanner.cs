@@ -203,8 +203,8 @@ public class UTF8Buffer: Buffer {
 public class Scanner {
 	const char EOL = '\n';
 	const int eofSym = 0; /* pdt */
-	const int maxT = 36;
-	const int noSym = 36;
+	const int maxT = 48;
+	const int noSym = 48;
 
 
 	public Buffer buffer; // scanner buffer
@@ -248,6 +248,8 @@ public class Scanner {
 		start[60] = 33; 
 		start[62] = 34; 
 		start[33] = 25; 
+		start[38] = 35; 
+		start[124] = 37; 
 		start[Buffer.EOF] = -1;
 
 	}
@@ -340,6 +342,16 @@ public class Scanner {
 			case "float": t.kind = 33; break;
 			case "char": t.kind = 34; break;
 			case "main": t.kind = 35; break;
+			case "void": t.kind = 36; break;
+			case "return": t.kind = 37; break;
+			case "input": t.kind = 38; break;
+			case "print": t.kind = 39; break;
+			case "if": t.kind = 40; break;
+			case "else": t.kind = 41; break;
+			case "while": t.kind = 42; break;
+			case "for": t.kind = 43; break;
+			case "and": t.kind = 44; break;
+			case "or": t.kind = 46; break;
 			default: break;
 		}
 	}
@@ -462,6 +474,16 @@ public class Scanner {
 				recEnd = pos; recKind = 27;
 				if (ch == '=') {AddCh(); goto case 23;}
 				else {t.kind = 27; break;}
+			case 35:
+				if (ch == '&') {AddCh(); goto case 36;}
+				else {goto case 0;}
+			case 36:
+				{t.kind = 45; break;}
+			case 37:
+				if (ch == '|') {AddCh(); goto case 38;}
+				else {goto case 0;}
+			case 38:
+				{t.kind = 47; break;}
 
 		}
 		t.val = new String(tval, 0, tlen);

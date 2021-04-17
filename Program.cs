@@ -7,7 +7,7 @@ namespace AGRO_GRAMM
         static void Main(string[] args)
         {
 
-            const string fileTest = @"C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\symbolTest.agro";
+            const string fileTest = @"C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\symbolTest2.agro";
 
             Scanner scanner = new Scanner(fileTest);
             Parser parser = new Parser(scanner);

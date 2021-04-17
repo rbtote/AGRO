@@ -4,10 +4,10 @@ using AGRO_GRAMM;
 COMPILER PROGRAM
 
 const int // types
-	  undef = 0, t_int = 1, t_float = 2, t_char = 3, t_id = 4;
+	  undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5;
 
 const int // object kinds
-	  var = 0, proc = 1;
+	  var = 0, func = 1;
 
 SymbolTable   sTable;
 
@@ -96,7 +96,6 @@ PRODUCTIONS
 
 PROGRAM= 
     (.
-     Console.WriteLine("Entering PROGRAM"); 
      sTable = new SymbolTable();
     .)
     { DECLARATION } MAIN
@@ -105,64 +104,94 @@ PROGRAM=
 
 DECLARATION=
     
-    /*IF( IsTypeFunction() ) DEC_FUNC (. Console.WriteLine("Entering DEC_FUNC"); .) |*/ DEC_VARS //| DEC_CLASS
+    IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS //| DEC_CLASS
 .
 
-DEC_VARS                                    (. string name; int type; .)
+DEC_VARS                                    (. string name; int type; string className; .)
 =
-    /*( COMPOUND_TYPE     < out type >
-    IDENT                  < out name >   (. sTable.putSymbol(name, type, var); .)
-    { comma IDENT          < out name >   (. sTable.putSymbol(name, type, var); .)   
-    } semicolon ) |*/
-    ( SIMPLE_TYPE       < out type >
-     IDENT                 < out name >   (. sTable.putSymbol(name, type, var); .)
+    ( IDENT		    < out className >
+    IDENT                   < out name >    (. sTable.putSymbol(name, t_obj, var); .)
+    { comma IDENT           < out name >    (. sTable.putSymbol(name, t_obj, var); .)   
+    } semicolon ) |
+    ( 
+     SIMPLE_TYPE            < out type >
+     IDENT                  < out name >    (. sTable.putSymbol(name, type, var); .)
      [ bl cte_I br [ bl cte_I br ] ] 
-     { comma IDENT         < out name >   (. sTable.putSymbol(name, type, var); .)
-     [ bl cte_I br [ bl cte_I br ] ] } semicolon )
+     { comma IDENT         < out name >     (. sTable.putSymbol(name, type, var); .)
+     [ bl cte_I br [ bl cte_I br ] ] } 
+     semicolon 
+    )
+.
+
+DEC_FUNC				(. string name; int type; .)
+=				
+    TYPE_FUNC			< out type >
+    IDENT			< out name > (. sTable.putSymbol(name, type, func);
+                                    sTable = sTable.newChildSymbolTable(); .)
+    pl [ PARAMS_FUNC ] pr
+    cbl [
+     ( IF( IsDecVars() ) DEC_VARS |
+      STATUTE ) 
+      { ( IF( IsDecVars() ) DEC_VARS |
+       STATUTE ) } ] 
+     [ RETURN ] 
+    cbr					(. sTable = sTable.parentSymbolTable; .)
 .
 /*
-DEC_FUNC=
-    TYPE_FUNC IDENT pl [ PARAMS_FUNC ] pr cbl [ ( IF( IsDecVars() ) DEC_VARS | STATUTE ) { ( IF( IsDecVars() ) DEC_VARS | STATUTE ) } ] [ RETURN ] cbr
-.
-
 DEC_CLASS=
-    "class" IDENT [ colon IDENT ] cbl { CLASS_DEF } cbr
+    "class" IDENT
+    [ colon IDENT ] 
+    cbl { CLASS_DEF } cbr
 .
 
-COMPOUND_TYPE   < out int type >
+COMPOUND_TYPE  < out int typeObj >  (. string type; .) 
 =
-    IDENT       < out type >
+    IDENT       < out type >	(. typeObj = t_obj; .)
 .
 */
 SIMPLE_TYPE         < out int type >
-=                  (. type = undef; .) 
-    ("int"          (. type = t_int; .)   |
-    "float"        (. type = t_float; .) |
-    "char"         (. type = t_char; .))
+=                   (. type = undef; .) 
+    (
+    "int"           (. type = t_int; .)   |
+    "float"         (. type = t_float; .) |
+    "char"          (. type = t_char; .)
+    )
 .
 
 MAIN=               (. sTable = sTable.newChildSymbolTable(); .)
-    "main" cbl ( /*IF( IsDecVars() )*/ DEC_VARS /*| STATUTE */) { /*IF( IsDecVars() )*/ DEC_VARS }/*| STATUTE } */cbr
+    "main" cbl ( IF( IsDecVars() ) DEC_VARS | STATUTE ) { IF( IsDecVars() ) DEC_VARS | STATUTE } cbr
                     (. sTable = sTable.parentSymbolTable; .)
 .
-/*
+
 STATUTE=
     INPUT       |
     PRINT       |
     IF( IsFunctionCall() ) FUNC_CALL  |
-    IF( IsMethodCall() ) METHOD_CALL  |
+ //   IF( IsMethodCall() ) METHOD_CALL  |
     CONDITIONAL |
     WHILE       |
     FOR         |
     ASSIGN      
 .
 
-TYPE_FUNC=
-    "int" | "float" | "char" | "void"
+TYPE_FUNC           < out int type >
+=                   (. type = undef; .)
+    (
+        "int"       (. type = t_int; .)     | 
+        "float"     (. type = t_float; .)   |
+        "char"      (. type = t_char; .)    |
+        "void"      (. type = t_void; .)
+    )
 .
 
-PARAMS_FUNC=
-    SIMPLE_TYPE IDENT { comma SIMPLE_TYPE IDENT }
+PARAMS_FUNC             		(. string name; int type; .)
+=
+    SIMPLE_TYPE         < out type >
+    IDENT		< out name >	(. sTable.putSymbol(name, type, var); .)
+    { 
+     comma SIMPLE_TYPE	< out type >
+     IDENT		< out name >	(. sTable.putSymbol(name, type, var); .)
+    }
 .
 
 RETURN=
@@ -172,11 +201,11 @@ RETURN=
 EXP=
     TERM { (add | sub) TERM }
 .
-
+/*
 CLASS_DEF=
     ( "+" | "-" ) ( IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS )
 .
-
+*/
 ASSIGN=
     VARIABLE_ASSIGN ( ( ( SHORT_ASSIGN | equal ) EXP ) | STEP ) semicolon
 .
@@ -201,14 +230,16 @@ FOR=
     "for" pl ASSIGN semicolon HYPER_EXP semicolon ASSIGN pr BLOCK
 .
 
-FUNC_CALL=
-    IDENT pl [ EXP { comma EXP } ] pr semicolon
+FUNC_CALL	(. string name; .)
+=
+    IDENT	< out name > 
+    pl [ EXP { comma EXP } ] pr semicolon
 .
-
+/*
 METHOD_CALL=
     IDENT dot IDENT { dot IDENT } pl [ EXP { comma EXP } ] pr semicolon
 .
-
+*/
 TERM=
     FACT { ( mul | div ) FACT }
 .
@@ -217,12 +248,16 @@ SHORT_ASSIGN=
     sadd | ssub | smul | sdiv
 .
 
-VARIABLE_ASSIGN=
-    IDENT [ ( dot IDENT { dot IDENT } ) | ( bl EXP br [ bl EXP br ] ) ]
+VARIABLE_ASSIGN   (. string name; .)
+=
+    IDENT	< out name > 
+    [ /*( dot IDENT { dot IDENT } ) |*/ ( bl EXP br [ bl EXP br ] ) ]
 .
 
-VARIABLE_FACT=
-    IDENT [ ( bl EXP br [ bl EXP br ] ) | ( dot IDENT pl [ EXP { comma EXP } ] pr ) | ( pl [ EXP { comma EXP } ] pr ) ]
+VARIABLE_FACT	(. string name; .)
+=
+    IDENT	< out name > 
+    [ ( bl EXP br [ bl EXP br ] ) | /*( dot IDENT pl [ EXP { comma EXP } ] pr ) | */( pl [ EXP { comma EXP } ] pr ) ]
 .
 
 HYPER_EXP=
@@ -258,7 +293,7 @@ REL_OP=
     ( greatereq | lesseq ) |
     ( equaleq | different )
 .
-*/
+
 IDENT       < out string name >
 =
     id      (. name = t.val; .)
