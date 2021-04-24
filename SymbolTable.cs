@@ -64,5 +64,10 @@ namespace AGRO_GRAMM
 
             return null;
         }
+
+        public int getType(string name)
+        {
+            return getSymbol(name)[0];
+        }
     }
 }

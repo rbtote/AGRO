@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "2Zju30t4wZ3F5Ey9Tzxnp3Z6mskD4sungrpvuewHT0K9FtWoLinsiNP/Kk/dj1O+1xpAO5IUM9jJq3roD2x6hw==",
+  "dgSpecHash": "YQw561z+4Dd2h+AY7etkRpjKXF+qCpdqInG7TnNokUBU3HgsiL6YkcTNzd/1YdDubqW+N58REj6R0+ec3gDOuQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\rober\\OneDrive\\Documentos\\ITESM\\10mo\\Compis\\AGRO\\AGRO_GRAMMAR\\AGRO_GRAMM\\AGRO_GRAMM.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\rober\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+  ],
   "logs": []
 }

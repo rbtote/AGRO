@@ -7,7 +7,9 @@ C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAM
 C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.csprojAssemblyReference.cache
 C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.AssemblyInfoInputs.cache
 C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.AssemblyInfo.cs
-C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.csproj.CoreCompileInputs.cache
 C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.dll
 C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.pdb
 C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.genruntimeconfig.cache
+C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.csproj.CoreCompileInputs.cache
+C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\obj\Debug\netcoreapp3.1\AGRO_GRAMM.csproj.CopyComplete

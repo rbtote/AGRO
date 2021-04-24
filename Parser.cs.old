@@ -166,7 +166,7 @@ void check(SymbolTable st, int[] arr){
             // Create the temporal variable
             tempName = "_t" + tempCont;
             tempCont+=1;
-            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, "t1", st, operandInts);
+            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, "t1", st);
             st.putSymbol(tempName, quad.typeOut, temporal);
             program.Add(quad);
         }

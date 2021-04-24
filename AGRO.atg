@@ -1,15 +1,125 @@
 using System;
+using Newtonsoft.Json;
 using AGRO_GRAMM;
+using System.Collections.Generic;
+
 
 COMPILER PROGRAM
 
 const int // types
-	  undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5;
+	  undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6;
 
 const int // object kinds
-	  var = 0, func = 1;
+	  var = 0, func = 1, temporal = 2;
 
+
+int[] TERM_OPERATORS = { _mul, _div };
+int[] EXP_OPERATORS = { _add, _sub };
+int[] RELEXP_OPERATORS = { _and, _or };
+int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
+Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(String.Format(@"{
+                        {0}:'+',
+                        {1}:'-',
+                        {2}:'/',
+                        {3}:'*',
+                        {4}:'<',
+                        {5}:'<=',
+                        {6}:'>',
+                        {7}:'>=',
+                        {8}:'==',
+                        {9}:'=',
+                        {10}:'!=',
+                        {11}:'&&',
+                        {12}:'and',
+                        {13}:'or',
+                        {14}:'||'
+            }", 
+            _add, 
+            _sub, 
+            _div, 
+            _mul, 
+            _less, 
+            _lesseq, 
+            _greater,
+            _greatereq,
+            _equaleq,
+            _equal,
+            _different,
+            _and,
+            _and,
+            _or,
+            _or
+            ));
 SymbolTable   sTable;
+
+Stack<String>   stackOperand = new Stack<String>();
+Stack<int>   stackOperator = new Stack<int>();
+Stack<int>      stackTypes = new Stack<int>();
+
+int tempCont = 0;
+
+List<Actions> program = new List<Actions>();
+
+
+string createTempInt(int tempp, SymbolTable st){
+    string tempName;
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    st.putSymbol(tempName, t_int, temporal);
+    return tempName;
+}
+
+string createTempFloat(float tempp, SymbolTable st){
+    string tempName;
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    st.putSymbol(tempName, t_float, temporal);
+    return tempName;
+}
+
+string createTempString(string tempp, SymbolTable st){
+    string tempName;
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    st.putSymbol(tempName, t_string, temporal);
+    return tempName;
+}
+
+bool isIn(string space, char element){
+    int i = 0;
+    while(i < space.Length){
+        if(element == space[i]){
+            return true;        
+        }
+        i++;
+    }
+    return false;
+}
+
+void check(SymbolTable st, int[] arr){
+    string leftOper;
+    string rightOper;
+    int leftType;
+    int rightType;
+    int operat;
+    string tempName;
+    if(stackOperator.Count > 0){
+        if(Array.Exists(arr, s => s.Equals(stackOperator.Peek()) )){
+            // Get the data to create the quad
+            rightType = stackTypes.Pop();
+            rightOper = stackOperand.Pop();
+            leftType = stackTypes.Pop();
+            leftOper = stackOperand.Pop();
+            operat = stackOperator.Pop();
+            // Create the temporal variable
+            tempName = "_t" + tempCont;
+            tempCont+=1;
+            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, "t1", st, operandInts);
+            st.putSymbol(tempName, quad.typeOut, temporal);
+            program.Add(quad);
+        }
+    }
+}
 
 /*--------------------------------------------------------------------------*/    
 
@@ -87,6 +197,8 @@ lesseq      = "<=".
 greatereq   = ">=".
 equaleq     = "==".
 different   = "!=".
+and         = "&&".
+or          = "||".
 
 COMMENTS FROM "%%" TO "\r\n"
 
@@ -199,7 +311,8 @@ RETURN=
 .
 
 EXP=
-    TERM { (add | sub) TERM }
+    TERM                    (. check(sTable, EXP_OPERATORS); .)
+    { (add (. stackOperator.Push(_add); .) | sub (. stackOperator.Push(_sub);.) ) TERM }
 .
 /*
 CLASS_DEF=
@@ -241,7 +354,8 @@ METHOD_CALL=
 .
 */
 TERM=
-    FACT { ( mul | div ) FACT }
+    FACT                    (. check(sTable, TERM_OPERATORS); .)
+    { ( mul (. stackOperator.Push(_mul); .) | div (. stackOperator.Push(_div); .) ) FACT }
 .
 
 SHORT_ASSIGN=
@@ -256,7 +370,7 @@ VARIABLE_ASSIGN   (. string name; .)
 
 VARIABLE_FACT	(. string name; .)
 =
-    IDENT	< out name > 
+    IDENT	< out name >            (. stackOperand.Push(name); .)
     [ ( bl EXP br [ bl EXP br ] ) | /*( dot IDENT pl [ EXP { comma EXP } ] pr ) | */( pl [ EXP { comma EXP } ] pr ) ]
 .
 
@@ -268,11 +382,12 @@ BLOCK=
     cbl { STATUTE } cbr
 .
 
-FACT=
-    ( pl EXP pr )                                   |
-    ( [ ( "+" | "-" ) ] ( cte_I | cte_F ) )         |
-    ( ctr_Str )                                     |
-    ( VARIABLE_FACT )                                   
+FACT
+=
+    ( pl (. stackOperator.Push(_pl); .)  EXP pr (. stackOperator.Pop(); .) )                                                  |
+    ( [ ( "+" | "-" ) ] ( cte_I  (. stackOperand.Push(createTempInt(Int32.Parse(t.val), sTable)); .) | cte_F (. stackOperand.Push(createTempFloat(float.Parse(t.val), sTable)); .)) )         |
+    ( ctr_Str  (. stackOperand.Push(createTempString(t.val, sTable)); .))                                     |
+    ( VARIABLE_FACT )
 .
 
 STEP=
@@ -285,13 +400,14 @@ REL_EXP=
 .
 
 SUPER_EXP=
-    EXP [ REL_OP EXP ]
+    EXP                 (. check(sTable, RELOP_OPERATORS); .)
+    [ REL_OP EXP ]
 .
 
 REL_OP=
-    ( greater | less )  |
-    ( greatereq | lesseq ) |
-    ( equaleq | different )
+    ( greater   (. stackOperator.Push(_greater); .)     | less (. stackOperator.Push(_less); .) )          |
+    ( greatereq (. stackOperator.Push(_greatereq); .)   | lesseq (. stackOperator.Push(_lesseq); .) ) |
+    ( equaleq   (. stackOperator.Push(_equaleq); .)     | different (. stackOperator.Push(_different); .))
 .
 
 IDENT       < out string name >

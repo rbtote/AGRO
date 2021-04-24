@@ -1,9 +1,11 @@
 # AGRO COMPILER
 
-## SECOND DELIVERY 2
+## THIRD DELIVERY 
 
-This version includes changes in grammar according to a basic variable, function and object declaration. We have created a SymbolTable class that implements an infinite recursive linear scope, in which every scope has a pointer to it's parent scope. 
+This version includes 3 new classes to handle our first code generation behaviours, we have set the neuralgic spots in the grammar sintax, for the linear stautes (variables, arithmetic assignments)
 
 ## TODO
-
-* Explore code generation and memory in general to store variable values, class contents, function content, and object content.
+* Generate GOTOS and print/input Quads
+* Cleanup the cube class
+* Check representation of the temporal variables
+* Error handling
