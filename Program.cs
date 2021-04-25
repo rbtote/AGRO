@@ -11,7 +11,7 @@ namespace AGRO_GRAMM
         {
 
             
-            const string fileTest = @"C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\symbolTest2.agro";
+            const string fileTest = @"C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\TestQuads.agro";
 
             Scanner scanner = new Scanner(fileTest);
             Parser parser = new Parser(scanner);

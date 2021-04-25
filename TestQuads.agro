@@ -1,0 +1,5 @@
+﻿main {
+    int aaa;
+    int bbb;
+    aaa = ((bbb > aaa) && (aaa+4*7));
+}

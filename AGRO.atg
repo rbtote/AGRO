@@ -17,39 +17,27 @@ int[] TERM_OPERATORS = { _mul, _div };
 int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
-Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(String.Format(@"{
-                        {0}:'+',
-                        {1}:'-',
-                        {2}:'/',
-                        {3}:'*',
-                        {4}:'<',
-                        {5}:'<=',
-                        {6}:'>',
-                        {7}:'>=',
-                        {8}:'==',
-                        {9}:'=',
-                        {10}:'!=',
-                        {11}:'&&',
-                        {12}:'and',
-                        {13}:'or',
-                        {14}:'||'
-            }", 
-            _add, 
-            _sub, 
-            _div, 
-            _mul, 
-            _less, 
-            _lesseq, 
-            _greater,
-            _greatereq,
-            _equaleq,
-            _equal,
-            _different,
-            _and,
-            _and,
-            _or,
-            _or
-            ));
+static string operInts = @$"{{
+				{_add}:'+',
+				{_sub}:'-',
+				{_div}:'/',
+				{_mul}:'*',
+				{_less}:'<',
+				{_lesseq}:'<=',
+				{_greater}:'>',
+				{_greatereq}:'>=',
+				{_equaleq}:'==',
+				{_equal}:'=',
+				{_different}:'!=',
+				{_and}:'&&',
+				{_and}:'and',
+				{_or}:'or',
+				{_or}:'||'
+				}}";
+
+
+Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(operInts);
+
 SymbolTable   sTable;
 
 Stack<String>   stackOperand = new Stack<String>();
@@ -60,6 +48,15 @@ int tempCont = 0;
 
 List<Actions> program = new List<Actions>();
 
+void pushToOperandStack(string id, SymbolTable st){
+    // In order to push to the stack, we need to know the type of the id
+    int typeId = st.getType(id);
+    // Push the id
+    stackOperand.Push(id);
+    // Push the type
+    stackTypes.Push(typeId);
+
+}
 
 string createTempInt(int tempp, SymbolTable st){
     string tempName;
@@ -85,16 +82,6 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
-bool isIn(string space, char element){
-    int i = 0;
-    while(i < space.Length){
-        if(element == space[i]){
-            return true;        
-        }
-        i++;
-    }
-    return false;
-}
 
 void check(SymbolTable st, int[] arr){
     string leftOper;
@@ -114,9 +101,10 @@ void check(SymbolTable st, int[] arr){
             // Create the temporal variable
             tempName = "_t" + tempCont;
             tempCont+=1;
-            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, "t1", st, operandInts);
+            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, tempName, st, operandInts);
             st.putSymbol(tempName, quad.typeOut, temporal);
             program.Add(quad);
+            pushToOperandStack(tempName, st);
         }
     }
 }
@@ -307,12 +295,13 @@ PARAMS_FUNC             		(. string name; int type; .)
 .
 
 RETURN=
-    "return" EXP semicolon
+    "return" HYPER_EXP semicolon
 .
 
 EXP=
-    TERM                    (. check(sTable, EXP_OPERATORS); .)
+    TERM                    
     { (add (. stackOperator.Push(_add); .) | sub (. stackOperator.Push(_sub);.) ) TERM }
+    (. check(sTable, EXP_OPERATORS); .)
 .
 /*
 CLASS_DEF=
@@ -354,8 +343,9 @@ METHOD_CALL=
 .
 */
 TERM=
-    FACT                    (. check(sTable, TERM_OPERATORS); .)
+    FACT
     { ( mul (. stackOperator.Push(_mul); .) | div (. stackOperator.Push(_div); .) ) FACT }
+    (. check(sTable, TERM_OPERATORS); .)
 .
 
 SHORT_ASSIGN=
@@ -370,12 +360,13 @@ VARIABLE_ASSIGN   (. string name; .)
 
 VARIABLE_FACT	(. string name; .)
 =
-    IDENT	< out name >            (. stackOperand.Push(name); .)
+    IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
     [ ( bl EXP br [ bl EXP br ] ) | /*( dot IDENT pl [ EXP { comma EXP } ] pr ) | */( pl [ EXP { comma EXP } ] pr ) ]
 .
 
 HYPER_EXP=
     SUPER_EXP { REL_EXP SUPER_EXP }
+    (. check(sTable, RELEXP_OPERATORS); .)
 .
 
 BLOCK=
@@ -384,9 +375,9 @@ BLOCK=
 
 FACT
 =
-    ( pl (. stackOperator.Push(_pl); .)  EXP pr (. stackOperator.Pop(); .) )                                                  |
-    ( [ ( "+" | "-" ) ] ( cte_I  (. stackOperand.Push(createTempInt(Int32.Parse(t.val), sTable)); .) | cte_F (. stackOperand.Push(createTempFloat(float.Parse(t.val), sTable)); .)) )         |
-    ( ctr_Str  (. stackOperand.Push(createTempString(t.val, sTable)); .))                                     |
+    ( pl (. stackOperator.Push(_pl); .)  HYPER_EXP pr (. stackOperator.Pop(); .) )                                                  |
+    ( [ ( "+" | "-" ) ] ( cte_I  (. pushToOperandStack(createTempInt(Int32.Parse(t.val), sTable), sTable); .) | cte_F (. pushToOperandStack(createTempFloat(float.Parse(t.val), sTable), sTable); .)) )         |
+    ( ctr_Str  (. pushToOperandStack(createTempString(t.val, sTable), sTable); .))                                     |
     ( VARIABLE_FACT )
 .
 
@@ -395,13 +386,13 @@ STEP=
 .
 
 REL_EXP=
-    "and"   |   "&&"    |
-    "or"    |   "||"
+    "and"   (. stackOperator.Push(_and); .)|   "&&"    (. stackOperator.Push(_and); .)|
+    "or"    (. stackOperator.Push(_or); .)|   "||"    (. stackOperator.Push(_or); .)
 .
 
 SUPER_EXP=
-    EXP                 (. check(sTable, RELOP_OPERATORS); .)
-    [ REL_OP EXP ]
+    EXP     { REL_OP EXP }
+    (. check(sTable, RELOP_OPERATORS); .)
 .
 
 REL_OP=

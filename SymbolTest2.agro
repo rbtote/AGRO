@@ -2,38 +2,8 @@ int suma(int a, int b){
     return a+b;
 }
 
-void hola(){
-    print("hola");
-}
-
-
-int elementos, i;
-
-char filename[20];
-
 main {
-
-    Dataframe df;
-
-    input(filename); 
-
-    elementos = 5; 
-
-    i = 0;
-
-    print("Hola");
-
-    while (i<elementos) {
-
-        print("Hola");
-        
-        i ++;
-
-    }   
-
-    print("Hola", i);
-
-    
-    %% 5mentarios
-
+    int aaa;
+    int bbb;
+    aaa = bbb+1;
 }

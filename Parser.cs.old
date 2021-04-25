@@ -69,39 +69,27 @@ int[] TERM_OPERATORS = { _mul, _div };
 int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
-Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(String.Format(@"{
-                        {0}:'+',
-                        {1}:'-',
-                        {2}:'/',
-                        {3}:'*',
-                        {4}:'<',
-                        {5}:'<=',
-                        {6}:'>',
-                        {7}:'>=',
-                        {8}:'==',
-                        {9}:'=',
-                        {10}:'!=',
-                        {11}:'&&',
-                        {12}:'and',
-                        {13}:'or',
-                        {14}:'||'
-            }", 
-            _add, 
-            _sub, 
-            _div, 
-            _mul, 
-            _less, 
-            _lesseq, 
-            _greater,
-            _greatereq,
-            _equaleq,
-            _equal,
-            _different,
-            _and,
-            _and,
-            _or,
-            _or
-            ));
+static string operInts = @$"{{
+				{_add}:'+',
+				{_sub}:'-',
+				{_div}:'/',
+				{_mul}:'*',
+				{_less}:'<',
+				{_lesseq}:'<=',
+				{_greater}:'>',
+				{_greatereq}:'>=',
+				{_equaleq}:'==',
+				{_equal}:'=',
+				{_different}:'!=',
+				{_and}:'&&',
+				{_and}:'and',
+				{_or}:'or',
+				{_or}:'||'
+				}}";
+
+
+Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(operInts);
+
 SymbolTable   sTable;
 
 Stack<String>   stackOperand = new Stack<String>();
@@ -112,6 +100,15 @@ int tempCont = 0;
 
 List<Actions> program = new List<Actions>();
 
+void pushToOperandStack(string id, SymbolTable st){
+    // In order to push to the stack, we need to know the type of the id
+    int typeId = st.getType(id);
+    // Push the id
+    stackOperand.Push(id);
+    // Push the type
+    stackTypes.Push(typeId);
+
+}
 
 string createTempInt(int tempp, SymbolTable st){
     string tempName;
@@ -137,16 +134,6 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
-bool isIn(string space, char element){
-    int i = 0;
-    while(i < space.Length){
-        if(element == space[i]){
-            return true;        
-        }
-        i++;
-    }
-    return false;
-}
 
 void check(SymbolTable st, int[] arr){
     string leftOper;
@@ -166,9 +153,10 @@ void check(SymbolTable st, int[] arr){
             // Create the temporal variable
             tempName = "_t" + tempCont;
             tempCont+=1;
-            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, "t1", st);
+            Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, tempName, st, operandInts);
             st.putSymbol(tempName, quad.typeOut, temporal);
             program.Add(quad);
+            pushToOperandStack(tempName, st);
         }
     }
 }
@@ -449,7 +437,7 @@ bool IsDecVars(){
 
 	void RETURN() {
 		Expect(39);
-		EXP();
+		HYPER_EXP();
 		Expect(12);
 	}
 
@@ -535,9 +523,17 @@ bool IsDecVars(){
 		Expect(12);
 	}
 
+	void HYPER_EXP() {
+		SUPER_EXP();
+		while (StartOf(8)) {
+			REL_EXP();
+			SUPER_EXP();
+		}
+		check(sTable, RELEXP_OPERATORS); 
+	}
+
 	void EXP() {
 		TERM();
-		check(sTable, EXP_OPERATORS); 
 		while (la.kind == 13 || la.kind == 14) {
 			if (la.kind == 13) {
 				Get();
@@ -548,11 +544,11 @@ bool IsDecVars(){
 			}
 			TERM();
 		}
+		check(sTable, EXP_OPERATORS); 
 	}
 
 	void TERM() {
 		FACT();
-		check(sTable, TERM_OPERATORS); 
 		while (la.kind == 15 || la.kind == 16) {
 			if (la.kind == 15) {
 				Get();
@@ -563,6 +559,7 @@ bool IsDecVars(){
 			}
 			FACT();
 		}
+		check(sTable, TERM_OPERATORS); 
 	}
 
 	void VARIABLE_ASSIGN() {
@@ -600,14 +597,6 @@ bool IsDecVars(){
 		} else SynErr(57);
 	}
 
-	void HYPER_EXP() {
-		SUPER_EXP();
-		while (StartOf(8)) {
-			REL_EXP();
-			SUPER_EXP();
-		}
-	}
-
 	void BLOCK() {
 		Expect(5);
 		while (StartOf(3)) {
@@ -620,7 +609,7 @@ bool IsDecVars(){
 		if (la.kind == 9) {
 			Get();
 			stackOperator.Push(_pl); 
-			EXP();
+			HYPER_EXP();
 			Expect(10);
 			stackOperator.Pop(); 
 		} else if (StartOf(9)) {
@@ -633,14 +622,14 @@ bool IsDecVars(){
 			}
 			if (la.kind == 2) {
 				Get();
-				stackOperand.Push(createTempInt(Int32.Parse(t.val), sTable)); 
+				pushToOperandStack(createTempInt(Int32.Parse(t.val), sTable), sTable); 
 			} else if (la.kind == 3) {
 				Get();
-				stackOperand.Push(createTempFloat(float.Parse(t.val), sTable)); 
+				pushToOperandStack(createTempFloat(float.Parse(t.val), sTable), sTable); 
 			} else SynErr(58);
 		} else if (la.kind == 4) {
 			Get();
-			stackOperand.Push(createTempString(t.val, sTable)); 
+			pushToOperandStack(createTempString(t.val, sTable), sTable); 
 		} else if (la.kind == 1) {
 			VARIABLE_FACT();
 		} else SynErr(59);
@@ -649,7 +638,7 @@ bool IsDecVars(){
 	void VARIABLE_FACT() {
 		string name; 
 		IDENT(out name );
-		stackOperand.Push(name); 
+		pushToOperandStack(name, sTable); 
 		if (la.kind == 7 || la.kind == 9) {
 			if (la.kind == 7) {
 				Get();
@@ -676,22 +665,26 @@ bool IsDecVars(){
 
 	void SUPER_EXP() {
 		EXP();
-		check(sTable, RELOP_OPERATORS); 
-		if (StartOf(10)) {
+		while (StartOf(10)) {
 			REL_OP();
 			EXP();
 		}
+		check(sTable, RELOP_OPERATORS); 
 	}
 
 	void REL_EXP() {
 		if (la.kind == 46) {
 			Get();
+			stackOperator.Push(_and); 
 		} else if (la.kind == 32) {
 			Get();
+			stackOperator.Push(_and); 
 		} else if (la.kind == 47) {
 			Get();
+			stackOperator.Push(_or); 
 		} else if (la.kind == 33) {
 			Get();
+			stackOperator.Push(_or); 
 		} else SynErr(60);
 	}
 
