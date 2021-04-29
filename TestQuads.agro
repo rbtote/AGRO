@@ -1,5 +1,9 @@
 ﻿main {
-    char aaa;
-    float bbb;
-    aaa = ((bbb > aaa) && (aaa+4*7));
+    int a, b;
+    char c;
+    float f;
+    a += b * b;
+    b++;
+    c /= c / f;
+
 }

@@ -75,6 +75,12 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_sub}:'-',
 				{_div}:'/',
 				{_mul}:'*',
+				{_sadd}:'+=',
+				{_ssub}:'-=',
+				{_sdiv}:'/=',
+				{_smul}:'*=',
+				{_increment}: '++',
+				{_decrement}: '--',
 				{_less}:'<',
 				{_lesseq}:'<=',
 				{_greater}:'>',
@@ -108,7 +114,7 @@ Stack<int>      stackJumps = new Stack<int>();
 
 int tempCont = 0;
 
-List<Actions> program = new List<Actions>();
+public List<Actions> program = new List<Actions>();
 
 void pushToOperandStack(string id, SymbolTable st){
     // In order to push to the stack, we need to know the type of the id
@@ -144,6 +150,39 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
+void checkAssign(SymbolTable st) {
+    string leftOper;
+    string rightOper;
+    int leftType;
+    int rightType;
+    int operat;
+
+    if(stackOperator.Count > 0) {
+        // Get the data to create the quad
+        rightType = stackTypes.Pop();
+        rightOper = stackOperand.Pop();
+
+        if (stackOperand.Count > 0) {
+            leftType = stackTypes.Pop();
+            leftOper = stackOperand.Pop();
+        }
+        else {
+            leftType = rightType;
+            leftOper = rightOper;
+        }
+        
+        operat = stackOperator.Pop();
+        
+        Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, leftOper, st, operandInts);
+
+        // Check if cube operator is valid for these operands
+        if (quad.typeOut == invalid)
+        {
+            SemErr("Invalid assignment: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
+        }
+        program.Add(quad);
+    }
+}
 
 void check(SymbolTable st, int[] arr){
     string leftOper;
@@ -531,12 +570,14 @@ bool IsDecVars(){
 				SHORT_ASSIGN();
 			} else {
 				Get();
+				stackOperator.Push(_equal); 
 			}
 			HYPER_EXP();
 		} else if (la.kind == 23 || la.kind == 24) {
 			STEP();
 		} else SynErr(55);
 		Expect(12);
+		checkAssign(sTable); 
 	}
 
 	void HYPER_EXP() {
@@ -581,6 +622,7 @@ bool IsDecVars(){
 	void VARIABLE_ASSIGN() {
 		string name; 
 		IDENT(out name );
+		pushToOperandStack(name, sTable); 
 		if (la.kind == 7) {
 			Get();
 			EXP();
@@ -596,20 +638,26 @@ bool IsDecVars(){
 	void SHORT_ASSIGN() {
 		if (la.kind == 19) {
 			Get();
+			stackOperator.Push(_sadd); 
 		} else if (la.kind == 20) {
 			Get();
+			stackOperator.Push(_ssub); 
 		} else if (la.kind == 22) {
 			Get();
+			stackOperator.Push(_smul); 
 		} else if (la.kind == 21) {
 			Get();
+			stackOperator.Push(_sdiv); 
 		} else SynErr(56);
 	}
 
 	void STEP() {
 		if (la.kind == 23) {
 			Get();
+			stackOperator.Push(_increment); 
 		} else if (la.kind == 24) {
 			Get();
+			stackOperator.Push(_decrement); 
 		} else SynErr(57);
 	}
 

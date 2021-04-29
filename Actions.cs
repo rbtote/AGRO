@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGRO_GRAMM
 {
-    class Actions
+    public class Actions
     {
     }
 }
