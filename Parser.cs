@@ -59,7 +59,7 @@ public class Parser {
 	int errDist = minErrDist;
 
 const int // types
-	  undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6;
+	  invalid = Int32.MaxValue, undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6;
 
 const int // object kinds
 	  var = 0, func = 1, temporal = 2;
@@ -69,7 +69,8 @@ int[] TERM_OPERATORS = { _mul, _div };
 int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
-static string operInts = @$"{{
+
+Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
 				{_add}:'+',
 				{_sub}:'-',
 				{_div}:'/',
@@ -85,16 +86,25 @@ static string operInts = @$"{{
 				{_and}:'and',
 				{_or}:'or',
 				{_or}:'||'
-				}}";
+				}}");
 
-
-Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(operInts);
+Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
+				{invalid}: 'INVALID',
+                {undef}:'UNDEFINED',
+				{t_int}:'INT',
+				{t_float}:'FLOAT',
+				{t_char}:'CHAR',
+				{t_void}:'VOID',
+				{t_obj}:'OBJ',
+				{t_string}:'STRING'
+				}}");
 
 SymbolTable   sTable;
 
-Stack<String>   stackOperand = new Stack<String>();
+Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
 Stack<int>      stackTypes = new Stack<int>();
+Stack<int>      stackJumps = new Stack<int>();
 
 int tempCont = 0;
 
@@ -154,6 +164,12 @@ void check(SymbolTable st, int[] arr){
             tempName = "_t" + tempCont;
             tempCont+=1;
             Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, tempName, st, operandInts);
+
+            // Check if cube operator is valid for these operands
+            if (quad.typeOut == invalid)
+            {
+                SemErr("Invalid operation: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
+            }
             st.putSymbol(tempName, quad.typeOut, temporal);
             program.Add(quad);
             pushToOperandStack(tempName, st);
@@ -516,7 +532,7 @@ bool IsDecVars(){
 			} else {
 				Get();
 			}
-			EXP();
+			HYPER_EXP();
 		} else if (la.kind == 23 || la.kind == 24) {
 			STEP();
 		} else SynErr(55);

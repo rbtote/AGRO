@@ -5,26 +5,26 @@ using System.Text;
 
 namespace AGRO_GRAMM
 {
-	class Cube
-	{
-		private Dictionary<int, Dictionary<int, Dictionary<string, int>>> cube;
+    class Cube
+    {
+        private Dictionary<int, Dictionary<int, Dictionary<string, int>>> cube;
 
-		private static Cube privateCube;
+        private static Cube privateCube;
 
-		public static Cube getInstance()
-		{
-			if (privateCube == null)
-			{
-				privateCube = new Cube();
-			}
+        public static Cube getInstance()
+        {
+            if (privateCube == null)
+            {
+                privateCube = new Cube();
+            }
 
-			return privateCube;
-		}
+            return privateCube;
+        }
 
-		private Cube()
-		{
-			// int = 1, float = 2, char = 3
-			string json = @"{
+        private Cube()
+        {
+            // int = 1, float = 2, char = 3
+            string json = @"{
 				1: {
 					1: {
 						'+': 1,
@@ -111,31 +111,31 @@ namespace AGRO_GRAMM
 					}
 				}
 			}";
-			cube = JsonConvert.DeserializeObject<Dictionary<int, Dictionary<int, Dictionary<string, int>>>>(json);
-		}
+            cube = JsonConvert.DeserializeObject<Dictionary<int, Dictionary<int, Dictionary<string, int>>>>(json);
+        }
 
-		/// <summary>
-		/// Searches in semantic operator cube
-		/// </summary>
-		/// <param name="typeA">Left-side operand</param>
-		/// <param name="typeB">Right-side operand</param>
-		/// <param name="op">Operator</param>
-		/// <returns>Operator int >= 1. If error returns -1</returns>
-		public int outputCube(int typeA, int typeB, int op, Dictionary<int, string> dict)
-		{
-			if (cube.ContainsKey(typeA))
-			{
-				if (cube[typeA].ContainsKey(typeB))
-				{
-					if (cube[typeA][typeB].ContainsKey(dict[op]))
-					{
-						return cube[typeA][typeB][dict[op]];
-					}
-				}
-			}
+        /// <summary>
+        /// Searches in semantic operator cube
+        /// </summary>
+        /// <param name="typeA">Left-side operand</param>
+        /// <param name="typeB">Right-side operand</param>
+        /// <param name="op">Operator</param>
+        /// <returns>Operator int >= 1. If error returns -1</returns>
+        public int outputCube(int typeA, int typeB, int op, Dictionary<int, string> dict)
+        {
+            if (cube.ContainsKey(typeA))
+            {
+                if (cube[typeA].ContainsKey(typeB))
+                {
+                    if (cube[typeA][typeB].ContainsKey(dict[op]))
+                    {
+                        return cube[typeA][typeB][dict[op]];
+                    }
+                }
+            }
 
-			return -1;
-		}
+            return Int32.MaxValue;
+        }
 
-	}
+    }
 }

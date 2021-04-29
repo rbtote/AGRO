@@ -9,9 +9,7 @@ namespace AGRO_GRAMM
     {
         static void Main(string[] args)
         {
-
-            
-            const string fileTest = @"C:\Users\rober\OneDrive\Documentos\ITESM\10mo\Compis\AGRO\AGRO_GRAMMAR\AGRO_GRAMM\TestQuads.agro";
+            const string fileTest = @"./../../../TestQuads.agro";
 
             Scanner scanner = new Scanner(fileTest);
             Parser parser = new Parser(scanner);
@@ -20,7 +18,7 @@ namespace AGRO_GRAMM
 
             if (parser.errors.count == 0) Console.WriteLine("No errors in program");
             Console.WriteLine(parser.errors.count + " errors detected");
-            
+
             /*
             
             SymbolTable st = new SymbolTable();

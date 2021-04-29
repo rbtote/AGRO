@@ -1,5 +1,5 @@
 ﻿main {
-    int aaa;
-    int bbb;
+    char aaa;
+    float bbb;
     aaa = ((bbb > aaa) && (aaa+4*7));
 }
