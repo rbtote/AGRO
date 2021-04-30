@@ -372,7 +372,7 @@ INPUT=
 .
 
 PRINT=
-    "print" pl  EXP { comma EXP } pr semicolon
+    "print" pl  EXP { comma HYPER_EXP } pr semicolon
 .
 
 CONDITIONAL=

@@ -510,7 +510,7 @@ bool IsDecVars(){
 		EXP();
 		while (la.kind == 11) {
 			Get();
-			EXP();
+			HYPER_EXP();
 		}
 		Expect(10);
 		Expect(12);
