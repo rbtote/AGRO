@@ -72,7 +72,10 @@ int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _diffe
 
 //print token
 public const int _print=66;
-public const int _input=77;
+public const int _input=67;
+public const int _goto=68;
+public const int _gotoFalse=69;
+public const int _gotoTrue=70;
 
 Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
 				{_add}:'+',
@@ -230,6 +233,32 @@ void checkInputOutput(SymbolTable st, int oper){
     operand = stackOperand.Pop();
     Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
     program.Add(quad);
+}
+
+void makeIf(SymbolTable st){
+    string cond;
+    int typeCond;
+
+    typeCond = stackTypes.Pop();
+    cond = stackOperand.Pop();
+    Goto GotoIf = new Goto(_gotoFalse, cond, st, operandInts);
+    program.Add(GotoIf);
+    stackJumps.Push(program.Count-1);
+}
+
+void makeIfEnd(){
+    int endIf = stackJumps.Pop();
+	Goto endJump = (Goto)program[endIf];
+	endJump.setDirection(program.Count);
+}
+
+void makeElse(SymbolTable st){
+    int falseIfIndex = stackJumps.Pop();
+    Goto GotoEnd = new Goto(_goto, "", st, operandInts);
+    program.Add(GotoEnd);
+    stackJumps.Push(program.Count-1);
+    Goto falseIf = (Goto)program[falseIfIndex];
+    falseIf.setDirection(program.Count);
 }
 
 
@@ -555,12 +584,15 @@ bool IsDecVars(){
 		Expect(42);
 		Expect(9);
 		HYPER_EXP();
+		makeIf(sTable); 
 		Expect(10);
 		BLOCK();
 		if (la.kind == 43) {
 			Get();
+			makeElse(sTable); 
 			BLOCK();
 		}
+		makeIfEnd(); 
 	}
 
 	void WHILE() {

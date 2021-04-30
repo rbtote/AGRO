@@ -18,9 +18,12 @@ int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
 
-//print token
+//extra tokens for Quads
 public const int _print=66;
-public const int _input=77;
+public const int _input=67;
+public const int _goto=68;
+public const int _gotoFalse=69;
+public const int _gotoTrue=70;
 
 Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
 				{_add}:'+',
@@ -178,6 +181,32 @@ void checkInputOutput(SymbolTable st, int oper){
     operand = stackOperand.Pop();
     Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
     program.Add(quad);
+}
+
+void makeIf(SymbolTable st){
+    string cond;
+    int typeCond;
+
+    typeCond = stackTypes.Pop();
+    cond = stackOperand.Pop();
+    Goto GotoIf = new Goto(_gotoFalse, cond, st, operandInts);
+    program.Add(GotoIf);
+    stackJumps.Push(program.Count-1);
+}
+
+void makeIfEnd(){
+    int endIf = stackJumps.Pop();
+	Goto endJump = (Goto)program[endIf];
+	endJump.setDirection(program.Count);
+}
+
+void makeElse(SymbolTable st){
+    int falseIfIndex = stackJumps.Pop();
+    Goto GotoEnd = new Goto(_goto, "", st, operandInts);
+    program.Add(GotoEnd);
+    stackJumps.Push(program.Count-1);
+    Goto falseIf = (Goto)program[falseIfIndex];
+    falseIf.setDirection(program.Count);
 }
 
 
@@ -395,7 +424,7 @@ PRINT=
 .
 
 CONDITIONAL=
-    "if" pl HYPER_EXP pr BLOCK [ "else" BLOCK ]
+    "if" pl HYPER_EXP (. makeIf(sTable); .) pr BLOCK [ "else" (. makeElse(sTable); .) BLOCK ] (. makeIfEnd(); .)
 .
 
 WHILE=
