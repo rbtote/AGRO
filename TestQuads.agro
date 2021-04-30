@@ -1,7 +1,9 @@
 ﻿main {
     int a, b;
+    input(a);
     float f;
     b++;
     f = a * b;
+    print("The value of f+a is: ", f+a);
 
 }

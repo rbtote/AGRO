@@ -70,6 +70,10 @@ int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
 
+//print token
+public const int _print=66;
+public const int _input=77;
+
 Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
 				{_add}:'+',
 				{_sub}:'-',
@@ -91,7 +95,9 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_and}:'&&',
 				{_and}:'and',
 				{_or}:'or',
-				{_or}:'||'
+				{_or}:'||',
+                {_print}: 'print',
+                {_input}: 'input'
 				}}");
 
 Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
@@ -215,6 +221,17 @@ void check(SymbolTable st, int[] arr){
         }
     }
 }
+
+void checkInputOutput(SymbolTable st, int oper){
+    string operand;
+    int type;
+
+    type = stackTypes.Pop();
+    operand = stackOperand.Pop();
+    Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
+    program.Add(quad);
+}
+
 
 /*--------------------------------------------------------------------------*/    
 
@@ -500,6 +517,7 @@ bool IsDecVars(){
 		Expect(40);
 		Expect(9);
 		VARIABLE_ASSIGN();
+		checkInputOutput(sTable, _input); 
 		Expect(10);
 		Expect(12);
 	}
@@ -507,10 +525,12 @@ bool IsDecVars(){
 	void PRINT() {
 		Expect(41);
 		Expect(9);
-		EXP();
+		HYPER_EXP();
+		checkInputOutput(sTable, _print); 
 		while (la.kind == 11) {
 			Get();
 			HYPER_EXP();
+			checkInputOutput(sTable, _print); 
 		}
 		Expect(10);
 		Expect(12);

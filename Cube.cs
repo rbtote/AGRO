@@ -47,7 +47,9 @@ namespace AGRO_GRAMM
 						'&&': 1,
 						'and': 1,
 						'or': 1,
-						'||': 1
+						'||': 1,
+						'print': 1,
+						'input': 1
 					},
 					2: {
 						'+': 2,
@@ -113,6 +115,8 @@ namespace AGRO_GRAMM
 						'++': 2,
 						'--': 2,
 						'!=': 1,
+						'print': 2,
+						'input': 2
 					},
 					3: {
 					}
@@ -146,7 +150,9 @@ namespace AGRO_GRAMM
 						'*=': 3,
 						'++': 3,
 						'--': 3,
-						'!=': 1
+						'!=': 1,
+						'print': 3,
+						'input': 3
 					}
 				}
 			}";

@@ -18,6 +18,10 @@ int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
 
+//print token
+public const int _print=66;
+public const int _input=77;
+
 Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
 				{_add}:'+',
 				{_sub}:'-',
@@ -39,7 +43,9 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_and}:'&&',
 				{_and}:'and',
 				{_or}:'or',
-				{_or}:'||'
+				{_or}:'||',
+                {_print}: 'print',
+                {_input}: 'input'
 				}}");
 
 Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
@@ -163,6 +169,17 @@ void check(SymbolTable st, int[] arr){
         }
     }
 }
+
+void checkInputOutput(SymbolTable st, int oper){
+    string operand;
+    int type;
+
+    type = stackTypes.Pop();
+    operand = stackOperand.Pop();
+    Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
+    program.Add(quad);
+}
+
 
 /*--------------------------------------------------------------------------*/    
 
@@ -368,11 +385,13 @@ ASSIGN=
 .
 
 INPUT=
-    "input" pl VARIABLE_ASSIGN pr semicolon
+    "input" pl VARIABLE_ASSIGN (. checkInputOutput(sTable, _input); .) pr semicolon
 .
 
 PRINT=
-    "print" pl  EXP { comma HYPER_EXP } pr semicolon
+    "print" pl 
+    HYPER_EXP (. checkInputOutput(sTable, _print); .) { comma HYPER_EXP (. checkInputOutput(sTable, _print); .) }
+    pr semicolon
 .
 
 CONDITIONAL=
