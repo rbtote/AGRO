@@ -1,9 +1,14 @@
 ﻿main {
     int a, b;
-    char c;
-    float f;
-    a += b * b;
-    b++;
-    c /= c / f;
+    input(a);
+    if (a > b)
+    {
+        a = b;
+    }
+    else
+    {
+        b = 5;
+    }
+    a++;
 
 }

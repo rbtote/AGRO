@@ -19,9 +19,9 @@ namespace AGRO_GRAMM
             if (parser.errors.count == 0) Console.WriteLine("No errors in program");
             Console.WriteLine(parser.errors.count + " errors detected");
 
-            foreach (Cuadruple cuad in parser.program)
+            foreach (Actions act in parser.program)
             {
-                Console.WriteLine(cuad.ToString());
+                Console.WriteLine(act.ToString());
             }
             /*
             
