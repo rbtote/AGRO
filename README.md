@@ -1,11 +1,12 @@
 # AGRO COMPILER
 
-## THIRD DELIVERY 
+## FOURTH DELIVERY 
 
-This version includes 3 new classes to handle our first code generation behaviours, we have set the neuralgic spots in the grammar sintax, for the linear stautes (variables, arithmetic assignments)
+This version includes a new set of instructions for Jump handling (GOTO). Added While and For loops code generation. Added input, print code generation. Added IF ELSE code generation.
 
 ## TODO
-* Generate GOTOS and print/input Quads
 * Cleanup the cube class
-* Check representation of the temporal variables
-* Error handling
+* Check representation of memory addresses
+* Error handling 
+* Create classes for quads that use less than 4 parameters in code generation for cleanup
+* Implement special math operators

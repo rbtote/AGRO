@@ -70,7 +70,7 @@ int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
 
-//print token
+//extra tokens for Quads
 public const int _print=66;
 public const int _input=67;
 public const int _goto=68;
@@ -261,6 +261,63 @@ void makeElse(SymbolTable st){
     falseIf.setDirection(program.Count);
 }
 
+void makeLoop(SymbolTable st){
+    string cond;
+    int typeCond;
+
+    typeCond = stackTypes.Pop();
+    cond = stackOperand.Pop();
+    Goto GotoWhile = new Goto(_gotoFalse, cond, st, operandInts);
+    program.Add(GotoWhile);
+    stackJumps.Push(program.Count-1);
+}
+
+void makeLoopEnd(SymbolTable st){
+    int endWhile = stackJumps.Pop();
+    int retEval = stackJumps.Pop();
+	Goto evalJump = new Goto(_goto, "", st, operandInts);
+    evalJump.setDirection(retEval);
+    program.Add(evalJump);
+    Goto gotoEndWhile = (Goto)program[endWhile];
+	gotoEndWhile.setDirection(program.Count);
+}
+
+void makeFor(SymbolTable st){
+    string cond;
+    int typeCond;
+
+    typeCond = stackTypes.Pop();
+    cond = stackOperand.Pop();
+    Goto GotoFalse = new Goto(_gotoFalse, cond, st, operandInts);
+    program.Add(GotoFalse);
+    stackJumps.Push(program.Count-1);
+    Goto gotoTrue = new Goto(_goto, "", st, operandInts);
+    program.Add(gotoTrue);
+    stackJumps.Push(program.Count-1);
+}
+
+void forTrue(SymbolTable st){
+    Goto gotoEval = new Goto(_goto, "", st, operandInts);
+    program.Add(gotoEval);
+    stackJumps.Push(program.Count-1);
+}
+
+void makeForEnd(SymbolTable st){
+    int setGotoEval = stackJumps.Pop();
+    int gotoBlockTrue = stackJumps.Pop();
+    int gotoEnd = stackJumps.Pop();
+    int retEval = stackJumps.Pop();
+    Goto _gotoEnd = (Goto)program[gotoEnd];
+    _gotoEnd.setDirection(program.Count+1);
+	Goto gotoStep = new Goto(_goto, "", st, operandInts);
+    gotoStep.setDirection(gotoBlockTrue+1);
+    Goto _setGotoEval = (Goto)program[setGotoEval];
+    _setGotoEval.setDirection(retEval);
+    Goto _gotoBlockTrue = (Goto)program[gotoBlockTrue];
+    _gotoBlockTrue.setDirection(setGotoEval+1);
+    program.Add(gotoStep);
+    
+}
 
 /*--------------------------------------------------------------------------*/    
 
@@ -598,21 +655,27 @@ bool IsDecVars(){
 	void WHILE() {
 		Expect(44);
 		Expect(9);
+		stackJumps.Push(program.Count); 
 		HYPER_EXP();
+		makeLoop(sTable); 
 		Expect(10);
 		BLOCK();
+		makeLoopEnd(sTable); 
 	}
 
 	void FOR() {
 		Expect(45);
 		Expect(9);
 		ASSIGN();
-		Expect(12);
+		stackJumps.Push(program.Count); 
 		HYPER_EXP();
+		makeFor(sTable); 
 		Expect(12);
 		ASSIGN();
+		forTrue(sTable); 
 		Expect(10);
 		BLOCK();
+		makeForEnd(sTable); 
 	}
 
 	void ASSIGN() {

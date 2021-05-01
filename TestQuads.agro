@@ -1,14 +1,7 @@
 ﻿main {
     int a, b;
-    input(a);
-    if (a > b)
-    {
-        a = b;
+    for(a = 0; a < 10; a++;){
+        print(a);
     }
-    else
-    {
-        b = 5;
-    }
-    a++;
-
+    print("Si jala");
 }

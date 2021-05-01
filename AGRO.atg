@@ -209,6 +209,63 @@ void makeElse(SymbolTable st){
     falseIf.setDirection(program.Count);
 }
 
+void makeLoop(SymbolTable st){
+    string cond;
+    int typeCond;
+
+    typeCond = stackTypes.Pop();
+    cond = stackOperand.Pop();
+    Goto GotoWhile = new Goto(_gotoFalse, cond, st, operandInts);
+    program.Add(GotoWhile);
+    stackJumps.Push(program.Count-1);
+}
+
+void makeLoopEnd(SymbolTable st){
+    int endWhile = stackJumps.Pop();
+    int retEval = stackJumps.Pop();
+	Goto evalJump = new Goto(_goto, "", st, operandInts);
+    evalJump.setDirection(retEval);
+    program.Add(evalJump);
+    Goto gotoEndWhile = (Goto)program[endWhile];
+	gotoEndWhile.setDirection(program.Count);
+}
+
+void makeFor(SymbolTable st){
+    string cond;
+    int typeCond;
+
+    typeCond = stackTypes.Pop();
+    cond = stackOperand.Pop();
+    Goto GotoFalse = new Goto(_gotoFalse, cond, st, operandInts);
+    program.Add(GotoFalse);
+    stackJumps.Push(program.Count-1);
+    Goto gotoTrue = new Goto(_goto, "", st, operandInts);
+    program.Add(gotoTrue);
+    stackJumps.Push(program.Count-1);
+}
+
+void forTrue(SymbolTable st){
+    Goto gotoEval = new Goto(_goto, "", st, operandInts);
+    program.Add(gotoEval);
+    stackJumps.Push(program.Count-1);
+}
+
+void makeForEnd(SymbolTable st){
+    int setGotoEval = stackJumps.Pop();
+    int gotoBlockTrue = stackJumps.Pop();
+    int gotoEnd = stackJumps.Pop();
+    int retEval = stackJumps.Pop();
+    Goto _gotoEnd = (Goto)program[gotoEnd];
+    _gotoEnd.setDirection(program.Count+1);
+	Goto gotoStep = new Goto(_goto, "", st, operandInts);
+    gotoStep.setDirection(gotoBlockTrue+1);
+    Goto _setGotoEval = (Goto)program[setGotoEval];
+    _setGotoEval.setDirection(retEval);
+    Goto _gotoBlockTrue = (Goto)program[gotoBlockTrue];
+    _gotoBlockTrue.setDirection(setGotoEval+1);
+    program.Add(gotoStep);
+    
+}
 
 /*--------------------------------------------------------------------------*/    
 
@@ -428,11 +485,23 @@ CONDITIONAL=
 .
 
 WHILE=
-    "while" pl HYPER_EXP pr BLOCK
+    "while" pl (. stackJumps.Push(program.Count); .) HYPER_EXP
+    (. makeLoop(sTable); .) pr 
+    BLOCK
+    (. makeLoopEnd(sTable); .)
 .
 
 FOR=
-    "for" pl ASSIGN semicolon HYPER_EXP semicolon ASSIGN pr BLOCK
+    "for" pl ASSIGN
+    (. stackJumps.Push(program.Count); .)
+    HYPER_EXP 
+    (. makeFor(sTable); .)
+    semicolon
+    ASSIGN
+    (. forTrue(sTable); .)
+    pr
+    BLOCK
+    (. makeForEnd(sTable); .)
 .
 
 FUNC_CALL	(. string name; .)
