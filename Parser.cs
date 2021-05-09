@@ -115,6 +115,7 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 SymbolTable   sTable;
+Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
 
 Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
@@ -413,6 +414,7 @@ bool IsDecVars(){
 	
 	void PROGRAM() {
 		sTable = new SymbolTable();
+		program.Add(new Goto(_goto, "", sTable, typesInts)); // Main GOTO. Always position 0
 		
 		while (StartOf(1)) {
 			DECLARATION();
@@ -429,7 +431,7 @@ bool IsDecVars(){
 	}
 
 	void MAIN() {
-		sTable = sTable.newChildSymbolTable(); 
+		sTable = sTable.newChildSymbolTable(); Goto mainGoto = (Goto)program[0]; mainGoto.setDirection(program.Count); 
 		Expect(37);
 		Expect(5);
 		if (IsDecVars() ) {
@@ -449,14 +451,16 @@ bool IsDecVars(){
 	}
 
 	void DEC_FUNC() {
-		string name; int type; 
+		string name; int type; bool solvedReturn; 
 		TYPE_FUNC(out type );
+		solvedReturn = (type == t_void); 
 		IDENT(out name );
 		sTable.putSymbol(name, type, func);
+		       dirFunc.Add(name, new Function(program.Count + 1));
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 34 || la.kind == 35 || la.kind == 36) {
-			PARAMS_FUNC();
+			PARAMS_FUNC(name);
 		}
 		Expect(10);
 		Expect(5);
@@ -476,9 +480,12 @@ bool IsDecVars(){
 		}
 		if (la.kind == 39) {
 			RETURN();
+			solvedReturn = true; 
 		}
+		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(6);
-		sTable = sTable.parentSymbolTable; 
+		sTable = sTable.parentSymbolTable;
+		           program.Add(new EndFunc()); 
 	}
 
 	void DEC_VARS() {
@@ -562,16 +569,18 @@ bool IsDecVars(){
 		} else SynErr(53);
 	}
 
-	void PARAMS_FUNC() {
+	void PARAMS_FUNC(string currFunc ) {
 		string name; int type; 
 		SIMPLE_TYPE(out type );
 		IDENT(out name );
-		sTable.putSymbol(name, type, var); 
+		sTable.putSymbol(name, type, var);
+		       dirFunc[currFunc].parameterTypes.Add(type); 
 		while (la.kind == 11) {
 			Get();
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
-			sTable.putSymbol(name, type, var); 
+			sTable.putSymbol(name, type, var);
+			      dirFunc[currFunc].parameterTypes.Add(type); 
 		}
 	}
 
@@ -597,6 +606,7 @@ bool IsDecVars(){
 		Expect(39);
 		HYPER_EXP();
 		Expect(12);
+		program.Add(new Return(stackOperand.Pop())); 
 	}
 
 	void INPUT() {
@@ -623,18 +633,37 @@ bool IsDecVars(){
 	}
 
 	void FUNC_CALL() {
-		string name; 
+		string name; int paramCount = 0; string localParamType; string funcParamType;
 		IDENT(out name );
+		if (sTable.getSymbol(name) == null) { SemErr("Function does not exists"); }
+		 program.Add(new Era(name)); 
 		Expect(9);
 		if (StartOf(5)) {
-			EXP();
+			HYPER_EXP();
+			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+			if (localParamType  != funcParamType) { 
+			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+			} 
+			program.Add(new Param(stackOperand.Peek(), paramCount)); 
+			paramCount ++; 
+			
 			while (la.kind == 11) {
 				Get();
-				EXP();
+				HYPER_EXP();
+				funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+				localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+				if (localParamType  != funcParamType) { 
+				   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+				} 
+				program.Add(new Param(stackOperand.Peek(), paramCount)); 
+				paramCount ++; 
+				
 			}
 		}
 		Expect(10);
 		Expect(12);
+		program.Add(new GoSub(name)); 
 	}
 
 	void CONDITIONAL() {

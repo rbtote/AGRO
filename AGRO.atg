@@ -63,6 +63,7 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 SymbolTable   sTable;
+Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
 
 Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
@@ -355,6 +356,7 @@ PRODUCTIONS
 PROGRAM= 
     (.
      sTable = new SymbolTable();
+     program.Add(new Goto(_goto, "", sTable, typesInts)); // Main GOTO. Always position 0
     .)
     { DECLARATION } MAIN
     
@@ -381,19 +383,21 @@ DEC_VARS                                    (. string name; int type; string cla
     )
 .
 
-DEC_FUNC				(. string name; int type; .)
+DEC_FUNC				(. string name; int type; bool solvedReturn; .)
 =				
-    TYPE_FUNC			< out type >
+    TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. sTable.putSymbol(name, type, func);
+                                    dirFunc.Add(name, new Function(program.Count + 1));
                                     sTable = sTable.newChildSymbolTable(); .)
-    pl [ PARAMS_FUNC ] pr
+    pl [ PARAMS_FUNC <name> ] pr
     cbl [
      ( IF( IsDecVars() ) DEC_VARS |
       STATUTE ) 
       { ( IF( IsDecVars() ) DEC_VARS |
        STATUTE ) } ] 
-     [ RETURN ] 
-    cbr					(. sTable = sTable.parentSymbolTable; .)
+     [ RETURN (. solvedReturn = true; .) ] (. if (!solvedReturn) { SemErr("Function requires return"); } .)
+    cbr					(. sTable = sTable.parentSymbolTable;
+                           program.Add(new EndFunc()); .)
 .
 /*
 DEC_CLASS=
@@ -416,7 +420,7 @@ SIMPLE_TYPE         < out int type >
     )
 .
 
-MAIN=               (. sTable = sTable.newChildSymbolTable(); .)
+MAIN=               (. sTable = sTable.newChildSymbolTable(); Goto mainGoto = (Goto)program[0]; mainGoto.setDirection(program.Count); .)
     "main" cbl ( IF( IsDecVars() ) DEC_VARS | STATUTE ) { IF( IsDecVars() ) DEC_VARS | STATUTE } cbr
                     (. sTable = sTable.parentSymbolTable; .)
 .
@@ -442,18 +446,20 @@ TYPE_FUNC           < out int type >
     )
 .
 
-PARAMS_FUNC             		(. string name; int type; .)
+PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
 =
     SIMPLE_TYPE         < out type >
-    IDENT		< out name >	(. sTable.putSymbol(name, type, var); .)
+    IDENT		< out name >	(. sTable.putSymbol(name, type, var);
+                                   dirFunc[currFunc].parameterTypes.Add(type); .)
     { 
      comma SIMPLE_TYPE	< out type >
-     IDENT		< out name >	(. sTable.putSymbol(name, type, var); .)
+     IDENT		< out name >	(. sTable.putSymbol(name, type, var);
+                                   dirFunc[currFunc].parameterTypes.Add(type); .)
     }
 .
 
 RETURN=
-    "return" HYPER_EXP semicolon
+    "return" HYPER_EXP semicolon (. program.Add(new Return(stackOperand.Pop())); .)
 .
 
 EXP=
@@ -504,10 +510,32 @@ FOR=
     (. makeForEnd(sTable); .)
 .
 
-FUNC_CALL	(. string name; .)
+FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string funcParamType;.)
 =
-    IDENT	< out name > 
-    pl [ EXP { comma EXP } ] pr semicolon
+    IDENT	< out name > (. if (sTable.getSymbol(name) == null) { SemErr("Function does not exists"); }
+                            program.Add(new Era(name)); .)
+    pl [ HYPER_EXP 
+                    (. 
+                        funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+                        localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+                        if (localParamType  != funcParamType) { 
+                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+                        } 
+                        program.Add(new Param(stackOperand.Peek(), paramCount)); 
+                        paramCount ++; 
+                    .) 
+        { comma HYPER_EXP 
+                    (. 
+                        funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+                        localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+                        if (localParamType  != funcParamType) { 
+                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+                        } 
+                        program.Add(new Param(stackOperand.Peek(), paramCount)); 
+                        paramCount ++; 
+                    .) 
+        } ] pr semicolon
+    (. program.Add(new GoSub(name)); .)
 .
 /*
 METHOD_CALL=

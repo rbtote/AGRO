@@ -2,8 +2,14 @@ int suma(int a, int b){
     return a+b;
 }
 
+void nada (float ok) {
+    int a,b;
+    a = ok;
+}
+
 main {
     int aaa;
     int bbb;
+    suma(aaa, "a");
     aaa = bbb+1;
 }
