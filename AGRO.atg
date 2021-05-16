@@ -84,6 +84,14 @@ void pushToOperandStack(string id, SymbolTable st){
 
 }
 
+string createTemp(int type, SymbolTable st){
+    string tempName;
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    st.putSymbol(tempName, type, temporal);
+    return tempName;
+}
+
 string createTempInt(int tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
@@ -289,6 +297,18 @@ bool IsFunctionCall(){
     return x.kind == _pl;
 }
 
+bool IsTypedFunctionCall(SymbolTable st){
+    scanner.ResetPeek();
+    Token x = la; 
+    while (x.kind == _id ){
+        if(st.getType(la.val) == t_void){
+            SemErr("Invalid function call: " + _id + " does not return any value");
+        }
+        x = scanner.Peek();
+    }
+    return x.kind == _pl;
+}
+
 bool IsMethodCall() { 
     scanner.ResetPeek();
     Token x = la; 
@@ -443,7 +463,7 @@ MAIN=               (. sTable = sTable.newChildSymbolTable(); Goto mainGoto = (G
 STATUTE=
     INPUT       |
     PRINT       |
-    IF( IsFunctionCall() ) FUNC_CALL  |
+    IF( IsFunctionCall() ) FUNC_CALL  semicolon|
  //   IF( IsMethodCall() ) METHOD_CALL  |
     CONDITIONAL |
     WHILE       |
@@ -537,7 +557,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         if (localParamType  != funcParamType) { 
                             SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
-                        program.Add(new Param(stackOperand.Peek(), paramCount)); 
+                        program.Add(new Param(stackOperand.Pop(), paramCount)); 
                         paramCount ++; 
                     .) 
         { comma HYPER_EXP 
@@ -547,11 +567,20 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         if (localParamType  != funcParamType) { 
                             SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
-                        program.Add(new Param(stackOperand.Peek(), paramCount)); 
+                        program.Add(new Param(stackOperand.Pop(), paramCount)); 
                         paramCount ++; 
                     .) 
-        } ] pr semicolon
-    (. program.Add(new GoSub(name)); .)
+        } ] pr
+    (.
+        program.Add(new GoSub(name)); 
+        // If not void create temp to store result of call
+        if(sTable.getType(name) != t_void){
+            pushToOperandStack(createTemp(sTable.getType(name), sTable), sTable);
+            string leftOper = stackOperand.Peek();
+            Cuadruple quad = new Cuadruple(_equal, leftOper, "_"+name, leftOper, sTable, operandInts);
+            program.Add(quad);
+        }
+    .)
 .
 /*
 METHOD_CALL=
@@ -576,8 +605,9 @@ VARIABLE_ASSIGN   (. string name; .)
 
 VARIABLE_FACT	(. string name; .)
 =
+    IF( IsTypedFunctionCall(sTable) ) (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .)|
     IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
-    [ ( bl EXP br [ bl EXP br ] ) | /*( dot IDENT pl [ EXP { comma EXP } ] pr ) | */( pl [ EXP { comma EXP } ] pr ) ]
+    [ ( bl EXP br [ bl EXP br ] ) ]
 .
 
 HYPER_EXP=

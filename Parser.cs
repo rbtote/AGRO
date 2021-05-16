@@ -136,6 +136,14 @@ void pushToOperandStack(string id, SymbolTable st){
 
 }
 
+string createTemp(int type, SymbolTable st){
+    string tempName;
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    st.putSymbol(tempName, type, temporal);
+    return tempName;
+}
+
 string createTempInt(int tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
@@ -338,6 +346,18 @@ bool IsFunctionCall(){
     Token x = la; 
     while (x.kind == _id ) 
         x = scanner.Peek();
+    return x.kind == _pl;
+}
+
+bool IsTypedFunctionCall(SymbolTable st){
+    scanner.ResetPeek();
+    Token x = la; 
+    while (x.kind == _id ){
+        if(st.getType(la.val) == t_void){
+            SemErr("Invalid function call: " + _id + " does not return any value");
+        }
+        x = scanner.Peek();
+    }
     return x.kind == _pl;
 }
 
@@ -612,6 +632,7 @@ bool IsDecVars(){
 			PRINT();
 		} else if (IsFunctionCall() ) {
 			FUNC_CALL();
+			Expect(12);
 		} else if (la.kind == 42) {
 			CONDITIONAL();
 		} else if (la.kind == 44) {
@@ -659,7 +680,7 @@ bool IsDecVars(){
 			if (localParamType  != funcParamType) { 
 			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 			} 
-			program.Add(new Param(stackOperand.Peek(), paramCount)); 
+			program.Add(new Param(stackOperand.Pop(), paramCount)); 
 			paramCount ++; 
 			
 			while (la.kind == 11) {
@@ -670,14 +691,21 @@ bool IsDecVars(){
 				if (localParamType  != funcParamType) { 
 				   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 				} 
-				program.Add(new Param(stackOperand.Peek(), paramCount)); 
+				program.Add(new Param(stackOperand.Pop(), paramCount)); 
 				paramCount ++; 
 				
 			}
 		}
 		Expect(10);
-		Expect(12);
 		program.Add(new GoSub(name)); 
+		// If not void create temp to store result of call
+		if(sTable.getType(name) != t_void){
+		   pushToOperandStack(createTemp(sTable.getType(name), sTable), sTable);
+		   string leftOper = stackOperand.Peek();
+		   Cuadruple quad = new Cuadruple(_equal, leftOper, "_"+name, leftOper, sTable, operandInts);
+		   program.Add(quad);
+		}
+		
 	}
 
 	void CONDITIONAL() {
@@ -859,9 +887,13 @@ bool IsDecVars(){
 
 	void VARIABLE_FACT() {
 		string name; 
-		IDENT(out name );
-		pushToOperandStack(name, sTable); 
-		if (la.kind == 7 || la.kind == 9) {
+		if (IsTypedFunctionCall(sTable) ) {
+			stackOperator.Push(_pl); 
+			FUNC_CALL();
+			stackOperator.Pop(); 
+		} else if (la.kind == 1) {
+			IDENT(out name );
+			pushToOperandStack(name, sTable); 
 			if (la.kind == 7) {
 				Get();
 				EXP();
@@ -871,18 +903,8 @@ bool IsDecVars(){
 					EXP();
 					Expect(8);
 				}
-			} else {
-				Get();
-				if (StartOf(6)) {
-					EXP();
-					while (la.kind == 11) {
-						Get();
-						EXP();
-					}
-				}
-				Expect(10);
 			}
-		}
+		} else SynErr(60);
 	}
 
 	void SUPER_EXP() {
@@ -907,7 +929,7 @@ bool IsDecVars(){
 		} else if (la.kind == 33) {
 			Get();
 			stackOperator.Push(_or); 
-		} else SynErr(60);
+		} else SynErr(61);
 	}
 
 	void REL_OP() {
@@ -935,7 +957,7 @@ bool IsDecVars(){
 				Get();
 				stackOperator.Push(_different); 
 			}
-		} else SynErr(61);
+		} else SynErr(62);
 	}
 
 
@@ -1035,8 +1057,9 @@ public class Errors {
 			case 57: s = "invalid STEP"; break;
 			case 58: s = "invalid FACT"; break;
 			case 59: s = "invalid FACT"; break;
-			case 60: s = "invalid REL_EXP"; break;
-			case 61: s = "invalid REL_OP"; break;
+			case 60: s = "invalid VARIABLE_FACT"; break;
+			case 61: s = "invalid REL_EXP"; break;
+			case 62: s = "invalid REL_OP"; break;
 
 			default: s = "error " + n; break;
 		}

@@ -1,16 +1,11 @@
-int suma(int a, int b){
-    return a+b;
-}
-
 float nada (float ok) {
     int a,b;
+    float aa;
     a = ok;
-    return ok;
+    return (nada(nada(aa)) + nada(aa));
 }
 
 main {
-    int aaa;
-    int bbb;
-    suma(aaa, bbb);
-    aaa = bbb+1;
+    float aaa;
+    aaa = nada(aaa);
 }

@@ -1,8 +1,11 @@
 # AGRO COMPILER
 
-## FIFTH DELIVERY 
+## SIXTH DELIVERY 
 
-This version includes the modular functionality for functions (declaration and call) and the needed new operation codes (era, gosub, endfunc and return [and their classes]) for the correct creation of all the needed quads.
+This version includes the handling of return values in functions that are not voids, as well as the functionallity for them in 
+hyper_expressions (used for recursion).
+
+
 
 ## TODO
 * Cleanup the cube class
@@ -10,5 +13,5 @@ This version includes the modular functionality for functions (declaration and c
 * Error handling 
 * Create classes for quads that use less than 4 parameters in code generation for cleanup
 * Implement special math operators
-* Add function call to the assign 
 * Create more test files
+* Start implementation of virtual machine
