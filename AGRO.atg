@@ -108,6 +108,17 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
+void checkReturn(SymbolTable st, string leftOper, string rightOper) {
+    Cuadruple quad = new Cuadruple(_equal, leftOper, rightOper, leftOper, st, operandInts);
+
+    // Check if cube operator is valid for these operands
+    if (quad.typeOut == invalid)
+    {
+        SemErr("Return type mismatch: Expected <" + typesInts[st.getType(leftOper)] + ">. Found <" + typesInts[st.getType(rightOper)] + ">");
+    }
+    //program.Add(quad);
+}
+
 void checkAssign(SymbolTable st) {
     string leftOper;
     string rightOper;
@@ -383,19 +394,23 @@ DEC_VARS                                    (. string name; int type; string cla
     )
 .
 
-DEC_FUNC				(. string name; int type; bool solvedReturn; .)
+DEC_FUNC				(. string name; int type; bool solvedReturn; string returnVar; .)
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. sTable.putSymbol(name, type, func);
                                     dirFunc.Add(name, new Function(program.Count + 1));
+                                    sTable.putSymbol("_" + name, type, var);
                                     sTable = sTable.newChildSymbolTable(); .)
     pl [ PARAMS_FUNC <name> ] pr
     cbl [
-     ( IF( IsDecVars() ) DEC_VARS |
-      STATUTE ) 
-      { ( IF( IsDecVars() ) DEC_VARS |
-       STATUTE ) } ] 
-     [ RETURN (. solvedReturn = true; .) ] (. if (!solvedReturn) { SemErr("Function requires return"); } .)
+     ( RETURN <out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
+      IF( IsDecVars() ) DEC_VARS |
+      STATUTE) 
+      { ( RETURN <out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
+       IF( IsDecVars() ) DEC_VARS |
+       STATUTE 
+       ) } ] 
+     (. if (!solvedReturn) { SemErr("Function requires return"); } .)
     cbr					(. sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
@@ -458,8 +473,9 @@ PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
     }
 .
 
-RETURN=
-    "return" HYPER_EXP semicolon (. program.Add(new Return(stackOperand.Pop())); .)
+RETURN < out string returnVar >
+=
+    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop())); .)
 .
 
 EXP=
@@ -519,7 +535,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
                         localParamType = typesInts[sTable.getType(stackOperand.Peek())];
                         if (localParamType  != funcParamType) { 
-                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
                         program.Add(new Param(stackOperand.Peek(), paramCount)); 
                         paramCount ++; 
@@ -529,7 +545,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
                         localParamType = typesInts[sTable.getType(stackOperand.Peek())];
                         if (localParamType  != funcParamType) { 
-                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
                         program.Add(new Param(stackOperand.Peek(), paramCount)); 
                         paramCount ++; 

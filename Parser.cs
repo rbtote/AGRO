@@ -160,6 +160,17 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
+void checkReturn(SymbolTable st, string leftOper, string rightOper) {
+    Cuadruple quad = new Cuadruple(_equal, leftOper, rightOper, leftOper, st, operandInts);
+
+    // Check if cube operator is valid for these operands
+    if (quad.typeOut == invalid)
+    {
+        SemErr("Return type mismatch: Expected <" + typesInts[st.getType(leftOper)] + ">. Found <" + typesInts[st.getType(rightOper)] + ">");
+    }
+    //program.Add(quad);
+}
+
 void checkAssign(SymbolTable st) {
     string leftOper;
     string rightOper;
@@ -451,12 +462,13 @@ bool IsDecVars(){
 	}
 
 	void DEC_FUNC() {
-		string name; int type; bool solvedReturn; 
+		string name; int type; bool solvedReturn; string returnVar; 
 		TYPE_FUNC(out type );
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
 		sTable.putSymbol(name, type, func);
 		       dirFunc.Add(name, new Function(program.Count + 1));
+		       sTable.putSymbol("_" + name, type, var);
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 34 || la.kind == 35 || la.kind == 36) {
@@ -464,23 +476,25 @@ bool IsDecVars(){
 		}
 		Expect(10);
 		Expect(5);
-		if (StartOf(4)) {
-			if (IsDecVars() ) {
+		if (StartOf(5)) {
+			if (la.kind == 39) {
+				RETURN(out returnVar);
+				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
+			} else if (IsDecVars() ) {
 				DEC_VARS();
 			} else {
 				STATUTE();
 			}
-			while (StartOf(4)) {
-				if (IsDecVars() ) {
+			while (StartOf(5)) {
+				if (la.kind == 39) {
+					RETURN(out returnVar);
+					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
+				} else if (IsDecVars() ) {
 					DEC_VARS();
 				} else {
 					STATUTE();
 				}
 			}
-		}
-		if (la.kind == 39) {
-			RETURN();
-			solvedReturn = true; 
 		}
 		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(6);
@@ -584,6 +598,13 @@ bool IsDecVars(){
 		}
 	}
 
+	void RETURN(out string returnVar ) {
+		Expect(39);
+		HYPER_EXP();
+		Expect(12);
+		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop())); 
+	}
+
 	void STATUTE() {
 		if (la.kind == 40) {
 			INPUT();
@@ -600,13 +621,6 @@ bool IsDecVars(){
 		} else if (la.kind == 1) {
 			ASSIGN();
 		} else SynErr(54);
-	}
-
-	void RETURN() {
-		Expect(39);
-		HYPER_EXP();
-		Expect(12);
-		program.Add(new Return(stackOperand.Pop())); 
 	}
 
 	void INPUT() {
@@ -638,12 +652,12 @@ bool IsDecVars(){
 		if (sTable.getSymbol(name) == null) { SemErr("Function does not exists"); }
 		 program.Add(new Era(name)); 
 		Expect(9);
-		if (StartOf(5)) {
+		if (StartOf(6)) {
 			HYPER_EXP();
 			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
 			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
 			if (localParamType  != funcParamType) { 
-			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 			} 
 			program.Add(new Param(stackOperand.Peek(), paramCount)); 
 			paramCount ++; 
@@ -654,7 +668,7 @@ bool IsDecVars(){
 				funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
 				localParamType = typesInts[sTable.getType(stackOperand.Peek())];
 				if (localParamType  != funcParamType) { 
-				   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Received <" + localParamType + ">"); 
+				   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 				} 
 				program.Add(new Param(stackOperand.Peek(), paramCount)); 
 				paramCount ++; 
@@ -709,8 +723,8 @@ bool IsDecVars(){
 
 	void ASSIGN() {
 		VARIABLE_ASSIGN();
-		if (StartOf(6)) {
-			if (StartOf(7)) {
+		if (StartOf(7)) {
+			if (StartOf(8)) {
 				SHORT_ASSIGN();
 			} else {
 				Get();
@@ -726,7 +740,7 @@ bool IsDecVars(){
 
 	void HYPER_EXP() {
 		SUPER_EXP();
-		while (StartOf(8)) {
+		while (StartOf(9)) {
 			REL_EXP();
 			SUPER_EXP();
 		}
@@ -820,7 +834,7 @@ bool IsDecVars(){
 			HYPER_EXP();
 			Expect(10);
 			stackOperator.Pop(); 
-		} else if (StartOf(9)) {
+		} else if (StartOf(10)) {
 			if (la.kind == 13 || la.kind == 14) {
 				if (la.kind == 13) {
 					Get();
@@ -859,7 +873,7 @@ bool IsDecVars(){
 				}
 			} else {
 				Get();
-				if (StartOf(5)) {
+				if (StartOf(6)) {
 					EXP();
 					while (la.kind == 11) {
 						Get();
@@ -873,7 +887,7 @@ bool IsDecVars(){
 
 	void SUPER_EXP() {
 		EXP();
-		while (StartOf(10)) {
+		while (StartOf(11)) {
 			REL_OP();
 			EXP();
 		}
@@ -941,6 +955,7 @@ bool IsDecVars(){
 		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
 		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
 		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_x, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_T, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
 		{_x,_T,_T,_T, _T,_x,_x,_x, _x,_T,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
 		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
 		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
