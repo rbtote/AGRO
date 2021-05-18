@@ -1,12 +1,15 @@
-float nada (int aaa, float bbb) {
-    int a,b;
-    float aa;
-    a = aaa;
-    return a;
+float nada (int aa, float bb) {
+    float res;
+    res = aa*bb;
+    return res;
+}
+
+void test(int a){
+    a = a+3;
 }
 
 main {
     int aaa;
     float bbb;
-    aaa = nada(aaa);
+    aaa = nada(aaa, bbb)*7;
 }

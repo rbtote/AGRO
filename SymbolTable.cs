@@ -6,8 +6,39 @@ namespace AGRO_GRAMM
 {
     class SymbolTable
     {
+        // Counters for variables
+        int globalInt = 1001;
+        int globalFloat = 5001;
+        int globalChar = 9001;
+        int globalTempInt = 12001;
+        int globalTempFloat = 16001;
+        int globalTempChar = 20001;
+        int globalTempString = 24001;
 
+        //Local variables
+        int localInt = 28001;
+        int localFloat = 30001;
+        int localChar = 32001;
+        int localTempInt = 34001;
+        int localTempFloat = 36001;
+        int localTempChar = 38001;
+        int localTempString = 40001;
+
+        //Constant variables
+        int constInt = 42001;
+        int constFloat = 44001;
+        int constChar = 46001;
+
+        //Pointers
+        int pointersMem = 50001;
         /*
+         * 
+            INT     = 1001-5000, 12001-16000, 28001-30000, 34001-36000 ,42001-44000
+            FLOAT   = 5001-9000, 16001-20000, 30001-32000, 36001-38000 ,44001-46000
+            CHAR    = 9001-12000, 20001-24000, 32001-34000, 38001-40000 ,46001-50000
+            STRING  = 24001-28000, 40001-42000
+            POINTERS = 50001-x
+         * 
           "symbols": {
             id: [type, kind]
           }
@@ -42,8 +73,8 @@ namespace AGRO_GRAMM
             {
                 return false;
             }
-
-            int[] symbol = { type, kind };
+            int dir = assignDir(type, kind);
+            int[] symbol = { type, kind, dir };
             symbols.Add(name, symbol);
 
             return true;
@@ -68,6 +99,111 @@ namespace AGRO_GRAMM
         public int getType(string name)
         {
             return getSymbol(name)[0];
+        }
+
+        public int getDir(string name)
+        {
+            return getSymbol(name)[2];
+        }
+
+        private int assignDir(int type, int kind)
+        {
+            const int temporal = 2, pointer = 3;
+            const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;
+            int dir=0;
+            if(id == 0)     //Global table
+            {
+                if(kind == temporal)
+                {
+                    switch (type)
+                    {
+                        case t_int:
+                            dir = globalTempInt;
+                            globalTempInt++;
+                            break;
+                        case t_float:
+                            dir = globalTempFloat;
+                            globalTempFloat++;
+                            break;
+                        case t_char:
+                            dir = globalTempChar;
+                            globalTempChar++;
+                            break;
+                        case t_string:
+                            dir = globalTempString;
+                            globalTempString++;
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (type)
+                    {
+                        case t_int:
+                            dir = globalInt;
+                            globalInt++;
+                            break;
+                        case t_float:
+                            dir = globalFloat;
+                            globalFloat++;
+                            break;
+                        case t_char:
+                            dir = globalChar;
+                            globalChar++;
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                if (kind == temporal)
+                {
+                    switch (type)
+                    {
+                        case t_int:
+                            dir = localTempInt;
+                            localTempInt++;
+                            break;
+                        case t_float:
+                            dir = localTempFloat;
+                            localTempFloat++;
+                            break;
+                        case t_char:
+                            dir = localTempChar;
+                            localTempChar++;
+                            break;
+                        case t_string:
+                            dir = localTempString;
+                            localTempString++;
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (type)
+                    {
+                        case t_int:
+                            dir = localInt;
+                            localInt++;
+                            break;
+                        case t_float:
+                            dir = localFloat;
+                            localFloat++;
+                            break;
+                        case t_char:
+                            dir = localChar;
+                            localChar++;
+                            break;
+                    }
+                }
+            }
+
+            if(kind == pointer)
+            {
+                dir = pointersMem;
+                pointersMem++;
+            }
+            return dir;
         }
     }
 }

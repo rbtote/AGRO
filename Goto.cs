@@ -7,6 +7,7 @@ namespace AGRO_GRAMM
     class Goto : Actions
     {
         public string varCond;
+        public int dirVarCond;
         public int typeGoto, direction, valid;
         public Goto(int typeGoto, string varCond, SymbolTable _st, Dictionary<int, string> dict)
         {
@@ -14,6 +15,7 @@ namespace AGRO_GRAMM
             if(typeGoto != 68) //68 is plain goto
             {
                 this.varCond = varCond;
+                this.dirVarCond = _st.getDir(varCond);
                 this.valid = Cube.getInstance().outputCube(_st.getType(varCond), 1, 17, dict); //The variable received with int(1) equals(17)
             }
             //this.direction = direction;
@@ -28,7 +30,7 @@ namespace AGRO_GRAMM
         {
             if(typeGoto != 68)
             {
-                return typeGoto + " " + varCond + " " + direction;
+                return typeGoto + " " + dirVarCond + " " + direction;
             }
             return typeGoto + " " + direction;
         }

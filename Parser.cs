@@ -70,32 +70,6 @@ int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
 
-// Counters for variables
-int globalInt       = 1001;
-int globalFloat     = 5001;
-int globalChar      = 9001;
-int globalTempInt   = 12001;
-int globalTempFloat = 16001;
-int globalTempChar  = 20001;
-int globalTempString = 24001;
-
-//Local variables
-int localInt       = 28001;
-int localFloat     = 30001;
-int localChar      = 32001;
-int localTempInt   = 34001;
-int localTempFloat = 36001;
-int localTempChar  = 38001;
-int localTempString = 40001;
-
-//Constant variables
-int constInt       = 42001;
-int constFloat     = 44001;
-int constChar      = 46001;
-
-//Pointers
-int pointersMem    = 50001;
-
 //extra tokens for Quads
 public const int _print=66;
 public const int _input=67;
@@ -235,6 +209,7 @@ void checkAssign(SymbolTable st) {
         {
             SemErr("Invalid assignment: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
         }
+        quad.setDirOut(st, leftOper);
         program.Add(quad);
     }
 }
@@ -265,6 +240,7 @@ void check(SymbolTable st, int[] arr){
                 SemErr("Invalid operation: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
             }
             st.putSymbol(tempName, quad.typeOut, temporal);
+            quad.setDirOut(st, tempName);
             program.Add(quad);
             pushToOperandStack(tempName, st);
         }
@@ -278,6 +254,7 @@ void checkInputOutput(SymbolTable st, int oper){
     type = stackTypes.Pop();
     operand = stackOperand.Pop();
     Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
+    quad.setDirOut(st, operand);
     program.Add(quad);
 }
 
@@ -648,7 +625,7 @@ bool IsDecVars(){
 		Expect(39);
 		HYPER_EXP();
 		Expect(12);
-		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop())); 
+		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); 
 	}
 
 	void STATUTE() {
@@ -706,7 +683,7 @@ bool IsDecVars(){
 			if (localParamType  != funcParamType) { 
 			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 			} 
-			program.Add(new Param(stackOperand.Pop(), paramCount)); 
+			program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
 			paramCount ++; 
 			
 			while (la.kind == 11) {
@@ -720,7 +697,7 @@ bool IsDecVars(){
 				   if (localParamType  != funcParamType) { 
 				       SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 				   } 
-				   program.Add(new Param(stackOperand.Pop(), paramCount)); 
+				   program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
 				   paramCount ++;
 				}
 				
@@ -736,6 +713,7 @@ bool IsDecVars(){
 		   pushToOperandStack(createTemp(sTable.getType(name), sTable), sTable);
 		   string leftOper = stackOperand.Peek();
 		   Cuadruple quad = new Cuadruple(_equal, leftOper, "_"+name, leftOper, sTable, operandInts);
+		   quad.setDirOut(sTable, leftOper);
 		   program.Add(quad);
 		}
 		
@@ -804,6 +782,7 @@ bool IsDecVars(){
 		while (StartOf(9)) {
 			REL_EXP();
 			SUPER_EXP();
+			check(sTable, RELEXP_OPERATORS); 
 		}
 		check(sTable, RELEXP_OPERATORS); 
 	}
@@ -819,6 +798,7 @@ bool IsDecVars(){
 				stackOperator.Push(_sub);
 			}
 			TERM();
+			check(sTable, EXP_OPERATORS); 
 		}
 		check(sTable, EXP_OPERATORS); 
 	}
@@ -945,6 +925,7 @@ bool IsDecVars(){
 		while (StartOf(11)) {
 			REL_OP();
 			EXP();
+			check(sTable, RELOP_OPERATORS); 
 		}
 		check(sTable, RELOP_OPERATORS); 
 	}

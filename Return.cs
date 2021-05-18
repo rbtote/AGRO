@@ -7,15 +7,17 @@ namespace AGRO_GRAMM
     class Return : Actions
     {
         string outVar;
+        int dirVar;
 
-        public Return(string outVar)
+        public Return(string outVar, SymbolTable _st)
         {
             this.outVar = outVar;
+            this.dirVar = _st.getDir(outVar);
         }
 
         public override string ToString()
         {
-            return "return " + outVar;
+            return "return " + dirVar;
         }
     }
 }
