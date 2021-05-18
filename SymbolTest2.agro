@@ -1,11 +1,12 @@
-float nada (float ok) {
+float nada (int aaa, float bbb) {
     int a,b;
     float aa;
-    a = ok;
-    return (nada(nada(aa)) + nada(aa));
+    a = aaa;
+    return a;
 }
 
 main {
-    float aaa;
+    int aaa;
+    float bbb;
     aaa = nada(aaa);
 }

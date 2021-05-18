@@ -1,11 +1,8 @@
 int elementos, i;
 
-int funcion(int funciona, int funcionb){
-    int funcionc;
-
-}
 main {
-
     char aber;
+    int indice;
 
+    indice = i;
 }

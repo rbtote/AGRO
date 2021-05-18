@@ -70,6 +70,32 @@ int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
 
+// Counters for variables
+int globalInt       = 1001;
+int globalFloat     = 5001;
+int globalChar      = 9001;
+int globalTempInt   = 12001;
+int globalTempFloat = 16001;
+int globalTempChar  = 20001;
+int globalTempString = 24001;
+
+//Local variables
+int localInt       = 28001;
+int localFloat     = 30001;
+int localChar      = 32001;
+int localTempInt   = 34001;
+int localTempFloat = 36001;
+int localTempChar  = 38001;
+int localTempString = 40001;
+
+//Constant variables
+int constInt       = 42001;
+int constFloat     = 44001;
+int constChar      = 46001;
+
+//Pointers
+int pointersMem    = 50001;
+
 //extra tokens for Quads
 public const int _print=66;
 public const int _input=67;
@@ -686,17 +712,24 @@ bool IsDecVars(){
 			while (la.kind == 11) {
 				Get();
 				HYPER_EXP();
-				funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
-				localParamType = typesInts[sTable.getType(stackOperand.Peek())];
-				if (localParamType  != funcParamType) { 
-				   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
-				} 
-				program.Add(new Param(stackOperand.Pop(), paramCount)); 
-				paramCount ++; 
+				if(paramCount >= dirFunc[name].parameterTypes.Count){
+				   SemErr("Parameter number mismatch. Expected Just " + dirFunc[name].parameterTypes.Count + " Parameters. Found more");
+				}else{
+				   funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+				   localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+				   if (localParamType  != funcParamType) { 
+				       SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
+				   } 
+				   program.Add(new Param(stackOperand.Pop(), paramCount)); 
+				   paramCount ++;
+				}
 				
 			}
 		}
 		Expect(10);
+		if(paramCount < dirFunc[name].parameterTypes.Count){
+		   SemErr("Parameter number mismatch. Expected " + dirFunc[name].parameterTypes.Count + " Parameters. Found " + paramCount + ""); 
+		}
 		program.Add(new GoSub(name)); 
 		// If not void create temp to store result of call
 		if(sTable.getType(name) != t_void){
