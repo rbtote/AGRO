@@ -13,7 +13,7 @@ const int // object kinds
 	  var = 0, func = 1, temporal = 2;
 
 
-int[] TERM_OPERATORS = { _mul, _div };
+int[] TERM_OPERATORS = { _mul, _div, _exponent, _intdiv, _module};
 int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
@@ -29,7 +29,10 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_add}:'+',
 				{_sub}:'-',
 				{_div}:'/',
+				{_exponent}:'**',
+                {_intdiv}:'//',
 				{_mul}:'*',
+                {_module}:'%',
 				{_sadd}:'+=',
 				{_ssub}:'-=',
 				{_sdiv}:'/=',
@@ -362,7 +365,10 @@ semicolon   = ";".
 add         = "+".
 sub         = "-".
 mul         = "*".
+exponent    = "**".
 div         = "/".
+intdiv      = "//".
+module      = "%".
 equal       = "=".
 dot         = ".".
 sadd        = "+=".
@@ -599,8 +605,7 @@ METHOD_CALL=
 .
 */
 TERM=
-    FACT
-    { ( mul (. stackOperator.Push(_mul); .) | div (. stackOperator.Push(_div); .) ) FACT }
+    FACT { OPERATORS_TERM FACT (. check(sTable, TERM_OPERATORS); .) }
     (. check(sTable, TERM_OPERATORS); .)
 .
 
@@ -640,6 +645,12 @@ FACT
 
 STEP=
     increment (. stackOperator.Push(_increment); .) | decrement (. stackOperator.Push(_decrement); .)
+.
+
+OPERATORS_TERM =
+    mul       (. stackOperator.Push(_mul); .)      |   div        (. stackOperator.Push(_div); .)   |
+    exponent  (. stackOperator.Push(_exponent); .) |   intdiv    (. stackOperator.Push(_intdiv); .) |
+    module    (. stackOperator.Push(_module); .) 
 .
 
 REL_EXP=

@@ -1,15 +1,6 @@
-float nada (int aa, float bb) {
-    float res;
-    res = aa*bb;
-    return res;
-}
-
-void test(int a){
-    a = a+3;
-}
 
 main {
     int aaa;
     float bbb;
-    aaa = nada(aaa, bbb)*7;
+    aaa = aaa**2+bbb%2*4;
 }
