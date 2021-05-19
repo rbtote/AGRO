@@ -62,11 +62,22 @@ namespace AGRO_GRAMM
             this.id++;
         }
 
+        /// <summary>
+        /// Creates a new symbol table that is the child of the current symbol table
+        /// </summary>
+        /// <returns> A child symbol table </returns>
         public SymbolTable newChildSymbolTable()
         {
             return new SymbolTable(this);
         }
 
+        /// <summary>
+        /// Adds a symbol to the current symbol table, including type, kind and assigns a direction
+        /// </summary>
+        /// <param name="name">Name of the variable to add</param>
+        /// <param name="type">Type of the variable to add (int,float,char,string)</param>
+        /// <param name="kind">Kind of the variable to add (temporal, variable)</param>
+        /// <returns></returns>
         public bool putSymbol(string name, int type, int kind)
         {
             if (symbols.ContainsKey(name))
@@ -80,6 +91,11 @@ namespace AGRO_GRAMM
             return true;
         }
 
+        /// <summary>
+        /// Gets the array of type,kind and direction of a variable in the table
+        /// </summary>
+        /// <param name="name">Variable to search in the symbol table</param>
+        /// <returns>Array of type, kind,dir of the variable</returns>
         public int[] getSymbol(string name)
         {
 
@@ -96,16 +112,32 @@ namespace AGRO_GRAMM
             return null;
         }
 
+        /// <summary>
+        /// Gets the type of a variable in the symbol table
+        /// </summary>
+        /// <param name="name">Name of the variable to get</param>
+        /// <returns>The variable type (int)</returns>
         public int getType(string name)
         {
             return getSymbol(name)[0];
         }
 
+        /// <summary>
+        /// Gets the direction of a variable in the symbol table
+        /// </summary>
+        /// <param name="name">Name of the variable to get</param>
+        /// <returns>The variable direction assigned (int)</returns>
         public int getDir(string name)
         {
             return getSymbol(name)[2];
         }
 
+        /// <summary>
+        /// Assigns a virutal direction to a variable, depending on its type, kind and the symboltable level (for globals)
+        /// </summary>
+        /// <param name="type">The variable type</param>
+        /// <param name="kind">The variable kind</param>
+        /// <returns> A direction where the variable will be assigned </returns>
         private int assignDir(int type, int kind)
         {
             const int temporal = 2, pointer = 3;
