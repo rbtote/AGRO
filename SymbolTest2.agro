@@ -1,11 +1,6 @@
-float nada (float ok) {
-    int a,b;
-    float aa;
-    a = ok;
-    return (nada(nada(aa)) + nada(aa));
-}
 
 main {
-    float aaa;
-    aaa = nada(aaa);
+    int aaa;
+    float bbb;
+    aaa = aaa**2+bbb%2*4;
 }

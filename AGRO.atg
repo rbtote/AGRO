@@ -13,7 +13,7 @@ const int // object kinds
 	  var = 0, func = 1, temporal = 2;
 
 
-int[] TERM_OPERATORS = { _mul, _div };
+int[] TERM_OPERATORS = { _mul, _div, _exponent, _intdiv, _module};
 int[] EXP_OPERATORS = { _add, _sub };
 int[] RELEXP_OPERATORS = { _and, _or };
 int[] RELOP_OPERATORS = { _greater, _less, _greatereq, _lesseq, _equaleq, _different };
@@ -29,7 +29,10 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_add}:'+',
 				{_sub}:'-',
 				{_div}:'/',
+				{_exponent}:'**',
+                {_intdiv}:'//',
 				{_mul}:'*',
+                {_module}:'%',
 				{_sadd}:'+=',
 				{_ssub}:'-=',
 				{_sdiv}:'/=',
@@ -157,6 +160,7 @@ void checkAssign(SymbolTable st) {
         {
             SemErr("Invalid assignment: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
         }
+        quad.setDirOut(st, leftOper);
         program.Add(quad);
     }
 }
@@ -187,6 +191,7 @@ void check(SymbolTable st, int[] arr){
                 SemErr("Invalid operation: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
             }
             st.putSymbol(tempName, quad.typeOut, temporal);
+            quad.setDirOut(st, tempName);
             program.Add(quad);
             pushToOperandStack(tempName, st);
         }
@@ -200,6 +205,7 @@ void checkInputOutput(SymbolTable st, int oper){
     type = stackTypes.Pop();
     operand = stackOperand.Pop();
     Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
+    quad.setDirOut(st, operand);
     program.Add(quad);
 }
 
@@ -359,7 +365,10 @@ semicolon   = ";".
 add         = "+".
 sub         = "-".
 mul         = "*".
+exponent    = "**".
 div         = "/".
+intdiv      = "//".
+module      = "%".
 equal       = "=".
 dot         = ".".
 sadd        = "+=".
@@ -495,12 +504,12 @@ PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
 
 RETURN < out string returnVar >
 =
-    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop())); .)
+    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); .)
 .
 
 EXP=
     TERM                    
-    { (add (. stackOperator.Push(_add); .) | sub (. stackOperator.Push(_sub);.) ) TERM }
+    { (add (. stackOperator.Push(_add); .) | sub (. stackOperator.Push(_sub);.) ) TERM (. check(sTable, EXP_OPERATORS); .)}
     (. check(sTable, EXP_OPERATORS); .)
 .
 /*
@@ -557,27 +566,35 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         if (localParamType  != funcParamType) { 
                             SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
-                        program.Add(new Param(stackOperand.Pop(), paramCount)); 
+                        program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
                         paramCount ++; 
                     .) 
         { comma HYPER_EXP 
                     (. 
-                        funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
-                        localParamType = typesInts[sTable.getType(stackOperand.Peek())];
-                        if (localParamType  != funcParamType) { 
-                            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
-                        } 
-                        program.Add(new Param(stackOperand.Pop(), paramCount)); 
-                        paramCount ++; 
+                        if(paramCount >= dirFunc[name].parameterTypes.Count){
+                            SemErr("Parameter number mismatch. Expected Just " + dirFunc[name].parameterTypes.Count + " Parameters. Found more");
+                        }else{
+                            funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+                            localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+                            if (localParamType  != funcParamType) { 
+                                SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
+                            } 
+                            program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
+                            paramCount ++;
+                        }
                     .) 
         } ] pr
     (.
+        if(paramCount < dirFunc[name].parameterTypes.Count){
+            SemErr("Parameter number mismatch. Expected " + dirFunc[name].parameterTypes.Count + " Parameters. Found " + paramCount + ""); 
+        }
         program.Add(new GoSub(name)); 
         // If not void create temp to store result of call
         if(sTable.getType(name) != t_void){
             pushToOperandStack(createTemp(sTable.getType(name), sTable), sTable);
             string leftOper = stackOperand.Peek();
             Cuadruple quad = new Cuadruple(_equal, leftOper, "_"+name, leftOper, sTable, operandInts);
+            quad.setDirOut(sTable, leftOper);
             program.Add(quad);
         }
     .)
@@ -588,8 +605,7 @@ METHOD_CALL=
 .
 */
 TERM=
-    FACT
-    { ( mul (. stackOperator.Push(_mul); .) | div (. stackOperator.Push(_div); .) ) FACT }
+    FACT { OPERATORS_TERM FACT (. check(sTable, TERM_OPERATORS); .) }
     (. check(sTable, TERM_OPERATORS); .)
 .
 
@@ -611,7 +627,7 @@ VARIABLE_FACT	(. string name; .)
 .
 
 HYPER_EXP=
-    SUPER_EXP { REL_EXP SUPER_EXP }
+    SUPER_EXP { REL_EXP SUPER_EXP (. check(sTable, RELEXP_OPERATORS); .)}
     (. check(sTable, RELEXP_OPERATORS); .)
 .
 
@@ -631,13 +647,19 @@ STEP=
     increment (. stackOperator.Push(_increment); .) | decrement (. stackOperator.Push(_decrement); .)
 .
 
+OPERATORS_TERM =
+    mul       (. stackOperator.Push(_mul); .)      |   div        (. stackOperator.Push(_div); .)   |
+    exponent  (. stackOperator.Push(_exponent); .) |   intdiv    (. stackOperator.Push(_intdiv); .) |
+    module    (. stackOperator.Push(_module); .) 
+.
+
 REL_EXP=
     "and"   (. stackOperator.Push(_and); .)|   "&&"    (. stackOperator.Push(_and); .)|
     "or"    (. stackOperator.Push(_or); .)|   "||"    (. stackOperator.Push(_or); .)
 .
 
 SUPER_EXP=
-    EXP     { REL_OP EXP }
+    EXP     { REL_OP EXP (. check(sTable, RELOP_OPERATORS); .)}
     (. check(sTable, RELOP_OPERATORS); .)
 .
 
