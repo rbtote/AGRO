@@ -72,7 +72,6 @@ Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
 Stack<int>      stackTypes = new Stack<int>();
 Stack<int>      stackJumps = new Stack<int>();
-Stack<int>      stackDims  = new Stack<int>();
 
 int tempCont = 0;
 
@@ -738,7 +737,7 @@ SHORT_ASSIGN=
     sadd (. stackOperator.Push(_sadd); .) | ssub (. stackOperator.Push(_ssub); .) | smul (. stackOperator.Push(_smul); .) | sdiv (. stackOperator.Push(_sdiv); .)
 .
 
-VARIABLE_ASSIGN   (. string name; int dim=0; int dim1Size=0; int dim2Size=0;.)
+VARIABLE_ASSIGN   (. string name; int dim1Size=0; int dim2Size=0;.)
 =
     IDENT	< out name > (. pushToOperandStack(name, sTable); .)
     [
@@ -751,15 +750,16 @@ VARIABLE_ASSIGN   (. string name; int dim=0; int dim1Size=0; int dim2Size=0;.)
     ]
 .
 
-VARIABLE_FACT	(. string name; .)
+VARIABLE_FACT	(. string name; int dim1Size=0; int dim2Size=0;.)
 =
     IF( IsTypedFunctionCall(sTable) ) (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
     IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
     [ 
     /*( dot IDENT { dot IDENT } ) |*/
     (
-    bl EXP br 
-        [ bl EXP br ] 
+    bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
+        [ (. dim2Size = checkMatrix(sTable, name); .) bl EXP (. verifyLimit2(sTable, name, dim2Size); .)  br ] 
+        (. endArray(sTable, name); .)
     )
     ]
 .

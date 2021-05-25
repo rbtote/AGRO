@@ -1,5 +1,5 @@
 
 main {
     int arreglo[4],arre[8][2],solito;
-    arre[1][1] = 1;
+    solito = arreglo[2] + 5;
 }

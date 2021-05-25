@@ -127,7 +127,6 @@ Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
 Stack<int>      stackTypes = new Stack<int>();
 Stack<int>      stackJumps = new Stack<int>();
-Stack<int>      stackDims  = new Stack<int>();
 
 int tempCont = 0;
 
@@ -941,7 +940,7 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_ASSIGN() {
-		string name; int dim=0; int dim1Size=0; int dim2Size=0;
+		string name; int dim1Size=0; int dim2Size=0;
 		IDENT(out name );
 		pushToOperandStack(name, sTable); 
 		if (la.kind == 7) {
@@ -1045,7 +1044,7 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_FACT() {
-		string name; 
+		string name; int dim1Size=0; int dim2Size=0;
 		if (IsTypedFunctionCall(sTable) ) {
 			stackOperator.Push(_pl); 
 			FUNC_CALL();
@@ -1055,13 +1054,18 @@ bool IsDecVars(){
 			pushToOperandStack(name, sTable); 
 			if (la.kind == 7) {
 				Get();
+				dim1Size = checkArray(sTable, name); 
 				EXP();
+				verifyLimit(sTable, name, dim1Size); 
 				Expect(8);
 				if (la.kind == 7) {
+					dim2Size = checkMatrix(sTable, name); 
 					Get();
 					EXP();
+					verifyLimit2(sTable, name, dim2Size); 
 					Expect(8);
 				}
+				endArray(sTable, name); 
 			}
 		} else SynErr(64);
 	}
