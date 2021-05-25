@@ -211,15 +211,15 @@ void checkAssign(SymbolTable st) {
         
         operat = stackOperator.Pop();
         
-        Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, leftOper, st, operandInts);
+        Assign assign = new Assign(operat, rightOper, leftOper, st, operandInts);
 
         // Check if cube operator is valid for these operands
-        if (quad.typeOut == invalid)
+        if (assign.typeOut == invalid)
         {
             SemErr("Invalid assignment: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
         }
-        quad.setDirOut(st, leftOper);
-        program.Add(quad);
+        assign.setDirOut(st, leftOper);
+        program.Add(assign);
     }
 }
 
@@ -262,7 +262,7 @@ void checkInputOutput(SymbolTable st, int oper){
 
     type = stackTypes.Pop();
     operand = stackOperand.Pop();
-    Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
+    InOut quad = new InOut(oper, operand, st, operandInts);
     quad.setDirOut(st, operand);
     program.Add(quad);
 }
@@ -841,9 +841,9 @@ bool IsDecVars(){
 		if(sTable.getType(name) != t_void){
 		   pushToOperandStack(createTemp(sTable.getType(name), sTable), sTable);
 		   string leftOper = stackOperand.Peek();
-		   Cuadruple quad = new Cuadruple(_equal, leftOper, "_"+name, leftOper, sTable, operandInts);
-		   quad.setDirOut(sTable, leftOper);
-		   program.Add(quad);
+		   Assign assign = new Assign(_equal, "_"+name, leftOper, sTable, operandInts);
+		   assign.setDirOut(sTable, leftOper);
+		   program.Add(assign);
 		}
 		
 	}

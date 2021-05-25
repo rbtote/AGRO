@@ -1,6 +1,6 @@
 
 main {
     int arreglo[4],arre[8][2],solito;
-    solito = arreglo[2] + 5;
+    aaa = arreglo[2] + 5;
     print(solito);
 }
