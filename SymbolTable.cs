@@ -91,6 +91,27 @@ namespace AGRO_GRAMM
             return true;
         }
 
+        public bool putSymbolArray(string name, int type, int kind, int dim1, int dim2)
+        {
+            if (symbols.ContainsKey(name))
+            {
+                return false;
+            }
+            int dir = assignDirArray(type, dim1, dim2);
+            List<int> symbol = new List<int>();
+            symbol.Add(type);
+            symbol.Add(kind);
+            symbol.Add(dir);
+            symbol.Add(dim1);
+            if (dim2 > 0)
+            {
+                symbol.Add(dim2);
+            }
+            symbols.Add(name, symbol.ToArray());
+
+            return true;
+        }
+
         /// <summary>
         /// Gets the array of type,kind and direction of a variable in the table
         /// </summary>
@@ -140,8 +161,8 @@ namespace AGRO_GRAMM
         /// <returns> A direction where the variable will be assigned </returns>
         private int assignDir(int type, int kind)
         {
-            const int temporal = 2, pointer = 3;
-            const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;
+            const int temporal = 2, pointer = 3;                            // Kind
+            const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;     // Type
             int dir=0;
             if(id == 0)     //Global table
             {
@@ -234,6 +255,51 @@ namespace AGRO_GRAMM
             {
                 dir = pointersMem;
                 pointersMem++;
+            }
+            return dir;
+        }
+
+
+        private int assignDirArray(int type, int dim1, int dim2)
+        {
+            const int t_int = 1, t_float = 2, t_char = 3;     // Type
+            int dir = 0;
+            int size = dim2 > 0 ? dim1*dim2 : dim1;
+            if (id == 0)     //Global table
+            {
+                switch (type)
+                {
+                    case t_int:
+                        dir = globalInt;
+                        globalInt += size;
+                        break;
+                    case t_float:
+                        dir = globalFloat;
+                        globalFloat += size;
+                        break;
+                    case t_char:
+                        dir = globalChar;
+                        globalChar += size;
+                        break;
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case t_int:
+                        dir = localInt;
+                        localInt += size;
+                        break;
+                    case t_float:
+                        dir = localFloat;
+                        localFloat += size;
+                        break;
+                    case t_char:
+                        dir = localChar;
+                        localChar += size;
+                        break;
+                }
             }
             return dir;
         }
