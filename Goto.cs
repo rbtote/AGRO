@@ -6,13 +6,14 @@ namespace AGRO_GRAMM
 {
     class Goto : Actions
     {
-        public string varCond;
+        public string varCond, oper;
         public int dirVarCond;
         public int typeGoto, direction, valid;
         public Goto(int typeGoto, string varCond, SymbolTable _st, Dictionary<int, string> dict)
         {
             this.typeGoto = typeGoto;
-            if(typeGoto != 68) //68 is plain goto
+            this.oper = dict[typeGoto];
+            if (typeGoto != 68) //68 is plain goto
             {
                 this.varCond = varCond;
                 this.dirVarCond = _st.getDir(varCond);
@@ -30,9 +31,9 @@ namespace AGRO_GRAMM
         {
             if(typeGoto != 68)
             {
-                return typeGoto + " " + dirVarCond + " " + direction;
+                return oper + " " + dirVarCond + " " + direction;
             }
-            return typeGoto + " " + direction;
+            return oper + " " + direction;
         }
     }
 }

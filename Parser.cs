@@ -106,7 +106,10 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_or}:'or',
 				{_or}:'||',
                 {_print}: 'print',
-                {_input}: 'input'
+                {_input}: 'input',
+                {_goto}: 'goto',
+                {_gotoFalse}: 'gotoFalse',
+                {_gotoTrue}: 'gotoTrue'
 				}}");
 
 Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
@@ -556,7 +559,7 @@ bool IsDecVars(){
 	
 	void PROGRAM() {
 		sTable = new SymbolTable();
-		program.Add(new Goto(_goto, "", sTable, typesInts)); // Main GOTO. Always position 0
+		program.Add(new Goto(_goto, "", sTable, operandInts)); // Main GOTO. Always position 0
 		
 		while (StartOf(1)) {
 			DECLARATION();

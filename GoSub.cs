@@ -14,7 +14,7 @@ namespace AGRO_GRAMM
 
         public override string ToString()
         {
-            return "GOSUB " + funcName;
+            return "goSub " + funcName;
         }
     }
 }

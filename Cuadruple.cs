@@ -6,7 +6,7 @@ namespace AGRO_GRAMM
 {
     class Cuadruple : Actions
     {
-        public string varA, varB, varOut;
+        public string varA, varB, varOut, oper;
         public int typeOut, op, dirA, dirB, dirOut;
         public Cuadruple(int op, string varA, string varB, string varOut, SymbolTable _st, Dictionary<int, string> dict)
         {
@@ -16,8 +16,9 @@ namespace AGRO_GRAMM
             this.dirA = _st.getDir(varA);
             this.dirB = _st.getDir(varB);
             this.op = op;
+            this.oper = dict[op];
             this.typeOut = Cube.getInstance().outputCube(_st.getType(varA), _st.getType(varB), op, dict);
-            
+
         }
 
         public void setDirOut(SymbolTable _st, string varOut)
@@ -32,7 +33,7 @@ namespace AGRO_GRAMM
 
         public override string ToString()
         {
-            return op + " " + dirA + " " + dirB + " " + dirOut;
+            return oper + " " + dirA + " " + dirB + " " + dirOut;
         }
     }
 }
