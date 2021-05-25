@@ -1,13 +1,13 @@
 # AGRO COMPILER
 
-## SEVENTH DELIVERY BETA
+## SEVENTH DELIVERYYY
 
-This code changes the quad representation to memory addresses, and fixed some bugs on parameter numbers
+In this version, we added all the array logic to the quad generation, changed back the operators to string, in order to help our VM
 
 
 
 ## TODO
 * Cleanup the cube class
-* Error handling 
+* Error handling (Ask for second dim in 1-dim array)
 * Create classes for quads that use less than 4 parameters in code generation for cleanup
 * Start implementation of virtual machine
