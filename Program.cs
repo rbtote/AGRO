@@ -9,7 +9,7 @@ namespace AGRO_GRAMM
     {
         static void Main(string[] args)
         {
-            const string fileTest = @"./../../../patito.agro";
+            const string fileTest = @"./../../../SymbolTest2.agro";
 
             Scanner scanner = new Scanner(fileTest);
             Parser parser = new Parser(scanner);

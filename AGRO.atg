@@ -81,8 +81,11 @@ int tempCont = 0;
 public List<Actions> program = new List<Actions>();
 
 void pushToOperandStack(string id, SymbolTable st){
-    // In order to push to the stack, we need to know the type of the id
-    int typeId = st.getType(id);
+    int typeId = invalid;
+    if(validateOper(id,st)){
+        // In order to push to the stack, we need to know the type of the id
+        typeId = st.getType(id);
+    }
     // Push the id
     stackOperand.Push(id);
     // Push the type
@@ -122,6 +125,10 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
+bool validateOper(string oper, SymbolTable st){
+    return (st.getSymbol(oper) != null);
+}
+
 void checkReturn(SymbolTable st, string leftOper, string rightOper) {
     Cuadruple quad = new Cuadruple(_equal, leftOper, rightOper, leftOper, st, operandInts);
 
@@ -144,10 +151,18 @@ void checkAssign(SymbolTable st) {
         // Get the data to create the quad
         rightType = stackTypes.Pop();
         rightOper = stackOperand.Pop();
+        if(rightType == invalid){
+            SemErr("Invalid assignment: " + rightOper + " not declared.");
+            return;
+        }
 
         if (stackOperand.Count > 0) {
             leftType = stackTypes.Pop();
             leftOper = stackOperand.Pop();
+            if(leftType == invalid){
+                SemErr("Invalid assignment: " + leftOper + " not declared.");
+                return;
+            }
         }
         else {
             leftType = rightType;
@@ -180,8 +195,16 @@ void check(SymbolTable st, int[] arr){
             // Get the data to create the quad
             rightType = stackTypes.Pop();
             rightOper = stackOperand.Pop();
+            if(rightType == invalid){
+                SemErr("Operand: " + rightOper + " not declared");
+                return;
+            }
             leftType = stackTypes.Pop();
             leftOper = stackOperand.Pop();
+            if(leftType == invalid){
+                SemErr("Operand: " + leftOper + " not declared");
+                return;
+            }
             operat = stackOperator.Pop();
             // Create the temporal variable
             tempName = "_t" + tempCont;
@@ -204,9 +227,12 @@ void check(SymbolTable st, int[] arr){
 void checkInputOutput(SymbolTable st, int oper){
     string operand;
     int type;
-
     type = stackTypes.Pop();
     operand = stackOperand.Pop();
+    if(type == invalid){
+        SemErr("Variable: " + operand + " not declared");
+        return;
+    }
     InOut quad = new InOut(oper, operand, st, operandInts);
     quad.setDirOut(st, operand);
     program.Add(quad);
@@ -412,10 +438,16 @@ bool IsTypedFunctionCall(SymbolTable st){
     scanner.ResetPeek();
     Token x = la; 
     while (x.kind == _id ){
-        if(st.getType(la.val) == t_void){
-            SemErr("Invalid function call: " + _id + " does not return any value");
+        if(!validateOper(la.val, st)){
+                break;
         }
-        x = scanner.Peek();
+        else
+        {
+            if(st.getType(la.val) == t_void){
+                SemErr("Invalid function call: " + _id + " does not return any value");
+            }
+            x = scanner.Peek();
+        }
     }
     return x.kind == _pl;
 }

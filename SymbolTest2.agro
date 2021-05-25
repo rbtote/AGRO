@@ -1,6 +1,9 @@
 
+int a,b;
+
 main {
-    int arreglo[4],arre[8][2],solito;
-    aaa = arreglo[2] + 5;
-    print(solito);
+    int arreglo[4],arre[8][2];
+    input(a);
+    print(a,b);
+
 }
