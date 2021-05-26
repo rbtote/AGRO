@@ -1,6 +1,12 @@
 
+int a;
+
+void func(){
+    int i;
+}
+
 main {
-    int aaa;
-    float bbb;
-    aaa = aaa**2+bbb%2*4;
+    int arreglo[4],arre[8][2];
+
+    a = 4 ** func();
 }
