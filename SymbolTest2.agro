@@ -1,9 +1,12 @@
 
-int a,b;
+int a;
+
+void func(){
+    int i;
+}
 
 main {
     int arreglo[4],arre[8][2];
-    input(a);
-    print(a,b);
 
+    a = 4 ** func();
 }
