@@ -120,8 +120,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				{t_string}:'STRING'
 				}}");
 
-SymbolTable   sTable;
-Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
+public SymbolTable   sTable;
+public Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
 
 Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
@@ -527,7 +527,8 @@ bool IsDecVars(){
 		}
 		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(6);
-		sTable = sTable.parentSymbolTable;
+		dirFunc[name].countVars(sTable);
+		           sTable = sTable.parentSymbolTable;
 		           program.Add(new EndFunc()); 
 	}
 

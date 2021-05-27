@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace AGRO_GRAMM
@@ -9,7 +10,13 @@ namespace AGRO_GRAMM
     {
         static void Main(string[] args)
         {
-            const string fileTest = @"./../../../SymbolTest2.agro";
+            string programName = "patito";
+            string extensionInput = ".agro";
+            string extensionOuput = ".code";
+            string extensionCube = ".cube";
+            string extensionDirFunc = ".dirfunc";
+            string dir = @"./../../../";
+            string fileTest = dir + programName + extensionInput;
 
             Scanner scanner = new Scanner(fileTest);
             Parser parser = new Parser(scanner);
@@ -19,10 +26,89 @@ namespace AGRO_GRAMM
             if (parser.errors.count == 0) Console.WriteLine("No errors in program");
             Console.WriteLine(parser.errors.count + " errors detected");
 
-            foreach (Actions act in parser.program)
+
+            // Write output code file
+            try
             {
-                Console.WriteLine(act.ToString());
+                using StreamWriter outputFile = new StreamWriter(dir + "/VM/" + programName + extensionInput + extensionOuput);
+
+                // Write in console and output file .agro.out
+                foreach (Actions act in parser.program)
+                {
+                    string line = act.ToString();
+                    Console.WriteLine(line);
+                    outputFile.WriteLine(line);
+                }
             }
+            catch (IOException)
+            {
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionOuput);
+            }
+
+            // Write output Cube file
+            try
+            {
+                using StreamWriter outputFile = new StreamWriter(dir + "/VM/" + programName + extensionInput + extensionCube);
+
+                outputFile.Write(Cube.json);
+            }
+            catch (IOException)
+            {
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionCube);
+            }
+
+            // Write output DirFunc file
+            /*
+                FUNCTION_COUNT
+                NAME QUAD_DIR INT_COUNT FLOAT_COUNT CHAR_COUNT STRING_COUNT INT_TEMP_COUNT FLOAT_TEMP_COUNT CHAR_TEMP_COUNT STRING_TEMP_COUNT
+                NAME...(again for each function)
+             */
+            try
+            {
+                using StreamWriter outputFile = new StreamWriter(dir + "/VM/" + programName + extensionInput + extensionDirFunc);
+                int QUAD_DIR, INT_COUNT, FLOAT_COUNT, CHAR_COUNT, STRING_COUNT, INT_TEMP_COUNT, FLOAT_TEMP_COUNT, CHAR_TEMP_COUNT, STRING_TEMP_COUNT;
+
+                // Global memory
+                Function globalScope = new Function(Int32.Parse(parser.program[0].ToString().Split(' ')[1]));
+                globalScope.countVars(parser.sTable);
+                QUAD_DIR = globalScope.quadIndex;
+                INT_COUNT = globalScope.intCount;
+                FLOAT_COUNT = globalScope.floatCount;
+                CHAR_COUNT = globalScope.charCount;
+                STRING_COUNT = globalScope.stringCount;
+                INT_TEMP_COUNT = globalScope.intTempCount;
+                FLOAT_TEMP_COUNT = globalScope.floatTempCount;
+                CHAR_TEMP_COUNT = globalScope.charTempCount;
+                STRING_TEMP_COUNT = globalScope.stringTempCount;
+
+                // Write function memory counters in this given order
+                outputFile.WriteLine($"_global {QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+
+                // Clases memory?
+
+                // Functions memory
+
+                foreach (string key in parser.dirFunc.Keys)
+                {
+                    QUAD_DIR = parser.dirFunc[key].quadIndex;
+                    INT_COUNT = parser.dirFunc[key].intCount;
+                    FLOAT_COUNT = parser.dirFunc[key].floatCount;
+                    CHAR_COUNT = parser.dirFunc[key].charCount;
+                    STRING_COUNT = parser.dirFunc[key].stringCount;
+                    INT_TEMP_COUNT = parser.dirFunc[key].intTempCount;
+                    FLOAT_TEMP_COUNT = parser.dirFunc[key].floatTempCount;
+                    CHAR_TEMP_COUNT = parser.dirFunc[key].charTempCount;
+                    STRING_TEMP_COUNT = parser.dirFunc[key].stringTempCount;
+
+                    // Write function memory counters in this given order
+                    outputFile.WriteLine($"{key} {QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+                }
+            }
+            catch (IOException)
+            {
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionCube);
+            }
+
             /*
             
             SymbolTable st = new SymbolTable();

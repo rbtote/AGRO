@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGRO_GRAMM
 {
-    class SymbolTable
+    public class SymbolTable
     {
         // Counters for variables
         int globalInt = 1001;
@@ -40,12 +40,12 @@ namespace AGRO_GRAMM
             POINTERS = 50001-x
          * 
           "symbols": {
-            id: [type, kind]
+            id: [type, kind, dir, val?null]
           }
         */
 
         public SymbolTable parentSymbolTable;
-        private Dictionary<string, int[]> symbols = new Dictionary<string, int[]>();
+        public Dictionary<string, int[]> symbols = new Dictionary<string, int[]>();
         public int id;
 
         public SymbolTable()
@@ -123,6 +123,16 @@ namespace AGRO_GRAMM
         }
 
         /// <summary>
+        /// Gets the kind of a variable in the symbol table
+        /// </summary>
+        /// <param name="name">Name of the variable to get</param>
+        /// <returns>The variable kind (int)</returns>
+        public int getKind(string name)
+        {
+            return getSymbol(name)[1];
+        }
+
+        /// <summary>
         /// Gets the direction of a variable in the symbol table
         /// </summary>
         /// <param name="name">Name of the variable to get</param>
@@ -142,10 +152,10 @@ namespace AGRO_GRAMM
         {
             const int temporal = 2, pointer = 3;
             const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;
-            int dir=0;
-            if(id == 0)     //Global table
+            int dir = 0;
+            if (id == 0)     //Global table
             {
-                if(kind == temporal)
+                if (kind == temporal)
                 {
                     switch (type)
                     {
@@ -230,7 +240,7 @@ namespace AGRO_GRAMM
                 }
             }
 
-            if(kind == pointer)
+            if (kind == pointer)
             {
                 dir = pointersMem;
                 pointersMem++;
