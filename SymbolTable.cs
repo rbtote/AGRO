@@ -13,7 +13,6 @@ namespace AGRO_GRAMM
         int globalTempInt = 12001;
         int globalTempFloat = 16001;
         int globalTempChar = 20001;
-        int globalTempString = 24001;
 
         //Local variables
         int localInt = 28001;
@@ -22,12 +21,12 @@ namespace AGRO_GRAMM
         int localTempInt = 34001;
         int localTempFloat = 36001;
         int localTempChar = 38001;
-        int localTempString = 40001;
 
         //Constant variables
         int constInt = 42001;
         int constFloat = 44001;
         int constChar = 46001;
+        int constString = 48001;
 
         //Pointers
         int pointersMem = 50001;
@@ -88,6 +87,66 @@ namespace AGRO_GRAMM
             int[] symbol = { type, kind, dir };
             symbols.Add(name, symbol);
 
+            return true;
+        }
+
+        public bool putConstantInt(string name, int type, int kind, int value)
+        {
+            bool flag = false;
+            if(id > 0)
+                parentSymbolTable.putConstantInt(name, type, kind, value);
+            else
+                flag = true;
+            if (flag)
+            {
+                if (symbols.ContainsKey(name))
+                    return false;
+                int dir = assignDir(type, kind);
+                int[] symbol = { type, kind, dir };
+                Program.constants[dir] = ""+value;
+                symbols.Add(name, symbol);
+                return true;
+            }
+            return true;
+        }
+
+        public bool putConstantFloat(string name, int type, int kind, float value)
+        {
+            bool flag = false;
+            if (id > 0)
+                parentSymbolTable.putConstantFloat(name, type, kind, value);
+            else
+                flag = true;
+            if (flag)
+            {
+                if (symbols.ContainsKey(name))
+                    return false;
+                int dir = assignDir(type, kind);
+                int[] symbol = { type, kind, dir };
+                Program.constants[dir] = "" + value;
+                symbols.Add(name, symbol);
+                return true;
+            }
+            return true;
+        }
+
+        public bool putConstantString(string name, int type, int kind, string value)
+        {
+            bool flag = false;
+            if (id > 0)
+                parentSymbolTable.putConstantString(name, type, kind, value);
+            else
+                flag = true;
+            if (flag)
+            {
+                if (symbols.ContainsKey(name))
+                    return false;
+                int dir = assignDir(type, kind);
+                int[] symbol = { type, kind, dir };
+                Program.constants[dir] = "" + value;
+                symbols.Add(name, symbol);
+                return true;
+            }
             return true;
         }
 
@@ -171,93 +230,131 @@ namespace AGRO_GRAMM
         /// <returns> A direction where the variable will be assigned </returns>
         private int assignDir(int type, int kind)
         {
-            const int temporal = 2, pointer = 3;                            // Kind
+            const int temporal = 2, pointer = 3, constant = 4, array = 5;                            // Kind
             const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;     // Type
             int dir = 0;
             if(id == 0)     //Global table
             {
-                if (kind == temporal)
+                switch (kind)
                 {
-                    switch (type)
-                    {
-                        case t_int:
-                            dir = globalTempInt;
-                            globalTempInt++;
-                            break;
-                        case t_float:
-                            dir = globalTempFloat;
-                            globalTempFloat++;
-                            break;
-                        case t_char:
-                            dir = globalTempChar;
-                            globalTempChar++;
-                            break;
-                        case t_string:
-                            dir = globalTempString;
-                            globalTempString++;
-                            break;
-                    }
-                }
-                else
-                {
-                    switch (type)
-                    {
-                        case t_int:
-                            dir = globalInt;
-                            globalInt++;
-                            break;
-                        case t_float:
-                            dir = globalFloat;
-                            globalFloat++;
-                            break;
-                        case t_char:
-                            dir = globalChar;
-                            globalChar++;
-                            break;
-                    }
+                    case temporal:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = globalTempInt;
+                                globalTempInt++;
+                                break;
+                            case t_float:
+                                dir = globalTempFloat;
+                                globalTempFloat++;
+                                break;
+                            case t_char:
+                                dir = globalTempChar;
+                                globalTempChar++;
+                                break;
+                        }
+                        break;
+                    case constant:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = constInt;
+                                constInt++;
+                                break;
+                            case t_float:
+                                dir = constFloat;
+                                constFloat++;
+                                break;
+                            case t_char:
+                                dir = constChar;
+                                constChar++;
+                                break;
+                            case t_string:
+                                dir = constString;
+                                constString++;
+                                break;
+                        }
+                        break;
+                    default:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = globalInt;
+                                globalInt++;
+                                break;
+                            case t_float:
+                                dir = globalFloat;
+                                globalFloat++;
+                                break;
+                            case t_char:
+                                dir = globalChar;
+                                globalChar++;
+                                break;
+                        }
+                        break;
+
                 }
             }
             else
             {
-                if (kind == temporal)
+                switch (kind)
                 {
-                    switch (type)
-                    {
-                        case t_int:
-                            dir = localTempInt;
-                            localTempInt++;
-                            break;
-                        case t_float:
-                            dir = localTempFloat;
-                            localTempFloat++;
-                            break;
-                        case t_char:
-                            dir = localTempChar;
-                            localTempChar++;
-                            break;
-                        case t_string:
-                            dir = localTempString;
-                            localTempString++;
-                            break;
-                    }
-                }
-                else
-                {
-                    switch (type)
-                    {
-                        case t_int:
-                            dir = localInt;
-                            localInt++;
-                            break;
-                        case t_float:
-                            dir = localFloat;
-                            localFloat++;
-                            break;
-                        case t_char:
-                            dir = localChar;
-                            localChar++;
-                            break;
-                    }
+                    case temporal:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = localTempInt;
+                                localTempInt++;
+                                break;
+                            case t_float:
+                                dir = localTempFloat;
+                                localTempFloat++;
+                                break;
+                            case t_char:
+                                dir = localTempChar;
+                                localTempChar++;
+                                break;
+                        }
+                        break;
+                    case constant:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = constInt;
+                                constInt++;
+                                break;
+                            case t_float:
+                                dir = constFloat;
+                                constFloat++;
+                                break;
+                            case t_char:
+                                dir = constChar;
+                                constChar++;
+                                break;
+                            case t_string:
+                                dir = constString;
+                                constString++;
+                                break;
+                        }
+                        break;
+                    default:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = localInt;
+                                localInt++;
+                                break;
+                            case t_float:
+                                dir = localFloat;
+                                localFloat++;
+                                break;
+                            case t_char:
+                                dir = localChar;
+                                localChar++;
+                                break;
+                        }
+                        break;
+
                 }
             }
 

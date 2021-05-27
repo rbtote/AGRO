@@ -10,7 +10,7 @@ const int // types
 	  invalid = Int32.MaxValue, undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6;
 
 const int // object kinds
-	  var = 0, func = 1, temporal = 2, pointer = 3;
+	  var = 0, func = 1, temporal = 2, pointer = 3, constant = 4, array = 5;
 
 
 int[] TERM_OPERATORS = { _mul, _div, _exponent, _intdiv, _module};
@@ -109,19 +109,32 @@ string createTempInt(int tempp, SymbolTable st){
     return tempName;
 }
 
+string createConstInt(int value, SymbolTable st){
+    string constName;
+    constName = "_" + value;
+    st.putConstantInt(constName, t_int, constant, value);
+    return constName;
+}
+
+string createConstFloat(float value, SymbolTable st){
+    string constName;
+    constName = "_" + value;
+    st.putConstantFloat(constName, t_float, constant, value);
+    return constName;
+}
+
+string createConstString(string value, SymbolTable st){
+    string constName;
+    constName = "_" + value;
+    st.putConstantString(constName, t_string, constant, value);
+    return constName;
+}
+
 string createTempFloat(float tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
     st.putSymbol(tempName, t_float, temporal);
-    return tempName;
-}
-
-string createTempString(string tempp, SymbolTable st){
-    string tempName;
-    tempName = "_t" + tempCont;
-    tempCont+=1;
-    st.putSymbol(tempName, t_string, temporal);
     return tempName;
 }
 
@@ -277,10 +290,10 @@ void verifyLimit(SymbolTable st, string name, int sizeDim){
     if(symbol.Length > 4){
         // We have 2 dims
         aux = stackOperand.Pop();  //Result of expression
-        dim2 = createTempInt(symbol[4],st);
+        dim2 = createConstInt(symbol[4],st);
         tempName1 = "_t" + tempCont;
         tempCont+=1;
-        Cuadruple quad = new Cuadruple(_add, aux, createTempInt(1,st), tempName1, st, operandInts); //We need to add 1 to the S1 value to get the right dim
+        Cuadruple quad = new Cuadruple(_add, aux, createConstInt(1,st), tempName1, st, operandInts); //We need to add 1 to the S1 value to get the right dim
         st.putSymbol(tempName1, quad.typeOut, temporal);
         quad.setDirOut(st, tempName1);
         program.Add(quad);
@@ -314,7 +327,7 @@ void verifyLimit2(SymbolTable st, string name, int sizeDim){
 
     //Create D2
     int[] symbol = st.getSymbol(name);
-    dim2 = createTempInt(symbol[4],st);
+    dim2 = createConstInt(symbol[4],st);
 
     Cuadruple quad1 = new Cuadruple(_sub,tempName,dim2,tempName1, st, operandInts);   // (S1+1) * Dim2 + S2 - Dim2
     st.putSymbol(tempName1, quad.typeOut, temporal);
@@ -329,7 +342,7 @@ void endArray(SymbolTable st, string name){
     string tempDir,tempName;
     auxEnd =  stackOperand.Pop();
 
-    tempDir = createTempInt(st.getDir(name),st);
+    tempDir = createConstInt(st.getDir(name),st);
     tempName = "_t" + tempCont;
     tempCont+=1;
     Cuadruple quad = new Cuadruple(_add,tempDir,auxEnd,tempName, st, operandInts);   // DimBase + res
@@ -812,8 +825,8 @@ BLOCK=
 FACT
 =
     ( pl (. stackOperator.Push(_pl); .)  HYPER_EXP pr (. stackOperator.Pop(); .) )                                                  |
-    ( [ ( "+" | "-" ) ] ( cte_I  (. pushToOperandStack(createTempInt(Int32.Parse(t.val), sTable), sTable); .) | cte_F (. pushToOperandStack(createTempFloat(float.Parse(t.val), sTable), sTable); .)) )         |
-    ( ctr_Str  (. pushToOperandStack(createTempString(t.val, sTable), sTable); .))                                     |
+    ( [ ( "+" | "-" ) ] ( cte_I  (. pushToOperandStack(createConstInt(Int32.Parse(t.val), sTable), sTable); .) | cte_F (. pushToOperandStack(createConstFloat(float.Parse(t.val), sTable), sTable); .)) )         |
+    ( ctr_Str  (. pushToOperandStack(createConstString(t.val, sTable), sTable); .))                                     |
     ( VARIABLE_FACT )
 .
 
