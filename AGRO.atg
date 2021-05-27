@@ -68,8 +68,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				{t_string}:'STRING'
 				}}");
 
-SymbolTable   sTable;
-Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
+public SymbolTable   sTable;
+public Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
 
 Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
@@ -599,7 +599,8 @@ DEC_FUNC				(. string name; int type; bool solvedReturn; string returnVar; .)
        STATUTE 
        ) } ] 
      (. if (!solvedReturn) { SemErr("Function requires return"); } .)
-    cbr					(. sTable = sTable.parentSymbolTable;
+    cbr					(. dirFunc[name].countVars(sTable);
+                           sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
 /*
