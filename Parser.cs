@@ -65,7 +65,7 @@ const int // types
 	  invalid = Int32.MaxValue, undef = 0, t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6;
 
 const int // object kinds
-	  var = 0, func = 1, temporal = 2;
+	  var = 0, func = 1, temporal = 2, pointer = 3;
 
 
 int[] TERM_OPERATORS = { _mul, _div, _exponent, _intdiv, _module};
@@ -106,7 +106,10 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_or}:'or',
 				{_or}:'||',
                 {_print}: 'print',
-                {_input}: 'input'
+                {_input}: 'input',
+                {_goto}: 'goto',
+                {_gotoFalse}: 'gotoFalse',
+                {_gotoTrue}: 'gotoTrue'
 				}}");
 
 Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int, string>>(@$"{{
@@ -133,8 +136,11 @@ int tempCont = 0;
 public List<Actions> program = new List<Actions>();
 
 void pushToOperandStack(string id, SymbolTable st){
-    // In order to push to the stack, we need to know the type of the id
-    int typeId = st.getType(id);
+    int typeId = invalid;
+    if(validateOper(id,st)){
+        // In order to push to the stack, we need to know the type of the id
+        typeId = st.getType(id);
+    }
     // Push the id
     stackOperand.Push(id);
     // Push the type
@@ -174,6 +180,10 @@ string createTempString(string tempp, SymbolTable st){
     return tempName;
 }
 
+bool validateOper(string oper, SymbolTable st){
+    return (st.getSymbol(oper) != null);
+}
+
 void checkReturn(SymbolTable st, string leftOper, string rightOper) {
     Cuadruple quad = new Cuadruple(_equal, leftOper, rightOper, leftOper, st, operandInts);
 
@@ -196,10 +206,18 @@ void checkAssign(SymbolTable st) {
         // Get the data to create the quad
         rightType = stackTypes.Pop();
         rightOper = stackOperand.Pop();
+        if(rightType == invalid){
+            SemErr("Invalid assignment: " + rightOper + " not declared.");
+            return;
+        }
 
         if (stackOperand.Count > 0) {
             leftType = stackTypes.Pop();
             leftOper = stackOperand.Pop();
+            if(leftType == invalid){
+                SemErr("Invalid assignment: " + leftOper + " not declared.");
+                return;
+            }
         }
         else {
             leftType = rightType;
@@ -208,15 +226,15 @@ void checkAssign(SymbolTable st) {
         
         operat = stackOperator.Pop();
         
-        Cuadruple quad = new Cuadruple(operat, leftOper, rightOper, leftOper, st, operandInts);
+        Assign assign = new Assign(operat, rightOper, leftOper, st, operandInts);
 
         // Check if cube operator is valid for these operands
-        if (quad.typeOut == invalid)
+        if (assign.typeOut == invalid)
         {
             SemErr("Invalid assignment: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
         }
-        quad.setDirOut(st, leftOper);
-        program.Add(quad);
+        assign.setDirOut(st, leftOper);
+        program.Add(assign);
     }
 }
 
@@ -232,8 +250,16 @@ void check(SymbolTable st, int[] arr){
             // Get the data to create the quad
             rightType = stackTypes.Pop();
             rightOper = stackOperand.Pop();
+            if(rightType == invalid){
+                SemErr("Operand: " + rightOper + " not declared");
+                return;
+            }
             leftType = stackTypes.Pop();
             leftOper = stackOperand.Pop();
+            if(leftType == invalid){
+                SemErr("Operand: " + leftOper + " not declared");
+                return;
+            }
             operat = stackOperator.Pop();
             // Create the temporal variable
             tempName = "_t" + tempCont;
@@ -256,12 +282,117 @@ void check(SymbolTable st, int[] arr){
 void checkInputOutput(SymbolTable st, int oper){
     string operand;
     int type;
-
     type = stackTypes.Pop();
     operand = stackOperand.Pop();
-    Cuadruple quad = new Cuadruple(oper, operand, operand, operand, st, operandInts);
+    if(type == invalid){
+        SemErr("Variable: " + operand + " not declared");
+        return;
+    }
+    InOut quad = new InOut(oper, operand, st, operandInts);
     quad.setDirOut(st, operand);
     program.Add(quad);
+}
+
+int checkArray(SymbolTable st, string name){
+    int sizeDim = -1;
+    stackOperand.Pop();
+    stackTypes.Pop();
+    int[] symbol = st.getSymbol(name);
+    int varDims = symbol.Length-3;
+    if(1 > varDims){
+        SemErr("Variable " + name + " has " + varDims + " dimension, asked for 1");
+    }else{
+        sizeDim = symbol[3];
+    }
+    stackOperator.Push(_pl);
+    return sizeDim;
+}
+
+int checkMatrix(SymbolTable st, string name){
+    int sizeDim = -1;
+    int[] symbol = st.getSymbol(name);
+    int varDims = symbol.Length-3;
+    if(2 > varDims){
+        SemErr("Variable " + name + " has " + varDims + " dimension, asked for 2");
+    }else{
+        sizeDim = symbol[4];
+    }
+    return sizeDim;
+}
+
+void verifyLimit(SymbolTable st, string name, int sizeDim){
+    string aux;
+    string tempName,tempName1;
+    string dim2;
+
+    string pos = stackOperand.Peek(); // S1
+    Verify ver = new Verify(pos, sizeDim-1, st);
+    program.Add(ver);
+    int[] symbol = st.getSymbol(name);
+    if(symbol.Length > 4){
+        // We have 2 dims
+        aux = stackOperand.Pop();  //Result of expression
+        dim2 = createTempInt(symbol[4],st);
+        tempName1 = "_t" + tempCont;
+        tempCont+=1;
+        Cuadruple quad = new Cuadruple(_add, aux, createTempInt(1,st), tempName1, st, operandInts); //We need to add 1 to the S1 value to get the right dim
+        st.putSymbol(tempName1, quad.typeOut, temporal);
+        quad.setDirOut(st, tempName1);
+        program.Add(quad);
+        tempName = "_t" + tempCont;
+        tempCont+=1;
+        Cuadruple quad1 = new Cuadruple(_mul,tempName1,dim2,tempName, st, operandInts);   // (S1+1) * Dim2
+        st.putSymbol(tempName, quad.typeOut, temporal);
+        quad1.setDirOut(st, tempName);
+        program.Add(quad1);
+        pushToOperandStack(tempName, st);                                       //Top of operand is ^
+    }
+}
+
+void verifyLimit2(SymbolTable st, string name, int sizeDim){
+    string tempName, tempName1, dim2;
+
+    string pos = stackOperand.Peek(); // S2
+    Verify ver = new Verify(pos, sizeDim-1, st);
+    program.Add(ver);
+    
+    string aux2 = stackOperand.Pop();       //S2
+    string aux1 = stackOperand.Pop();       //(S1+1) * Dim2
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    Cuadruple quad = new Cuadruple(_add,aux2,aux1,tempName, st, operandInts);   // (S1+1) * Dim2 + S2
+    st.putSymbol(tempName, quad.typeOut, temporal);
+    quad.setDirOut(st, tempName);
+    program.Add(quad);
+    tempName1 = "_t" + tempCont;
+    tempCont+=1;
+
+    //Create D2
+    int[] symbol = st.getSymbol(name);
+    dim2 = createTempInt(symbol[4],st);
+
+    Cuadruple quad1 = new Cuadruple(_sub,tempName,dim2,tempName1, st, operandInts);   // (S1+1) * Dim2 + S2 - Dim2
+    st.putSymbol(tempName1, quad.typeOut, temporal);
+    quad1.setDirOut(st, tempName1);
+    program.Add(quad1);
+
+    pushToOperandStack(tempName1, st);                                       //Top of operand is (S1+1) * Dim2 + S2 - Dim2
+}
+
+void endArray(SymbolTable st, string name){
+    string auxEnd;
+    string tempDir,tempName;
+    auxEnd =  stackOperand.Pop();
+
+    tempDir = createTempInt(st.getDir(name),st);
+    tempName = "_t" + tempCont;
+    tempCont+=1;
+    Cuadruple quad = new Cuadruple(_add,tempDir,auxEnd,tempName, st, operandInts);   // DimBase + res
+    st.putSymbol(tempName, quad.typeOut, pointer);
+    quad.setDirOut(st, tempName);
+    program.Add(quad);
+    pushToOperandStack(tempName, st);
+    stackOperator.Pop();
 }
 
 void makeIf(SymbolTable st){
@@ -362,10 +493,16 @@ bool IsTypedFunctionCall(SymbolTable st){
     scanner.ResetPeek();
     Token x = la; 
     while (x.kind == _id ){
-        if(st.getType(la.val) == t_void){
-            SemErr("Invalid function call: " + _id + " does not return any value");
+        if(!validateOper(la.val, st)){
+                break;
         }
-        x = scanner.Peek();
+        else
+        {
+            if(st.getType(la.val) == t_void){
+                SemErr("Invalid function call: " + _id + " does not return any value");
+            }
+            x = scanner.Peek();
+        }
     }
     return x.kind == _pl;
 }
@@ -388,7 +525,7 @@ bool IsTypeFunction() {
 bool IsDecVars(){
     scanner.ResetPeek();
     Token x = scanner.Peek();
-    while (x.kind == _id || x.kind == _comma) 
+    while (x.kind == _id || x.kind == _comma || x.kind == _br || x.kind == _bl || x.kind == _cte_I) 
         x = scanner.Peek();
     return x.kind == _semicolon;
 }
@@ -454,7 +591,7 @@ bool IsDecVars(){
 	
 	void PROGRAM() {
 		sTable = new SymbolTable();
-		program.Add(new Goto(_goto, "", sTable, typesInts)); // Main GOTO. Always position 0
+		program.Add(new Goto(_goto, "", sTable, operandInts)); // Main GOTO. Always position 0
 		
 		while (StartOf(1)) {
 			DECLARATION();
@@ -533,7 +670,7 @@ bool IsDecVars(){
 	}
 
 	void DEC_VARS() {
-		string name; int type; string className; 
+		string name; int type; string className; int dim1=0; int dim2=0;
 		if (la.kind == 1) {
 			IDENT(out className );
 			IDENT(out name );
@@ -547,31 +684,49 @@ bool IsDecVars(){
 		} else if (la.kind == 37 || la.kind == 38 || la.kind == 39) {
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
-			sTable.putSymbol(name, type, var); 
 			if (la.kind == 7) {
 				Get();
 				Expect(2);
+				dim1 = Int32.Parse(t.val); 
 				Expect(8);
 				if (la.kind == 7) {
 					Get();
 					Expect(2);
+					dim2 = Int32.Parse(t.val); 
 					Expect(8);
 				}
 			}
+			if(dim1>0){
+			   sTable.putSymbolArray(name, type, var, dim1, dim2);
+			   dim1 = 0;
+			   dim2 = 0;
+			}
+			else
+			   sTable.putSymbol(name, type, var);
+			
 			while (la.kind == 11) {
 				Get();
 				IDENT(out name );
-				sTable.putSymbol(name, type, var); 
 				if (la.kind == 7) {
 					Get();
 					Expect(2);
+					dim1 = Int32.Parse(t.val); 
 					Expect(8);
 					if (la.kind == 7) {
 						Get();
 						Expect(2);
+						dim2 = Int32.Parse(t.val); 
 						Expect(8);
 					}
 				}
+				if(dim1>0){
+				   sTable.putSymbolArray(name, type, var, dim1, dim2);
+				   dim1 = 0;
+				   dim2 = 0;
+				}
+				else
+				   sTable.putSymbol(name, type, var);
+				
 			}
 			Expect(12);
 		} else SynErr(54);
@@ -719,9 +874,9 @@ bool IsDecVars(){
 		if(sTable.getType(name) != t_void){
 		   pushToOperandStack(createTemp(sTable.getType(name), sTable), sTable);
 		   string leftOper = stackOperand.Peek();
-		   Cuadruple quad = new Cuadruple(_equal, leftOper, "_"+name, leftOper, sTable, operandInts);
-		   quad.setDirOut(sTable, leftOper);
-		   program.Add(quad);
+		   Assign assign = new Assign(_equal, "_"+name, leftOper, sTable, operandInts);
+		   assign.setDirOut(sTable, leftOper);
+		   program.Add(assign);
 		}
 		
 	}
@@ -821,18 +976,23 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_ASSIGN() {
-		string name; 
+		string name; int dim1Size=0; int dim2Size=0;
 		IDENT(out name );
 		pushToOperandStack(name, sTable); 
 		if (la.kind == 7) {
 			Get();
+			dim1Size = checkArray(sTable, name); 
 			EXP();
+			verifyLimit(sTable, name, dim1Size); 
 			Expect(8);
 			if (la.kind == 7) {
+				dim2Size = checkMatrix(sTable, name); 
 				Get();
 				EXP();
+				verifyLimit2(sTable, name, dim2Size); 
 				Expect(8);
 			}
+			endArray(sTable, name); 
 		}
 	}
 
@@ -920,7 +1080,7 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_FACT() {
-		string name; 
+		string name; int dim1Size=0; int dim2Size=0;
 		if (IsTypedFunctionCall(sTable) ) {
 			stackOperator.Push(_pl); 
 			FUNC_CALL();
@@ -930,13 +1090,18 @@ bool IsDecVars(){
 			pushToOperandStack(name, sTable); 
 			if (la.kind == 7) {
 				Get();
+				dim1Size = checkArray(sTable, name); 
 				EXP();
+				verifyLimit(sTable, name, dim1Size); 
 				Expect(8);
 				if (la.kind == 7) {
+					dim2Size = checkMatrix(sTable, name); 
 					Get();
 					EXP();
+					verifyLimit2(sTable, name, dim2Size); 
 					Expect(8);
 				}
+				endArray(sTable, name); 
 			}
 		} else SynErr(64);
 	}
