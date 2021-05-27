@@ -8,6 +8,8 @@ namespace AGRO_GRAMM
 {
     class Program
     {
+        public static Dictionary<int, string> constants = new Dictionary<int, string>();
+
         static void Main(string[] args)
         {
             string programName = "patito";
