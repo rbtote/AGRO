@@ -48,7 +48,7 @@ public class Parser {
 	public const int _different = 34;
 	public const int _and = 35;
 	public const int _or = 36;
-	public const int maxT = 51;
+	public const int maxT = 52;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -124,7 +124,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 public SymbolTable   sTable;
-public Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
+public Dictionary<string, Function> dirFunc   = new Dictionary<string, Function>();
+public Dictionary<string, Classes> dirClasses = new Dictionary<string, Classes>();
 
 Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
@@ -492,6 +493,33 @@ void makeForEnd(SymbolTable st){
     
 }
 
+void checkClassCreation(string className){
+    if(dirClasses.ContainsKey(className)){
+        SemErr("Class <" + className + "> is already declared.");
+        return;
+    }
+    dirClasses.Add(className, new Classes(program.Count + 1));
+}
+
+void addParentClass(string childClass, string parentClass){
+    if(!dirClasses.ContainsKey(parentClass)){
+        SemErr("Parent class <" + parentClass + "> is not declared.");
+        return;
+    }
+    dirClasses[childClass].setParentClass(dirClasses[parentClass]);
+}
+
+void validateObject(string className){
+    if(!dirClasses.ContainsKey(className)){
+        SemErr("Object class <" + className + "> is not declared.");
+        return;
+    }
+}
+
+void createObject(string objName, string className, SymbolTable st){
+    st.putObject(objName, dirClasses[className]);
+}
+
 /*--------------------------------------------------------------------------*/    
 
 bool IsFunctionCall(){
@@ -617,18 +645,20 @@ bool IsDecVars(){
 			DEC_FUNC();
 		} else if (StartOf(2)) {
 			DEC_VARS();
-		} else SynErr(52);
+		} else if (la.kind == 37) {
+			DEC_CLASS();
+		} else SynErr(53);
 	}
 
 	void MAIN() {
 		sTable = sTable.newChildSymbolTable(); Goto mainGoto = (Goto)program[0]; mainGoto.setDirection(program.Count); 
-		Expect(40);
+		Expect(41);
 		Expect(5);
 		if (IsDecVars() ) {
 			DEC_VARS();
 		} else if (StartOf(3)) {
 			STATUTE();
-		} else SynErr(53);
+		} else SynErr(54);
 		while (StartOf(4)) {
 			if (IsDecVars() ) {
 				DEC_VARS();
@@ -650,13 +680,13 @@ bool IsDecVars(){
 		       sTable.putSymbol("_" + name, type, var);
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
-		if (la.kind == 37 || la.kind == 38 || la.kind == 39) {
+		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
 			PARAMS_FUNC(name);
 		}
 		Expect(10);
 		Expect(5);
 		if (StartOf(5)) {
-			if (la.kind == 42) {
+			if (la.kind == 43) {
 				RETURN(out returnVar);
 				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 			} else if (IsDecVars() ) {
@@ -665,7 +695,7 @@ bool IsDecVars(){
 				STATUTE();
 			}
 			while (StartOf(5)) {
-				if (la.kind == 42) {
+				if (la.kind == 43) {
 					RETURN(out returnVar);
 					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 				} else if (IsDecVars() ) {
@@ -686,15 +716,16 @@ bool IsDecVars(){
 		string name; int type; string className; int dim1=0; int dim2=0;
 		if (la.kind == 1) {
 			IDENT(out className );
+			validateObject(className); 
 			IDENT(out name );
-			sTable.putSymbol(name, t_obj, var); 
+			sTable.putSymbol(name, t_obj, var);  createObject(name, className, sTable); 
 			while (la.kind == 11) {
 				Get();
 				IDENT(out name );
-				sTable.putSymbol(name, t_obj, var); 
+				sTable.putSymbol(name, t_obj, var);  createObject(name, className, sTable); 
 			}
 			Expect(12);
-		} else if (la.kind == 37 || la.kind == 38 || la.kind == 39) {
+		} else if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
 			if (la.kind == 7) {
@@ -742,7 +773,28 @@ bool IsDecVars(){
 				
 			}
 			Expect(12);
-		} else SynErr(54);
+		} else SynErr(55);
+	}
+
+	void DEC_CLASS() {
+		string className; string parentClassName;
+		Expect(37);
+		IDENT(out className );
+		checkClassCreation(className); 
+		if (la.kind == 28) {
+			Get();
+			IDENT(out parentClassName );
+			addParentClass(className, parentClassName); 
+		}
+		sTable = sTable.newChildSymbolTable(); 
+		Expect(5);
+		while (la.kind == 13 || la.kind == 14) {
+			CLASS_DEF();
+		}
+		Expect(6);
+		dirClasses[className].setClassVars(sTable);
+		sTable = sTable.parentSymbolTable; 
+		
 	}
 
 	void IDENT(out string name ) {
@@ -752,33 +804,33 @@ bool IsDecVars(){
 
 	void SIMPLE_TYPE(out int type ) {
 		type = undef; 
-		if (la.kind == 37) {
+		if (la.kind == 38) {
 			Get();
 			type = t_int; 
-		} else if (la.kind == 38) {
-			Get();
-			type = t_float; 
 		} else if (la.kind == 39) {
 			Get();
+			type = t_float; 
+		} else if (la.kind == 40) {
+			Get();
 			type = t_char; 
-		} else SynErr(55);
+		} else SynErr(56);
 	}
 
 	void TYPE_FUNC(out int type ) {
 		type = undef; 
-		if (la.kind == 37) {
+		if (la.kind == 38) {
 			Get();
 			type = t_int; 
-		} else if (la.kind == 38) {
-			Get();
-			type = t_float; 
 		} else if (la.kind == 39) {
 			Get();
+			type = t_float; 
+		} else if (la.kind == 40) {
+			Get();
 			type = t_char; 
-		} else if (la.kind == 41) {
+		} else if (la.kind == 42) {
 			Get();
 			type = t_void; 
-		} else SynErr(56);
+		} else SynErr(57);
 	}
 
 	void PARAMS_FUNC(string currFunc ) {
@@ -797,33 +849,49 @@ bool IsDecVars(){
 	}
 
 	void RETURN(out string returnVar ) {
-		Expect(42);
+		Expect(43);
 		HYPER_EXP();
 		Expect(12);
 		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); 
 	}
 
 	void STATUTE() {
-		if (la.kind == 43) {
+		if (la.kind == 44) {
 			INPUT();
-		} else if (la.kind == 44) {
+		} else if (la.kind == 45) {
 			PRINT();
 		} else if (IsFunctionCall() ) {
 			FUNC_CALL();
 			Expect(12);
-		} else if (la.kind == 45) {
+		} else if (la.kind == 46) {
 			CONDITIONAL();
-		} else if (la.kind == 47) {
-			WHILE();
 		} else if (la.kind == 48) {
+			WHILE();
+		} else if (la.kind == 49) {
 			FOR();
 		} else if (la.kind == 1) {
 			ASSIGN();
-		} else SynErr(57);
+		} else SynErr(58);
+	}
+
+	void CLASS_DEF() {
+		string access;
+		if (la.kind == 13) {
+			Get();
+			access = "+"; 
+		} else if (la.kind == 14) {
+			Get();
+			access = "-"; 
+		} else SynErr(59);
+		if (IsTypeFunction() ) {
+			DEC_FUNC();
+		} else if (StartOf(2)) {
+			DEC_VARS();
+		} else SynErr(60);
 	}
 
 	void INPUT() {
-		Expect(43);
+		Expect(44);
 		Expect(9);
 		VARIABLE_ASSIGN();
 		checkInputOutput(sTable, _input); 
@@ -832,7 +900,7 @@ bool IsDecVars(){
 	}
 
 	void PRINT() {
-		Expect(44);
+		Expect(45);
 		Expect(9);
 		HYPER_EXP();
 		checkInputOutput(sTable, _print); 
@@ -895,13 +963,13 @@ bool IsDecVars(){
 	}
 
 	void CONDITIONAL() {
-		Expect(45);
+		Expect(46);
 		Expect(9);
 		HYPER_EXP();
 		makeIf(sTable); 
 		Expect(10);
 		BLOCK();
-		if (la.kind == 46) {
+		if (la.kind == 47) {
 			Get();
 			makeElse(sTable); 
 			BLOCK();
@@ -910,7 +978,7 @@ bool IsDecVars(){
 	}
 
 	void WHILE() {
-		Expect(47);
+		Expect(48);
 		Expect(9);
 		stackJumps.Push(program.Count); 
 		HYPER_EXP();
@@ -921,7 +989,7 @@ bool IsDecVars(){
 	}
 
 	void FOR() {
-		Expect(48);
+		Expect(49);
 		Expect(9);
 		ASSIGN();
 		stackJumps.Push(program.Count); 
@@ -947,7 +1015,7 @@ bool IsDecVars(){
 			HYPER_EXP();
 		} else if (la.kind == 26 || la.kind == 27) {
 			STEP();
-		} else SynErr(58);
+		} else SynErr(61);
 		Expect(12);
 		checkAssign(sTable); 
 	}
@@ -989,23 +1057,29 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_ASSIGN() {
-		string name; int dim1Size=0; int dim2Size=0;
+		string name; string attrName; int dim1Size=0; int dim2Size=0;
 		IDENT(out name );
 		pushToOperandStack(name, sTable); 
-		if (la.kind == 7) {
-			Get();
-			dim1Size = checkArray(sTable, name); 
-			EXP();
-			verifyLimit(sTable, name, dim1Size); 
-			Expect(8);
-			if (la.kind == 7) {
-				dim2Size = checkMatrix(sTable, name); 
+		if (la.kind == 7 || la.kind == 21) {
+			if (la.kind == 21) {
 				Get();
+				IDENT(out attrName );
+				stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); 
+			} else {
+				Get();
+				dim1Size = checkArray(sTable, name); 
 				EXP();
-				verifyLimit2(sTable, name, dim2Size); 
+				verifyLimit(sTable, name, dim1Size); 
 				Expect(8);
+				if (la.kind == 7) {
+					dim2Size = checkMatrix(sTable, name); 
+					Get();
+					EXP();
+					verifyLimit2(sTable, name, dim2Size); 
+					Expect(8);
+				}
+				endArray(sTable, name); 
 			}
-			endArray(sTable, name); 
 		}
 	}
 
@@ -1022,7 +1096,7 @@ bool IsDecVars(){
 		} else if (la.kind == 24) {
 			Get();
 			stackOperator.Push(_sdiv); 
-		} else SynErr(59);
+		} else SynErr(62);
 	}
 
 	void STEP() {
@@ -1032,7 +1106,7 @@ bool IsDecVars(){
 		} else if (la.kind == 27) {
 			Get();
 			stackOperator.Push(_decrement); 
-		} else SynErr(60);
+		} else SynErr(63);
 	}
 
 	void BLOCK() {
@@ -1064,13 +1138,13 @@ bool IsDecVars(){
 			} else if (la.kind == 3) {
 				Get();
 				pushToOperandStack(createConstFloat(float.Parse(t.val), sTable), sTable); 
-			} else SynErr(61);
+			} else SynErr(64);
 		} else if (la.kind == 4) {
 			Get();
 			pushToOperandStack(createConstString(t.val, sTable), sTable); 
 		} else if (la.kind == 1) {
 			VARIABLE_FACT();
-		} else SynErr(62);
+		} else SynErr(65);
 	}
 
 	void OPERATORS_TERM() {
@@ -1089,11 +1163,11 @@ bool IsDecVars(){
 		} else if (la.kind == 19) {
 			Get();
 			stackOperator.Push(_module); 
-		} else SynErr(63);
+		} else SynErr(66);
 	}
 
 	void VARIABLE_FACT() {
-		string name; int dim1Size=0; int dim2Size=0;
+		string name; string attrName; int dim1Size=0; int dim2Size=0;
 		if (IsTypedFunctionCall(sTable) ) {
 			stackOperator.Push(_pl); 
 			FUNC_CALL();
@@ -1101,22 +1175,28 @@ bool IsDecVars(){
 		} else if (la.kind == 1) {
 			IDENT(out name );
 			pushToOperandStack(name, sTable); 
-			if (la.kind == 7) {
-				Get();
-				dim1Size = checkArray(sTable, name); 
-				EXP();
-				verifyLimit(sTable, name, dim1Size); 
-				Expect(8);
-				if (la.kind == 7) {
-					dim2Size = checkMatrix(sTable, name); 
+			if (la.kind == 7 || la.kind == 21) {
+				if (la.kind == 21) {
 					Get();
+					IDENT(out attrName );
+					stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); 
+				} else {
+					Get();
+					dim1Size = checkArray(sTable, name); 
 					EXP();
-					verifyLimit2(sTable, name, dim2Size); 
+					verifyLimit(sTable, name, dim1Size); 
 					Expect(8);
+					if (la.kind == 7) {
+						dim2Size = checkMatrix(sTable, name); 
+						Get();
+						EXP();
+						verifyLimit2(sTable, name, dim2Size); 
+						Expect(8);
+					}
+					endArray(sTable, name); 
 				}
-				endArray(sTable, name); 
 			}
-		} else SynErr(64);
+		} else SynErr(67);
 	}
 
 	void SUPER_EXP() {
@@ -1130,19 +1210,19 @@ bool IsDecVars(){
 	}
 
 	void REL_EXP() {
-		if (la.kind == 49) {
+		if (la.kind == 50) {
 			Get();
 			stackOperator.Push(_and); 
 		} else if (la.kind == 35) {
 			Get();
 			stackOperator.Push(_and); 
-		} else if (la.kind == 50) {
+		} else if (la.kind == 51) {
 			Get();
 			stackOperator.Push(_or); 
 		} else if (la.kind == 36) {
 			Get();
 			stackOperator.Push(_or); 
-		} else SynErr(65);
+		} else SynErr(68);
 	}
 
 	void REL_OP() {
@@ -1170,7 +1250,7 @@ bool IsDecVars(){
 				Get();
 				stackOperator.Push(_different); 
 			}
-		} else SynErr(66);
+		} else SynErr(69);
 	}
 
 
@@ -1185,19 +1265,19 @@ bool IsDecVars(){
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_x,_T, _T,_x,_x,_x, _x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _x,_x,_x,_T, _T,_T,_x,_T, _T,_x,_x,_x, _x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _x,_x,_T,_T, _T,_T,_x,_T, _T,_x,_x,_x, _x},
-		{_x,_T,_T,_T, _T,_x,_x,_x, _x,_T,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_x, _x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _T,_x,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_x, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_T, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
+		{_x,_T,_T,_T, _T,_x,_x,_x, _x,_T,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x}
 
 	};
 } // end Parser
@@ -1248,36 +1328,39 @@ public class Errors {
 			case 34: s = "different expected"; break;
 			case 35: s = "and expected"; break;
 			case 36: s = "or expected"; break;
-			case 37: s = "\"int\" expected"; break;
-			case 38: s = "\"float\" expected"; break;
-			case 39: s = "\"char\" expected"; break;
-			case 40: s = "\"main\" expected"; break;
-			case 41: s = "\"void\" expected"; break;
-			case 42: s = "\"return\" expected"; break;
-			case 43: s = "\"input\" expected"; break;
-			case 44: s = "\"print\" expected"; break;
-			case 45: s = "\"if\" expected"; break;
-			case 46: s = "\"else\" expected"; break;
-			case 47: s = "\"while\" expected"; break;
-			case 48: s = "\"for\" expected"; break;
-			case 49: s = "\"and\" expected"; break;
-			case 50: s = "\"or\" expected"; break;
-			case 51: s = "??? expected"; break;
-			case 52: s = "invalid DECLARATION"; break;
-			case 53: s = "invalid MAIN"; break;
-			case 54: s = "invalid DEC_VARS"; break;
-			case 55: s = "invalid SIMPLE_TYPE"; break;
-			case 56: s = "invalid TYPE_FUNC"; break;
-			case 57: s = "invalid STATUTE"; break;
-			case 58: s = "invalid ASSIGN"; break;
-			case 59: s = "invalid SHORT_ASSIGN"; break;
-			case 60: s = "invalid STEP"; break;
-			case 61: s = "invalid FACT"; break;
-			case 62: s = "invalid FACT"; break;
-			case 63: s = "invalid OPERATORS_TERM"; break;
-			case 64: s = "invalid VARIABLE_FACT"; break;
-			case 65: s = "invalid REL_EXP"; break;
-			case 66: s = "invalid REL_OP"; break;
+			case 37: s = "\"class\" expected"; break;
+			case 38: s = "\"int\" expected"; break;
+			case 39: s = "\"float\" expected"; break;
+			case 40: s = "\"char\" expected"; break;
+			case 41: s = "\"main\" expected"; break;
+			case 42: s = "\"void\" expected"; break;
+			case 43: s = "\"return\" expected"; break;
+			case 44: s = "\"input\" expected"; break;
+			case 45: s = "\"print\" expected"; break;
+			case 46: s = "\"if\" expected"; break;
+			case 47: s = "\"else\" expected"; break;
+			case 48: s = "\"while\" expected"; break;
+			case 49: s = "\"for\" expected"; break;
+			case 50: s = "\"and\" expected"; break;
+			case 51: s = "\"or\" expected"; break;
+			case 52: s = "??? expected"; break;
+			case 53: s = "invalid DECLARATION"; break;
+			case 54: s = "invalid MAIN"; break;
+			case 55: s = "invalid DEC_VARS"; break;
+			case 56: s = "invalid SIMPLE_TYPE"; break;
+			case 57: s = "invalid TYPE_FUNC"; break;
+			case 58: s = "invalid STATUTE"; break;
+			case 59: s = "invalid CLASS_DEF"; break;
+			case 60: s = "invalid CLASS_DEF"; break;
+			case 61: s = "invalid ASSIGN"; break;
+			case 62: s = "invalid SHORT_ASSIGN"; break;
+			case 63: s = "invalid STEP"; break;
+			case 64: s = "invalid FACT"; break;
+			case 65: s = "invalid FACT"; break;
+			case 66: s = "invalid OPERATORS_TERM"; break;
+			case 67: s = "invalid VARIABLE_FACT"; break;
+			case 68: s = "invalid REL_EXP"; break;
+			case 69: s = "invalid REL_OP"; break;
 
 			default: s = "error " + n; break;
 		}

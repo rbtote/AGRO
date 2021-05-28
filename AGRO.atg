@@ -69,7 +69,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 public SymbolTable   sTable;
-public Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
+public Dictionary<string, Function> dirFunc   = new Dictionary<string, Function>();
+public Dictionary<string, Classes> dirClasses = new Dictionary<string, Classes>();
 
 Stack<String> stackOperand = new Stack<String>();
 Stack<int>   stackOperator = new Stack<int>();
@@ -437,6 +438,33 @@ void makeForEnd(SymbolTable st){
     
 }
 
+void checkClassCreation(string className){
+    if(dirClasses.ContainsKey(className)){
+        SemErr("Class <" + className + "> is already declared.");
+        return;
+    }
+    dirClasses.Add(className, new Classes(program.Count + 1));
+}
+
+void addParentClass(string childClass, string parentClass){
+    if(!dirClasses.ContainsKey(parentClass)){
+        SemErr("Parent class <" + parentClass + "> is not declared.");
+        return;
+    }
+    dirClasses[childClass].setParentClass(dirClasses[parentClass]);
+}
+
+void validateObject(string className){
+    if(!dirClasses.ContainsKey(className)){
+        SemErr("Object class <" + className + "> is not declared.");
+        return;
+    }
+}
+
+void createObject(string objName, string className, SymbolTable st){
+    st.putObject(objName, dirClasses[className]);
+}
+
 /*--------------------------------------------------------------------------*/    
 
 bool IsFunctionCall(){
@@ -554,14 +582,14 @@ PROGRAM=
 
 DECLARATION=
     
-    IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS //| DEC_CLASS
+    IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS | DEC_CLASS
 .
 
 DEC_VARS                                    (. string name; int type; string className; int dim1=0; int dim2=0;.)
 =
-    ( IDENT		    < out className >
-    IDENT                   < out name >    (. sTable.putSymbol(name, t_obj, var); .)
-    { comma IDENT           < out name >    (. sTable.putSymbol(name, t_obj, var); .)   
+    ( IDENT		            < out className >  (. validateObject(className); .)
+    IDENT                   < out name >    (. sTable.putSymbol(name, t_obj, var);  createObject(name, className, sTable); .)
+    { comma IDENT           < out name >    (. sTable.putSymbol(name, t_obj, var);  createObject(name, className, sTable); .)   
     } semicolon ) |
     ( 
      SIMPLE_TYPE            < out type >
@@ -616,13 +644,19 @@ DEC_FUNC				(. string name; int type; bool solvedReturn; string returnVar; .)
                            sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
-/*
-DEC_CLASS=
-    "class" IDENT
-    [ colon IDENT ] 
-    cbl { CLASS_DEF } cbr
-.
 
+DEC_CLASS         (. string className; string parentClassName;.)
+=
+    "class" IDENT  < out className >            (. checkClassCreation(className); .)
+    [ colon IDENT  < out parentClassName >      (. addParentClass(className, parentClassName); .)] 
+    (. sTable = sTable.newChildSymbolTable(); .)
+    cbl { CLASS_DEF } cbr
+    (. 
+    dirClasses[className].setClassVars(sTable);
+    sTable = sTable.parentSymbolTable; 
+    .)
+.
+/*
 COMPOUND_TYPE  < out int typeObj >  (. string type; .) 
 =
     IDENT       < out type >	(. typeObj = t_obj; .)
@@ -685,11 +719,16 @@ EXP=
     { (add (. stackOperator.Push(_add); .) | sub (. stackOperator.Push(_sub);.) ) TERM (. check(sTable, EXP_OPERATORS); .)}
     (. check(sTable, EXP_OPERATORS); .)
 .
-/*
-CLASS_DEF=
-    ( "+" | "-" ) ( IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS )
+
+CLASS_DEF   (.string access;.)
+=
+    ( "+" (. access = "+"; .)| "-" (. access = "-"; .)) 
+    ( 
+    IF( IsTypeFunction() ) DEC_FUNC |
+    DEC_VARS
+    )
 .
-*/
+
 ASSIGN=
     VARIABLE_ASSIGN ( ( ( SHORT_ASSIGN | equal (. stackOperator.Push(_equal); .) ) HYPER_EXP ) | STEP ) semicolon (. checkAssign(sTable); .)
 .
@@ -786,11 +825,12 @@ SHORT_ASSIGN=
     sadd (. stackOperator.Push(_sadd); .) | ssub (. stackOperator.Push(_ssub); .) | smul (. stackOperator.Push(_smul); .) | sdiv (. stackOperator.Push(_sdiv); .)
 .
 
-VARIABLE_ASSIGN   (. string name; int dim1Size=0; int dim2Size=0;.)
+VARIABLE_ASSIGN   (. string name; string attrName; int dim1Size=0; int dim2Size=0;.)
 =
-    IDENT	< out name > (. pushToOperandStack(name, sTable); .)
+    IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
     [
-    /*( dot IDENT { dot IDENT } ) |*/ 
+    ( dot IDENT < out attrName >   (.  stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); .)
+      /*{ dot IDENT }*/ ) | 
     ( 
     bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
         [ (. dim2Size = checkMatrix(sTable, name); .) bl EXP (. verifyLimit2(sTable, name, dim2Size); .)  br ]
@@ -799,12 +839,13 @@ VARIABLE_ASSIGN   (. string name; int dim1Size=0; int dim2Size=0;.)
     ]
 .
 
-VARIABLE_FACT	(. string name; int dim1Size=0; int dim2Size=0;.)
+VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0;.)
 =
-    IF( IsTypedFunctionCall(sTable) ) (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
-    IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
+    IF( IsTypedFunctionCall(sTable) )   (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
+    IDENT	< out name >                (. pushToOperandStack(name, sTable); .)
     [ 
-    /*( dot IDENT { dot IDENT } ) |*/
+    ( dot IDENT < out attrName >        (.  stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); .)
+    /*{ dot IDENT }*/ ) |
     (
     bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
         [ (. dim2Size = checkMatrix(sTable, name); .) bl EXP (. verifyLimit2(sTable, name, dim2Size); .)  br ] 

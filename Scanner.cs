@@ -203,8 +203,8 @@ public class UTF8Buffer: Buffer {
 public class Scanner {
 	const char EOL = '\n';
 	const int eofSym = 0; /* pdt */
-	const int maxT = 51;
-	const int noSym = 51;
+	const int maxT = 52;
+	const int noSym = 52;
 
 
 	public Buffer buffer; // scanner buffer
@@ -339,20 +339,21 @@ public class Scanner {
 
 	void CheckLiteral() {
 		switch (t.val) {
-			case "int": t.kind = 37; break;
-			case "float": t.kind = 38; break;
-			case "char": t.kind = 39; break;
-			case "main": t.kind = 40; break;
-			case "void": t.kind = 41; break;
-			case "return": t.kind = 42; break;
-			case "input": t.kind = 43; break;
-			case "print": t.kind = 44; break;
-			case "if": t.kind = 45; break;
-			case "else": t.kind = 46; break;
-			case "while": t.kind = 47; break;
-			case "for": t.kind = 48; break;
-			case "and": t.kind = 49; break;
-			case "or": t.kind = 50; break;
+			case "class": t.kind = 37; break;
+			case "int": t.kind = 38; break;
+			case "float": t.kind = 39; break;
+			case "char": t.kind = 40; break;
+			case "main": t.kind = 41; break;
+			case "void": t.kind = 42; break;
+			case "return": t.kind = 43; break;
+			case "input": t.kind = 44; break;
+			case "print": t.kind = 45; break;
+			case "if": t.kind = 46; break;
+			case "else": t.kind = 47; break;
+			case "while": t.kind = 48; break;
+			case "for": t.kind = 49; break;
+			case "and": t.kind = 50; break;
+			case "or": t.kind = 51; break;
 			default: break;
 		}
 	}

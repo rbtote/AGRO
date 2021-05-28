@@ -12,7 +12,7 @@ namespace AGRO_GRAMM
 
         static void Main(string[] args)
         {
-            string programName = "patito";
+            string programName = "classTest";
             string extensionInput = ".agro";
             string extensionOuput = ".code";
             string extensionCube = ".cube";

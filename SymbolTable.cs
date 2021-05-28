@@ -45,6 +45,7 @@ namespace AGRO_GRAMM
 
         public SymbolTable parentSymbolTable;
         public Dictionary<string, int[]> symbols = new Dictionary<string, int[]>();
+        public Dictionary<string, Dictionary<string, int>> objects = new Dictionary<string, Dictionary<string, int>>();
         public int id;
 
         public SymbolTable()
@@ -168,6 +169,28 @@ namespace AGRO_GRAMM
             }
             symbols.Add(name, symbol.ToArray());
 
+            return true;
+        }
+
+        public bool putObject(string objName, Classes classObj)
+        {
+            //Create dictionary for <attribute, directionAssigned
+            Dictionary<string, int> attributes = new Dictionary<string, int>();
+            //Append objName to objects dictionary
+            objects[objName] = attributes;
+            // Check all the variables of the class
+            //     structure <varName, type>
+            foreach (string varName in classObj.variables.Keys)
+            {
+                string nameObjVar = objName + "." + varName;
+                //Assign direction to all variables of the class
+                // t_int = 1, t_float = 2, t_char = 3
+                putSymbol(nameObjVar, classObj.variables[varName], 0);
+                //Ej:     miCarroVelocidad, 2, 0
+
+                //Save these directions in the objects dictionary
+                attributes[varName] = getDir(nameObjVar);
+            }
             return true;
         }
 
