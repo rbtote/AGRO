@@ -153,7 +153,7 @@ string createTemp(int type, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
-    st.putSymbol(tempName, type, temporal);
+    st.putSymbol(tempName, type, temporal, 1);
     return tempName;
 }
 
@@ -161,7 +161,7 @@ string createTempInt(int tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
-    st.putSymbol(tempName, t_int, temporal);
+    st.putSymbol(tempName, t_int, temporal, 1);
     return tempName;
 }
 
@@ -190,7 +190,7 @@ string createTempFloat(float tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
-    st.putSymbol(tempName, t_float, temporal);
+    st.putSymbol(tempName, t_float, temporal, 1);
     return tempName;
 }
 
@@ -285,7 +285,7 @@ void check(SymbolTable st, int[] arr){
             {
                 SemErr("Invalid operation: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
             }
-            st.putSymbol(tempName, quad.typeOut, temporal);
+            st.putSymbol(tempName, quad.typeOut, temporal, 1);
             quad.setDirOut(st, tempName);
             program.Add(quad);
             pushToOperandStack(tempName, st);
@@ -312,7 +312,7 @@ int checkArray(SymbolTable st, string name){
     stackOperand.Pop();
     stackTypes.Pop();
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-3;
+    int varDims = symbol.Length-4;
     if(1 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 1");
     }else{
@@ -325,7 +325,7 @@ int checkArray(SymbolTable st, string name){
 int checkMatrix(SymbolTable st, string name){
     int sizeDim = -1;
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-3;
+    int varDims = symbol.Length-4;
     if(2 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 2");
     }else{
@@ -350,13 +350,13 @@ void verifyLimit(SymbolTable st, string name, int sizeDim){
         tempName1 = "_t" + tempCont;
         tempCont+=1;
         Cuadruple quad = new Cuadruple(_add, aux, createConstInt(1,st), tempName1, st, operandInts); //We need to add 1 to the S1 value to get the right dim
-        st.putSymbol(tempName1, quad.typeOut, temporal);
+        st.putSymbol(tempName1, quad.typeOut, temporal, 1);
         quad.setDirOut(st, tempName1);
         program.Add(quad);
         tempName = "_t" + tempCont;
         tempCont+=1;
         Cuadruple quad1 = new Cuadruple(_mul,tempName1,dim2,tempName, st, operandInts);   // (S1+1) * Dim2
-        st.putSymbol(tempName, quad.typeOut, temporal);
+        st.putSymbol(tempName, quad.typeOut, temporal, 1);
         quad1.setDirOut(st, tempName);
         program.Add(quad1);
         pushToOperandStack(tempName, st);                                       //Top of operand is ^
@@ -375,7 +375,7 @@ void verifyLimit2(SymbolTable st, string name, int sizeDim){
     tempName = "_t" + tempCont;
     tempCont+=1;
     Cuadruple quad = new Cuadruple(_add,aux2,aux1,tempName, st, operandInts);   // (S1+1) * Dim2 + S2
-    st.putSymbol(tempName, quad.typeOut, temporal);
+    st.putSymbol(tempName, quad.typeOut, temporal, 1);
     quad.setDirOut(st, tempName);
     program.Add(quad);
     tempName1 = "_t" + tempCont;
@@ -386,7 +386,7 @@ void verifyLimit2(SymbolTable st, string name, int sizeDim){
     dim2 = createConstInt(symbol[4],st);
 
     Cuadruple quad1 = new Cuadruple(_sub,tempName,dim2,tempName1, st, operandInts);   // (S1+1) * Dim2 + S2 - Dim2
-    st.putSymbol(tempName1, quad.typeOut, temporal);
+    st.putSymbol(tempName1, quad.typeOut, temporal, 1);
     quad1.setDirOut(st, tempName1);
     program.Add(quad1);
 
@@ -402,7 +402,7 @@ void endArray(SymbolTable st, string name){
     tempName = "_t" + tempCont;
     tempCont+=1;
     Cuadruple quad = new Cuadruple(_add,tempDir,auxEnd,tempName, st, operandInts);   // DimBase + res
-    st.putSymbol(tempName, quad.typeOut, pointer);
+    st.putSymbol(tempName, quad.typeOut, pointer, 1);
     quad.setDirOut(st, tempName);
     program.Add(quad);
     pushToOperandStack(tempName, st);
@@ -644,7 +644,7 @@ bool IsDecVars(){
 		if (IsTypeFunction() ) {
 			DEC_FUNC();
 		} else if (StartOf(2)) {
-			DEC_VARS();
+			DEC_VARS(1);
 		} else if (la.kind == 37) {
 			DEC_CLASS();
 		} else SynErr(53);
@@ -655,13 +655,13 @@ bool IsDecVars(){
 		Expect(41);
 		Expect(5);
 		if (IsDecVars() ) {
-			DEC_VARS();
+			DEC_VARS(1);
 		} else if (StartOf(3)) {
 			STATUTE();
 		} else SynErr(54);
 		while (StartOf(4)) {
 			if (IsDecVars() ) {
-				DEC_VARS();
+				DEC_VARS(1);
 			} else {
 				STATUTE();
 			}
@@ -675,9 +675,9 @@ bool IsDecVars(){
 		TYPE_FUNC(out type );
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
-		sTable.putSymbol(name, type, func);
+		sTable.putSymbol(name, type, func, 1);
 		       dirFunc.Add(name, new Function(program.Count + 1));
-		       sTable.putSymbol("_" + name, type, var);
+		       sTable.putSymbol("_" + name, type, var, 1);
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
@@ -690,7 +690,7 @@ bool IsDecVars(){
 				RETURN(out returnVar);
 				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 			} else if (IsDecVars() ) {
-				DEC_VARS();
+				DEC_VARS(1);
 			} else {
 				STATUTE();
 			}
@@ -699,7 +699,7 @@ bool IsDecVars(){
 					RETURN(out returnVar);
 					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 				} else if (IsDecVars() ) {
-					DEC_VARS();
+					DEC_VARS(1);
 				} else {
 					STATUTE();
 				}
@@ -712,17 +712,17 @@ bool IsDecVars(){
 		           program.Add(new EndFunc()); 
 	}
 
-	void DEC_VARS() {
+	void DEC_VARS(int access) {
 		string name; int type; string className; int dim1=0; int dim2=0;
 		if (la.kind == 1) {
 			IDENT(out className );
 			validateObject(className); 
 			IDENT(out name );
-			sTable.putSymbol(name, t_obj, var);  createObject(name, className, sTable); 
+			sTable.putSymbol(name, t_obj, var, 1);  createObject(name, className, sTable); 
 			while (la.kind == 11) {
 				Get();
 				IDENT(out name );
-				sTable.putSymbol(name, t_obj, var);  createObject(name, className, sTable); 
+				sTable.putSymbol(name, t_obj, var, 1);  createObject(name, className, sTable); 
 			}
 			Expect(12);
 		} else if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
@@ -746,7 +746,7 @@ bool IsDecVars(){
 			   dim2 = 0;
 			}
 			else
-			   sTable.putSymbol(name, type, var);
+			   sTable.putSymbol(name, type, var, access);
 			
 			while (la.kind == 11) {
 				Get();
@@ -769,7 +769,7 @@ bool IsDecVars(){
 				   dim2 = 0;
 				}
 				else
-				   sTable.putSymbol(name, type, var);
+				   sTable.putSymbol(name, type, var, access);
 				
 			}
 			Expect(12);
@@ -837,13 +837,13 @@ bool IsDecVars(){
 		string name; int type; 
 		SIMPLE_TYPE(out type );
 		IDENT(out name );
-		sTable.putSymbol(name, type, var);
+		sTable.putSymbol(name, type, var, 1);
 		       dirFunc[currFunc].parameterTypes.Add(type); 
 		while (la.kind == 11) {
 			Get();
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
-			sTable.putSymbol(name, type, var);
+			sTable.putSymbol(name, type, var, 1);
 			      dirFunc[currFunc].parameterTypes.Add(type); 
 		}
 	}
@@ -875,18 +875,18 @@ bool IsDecVars(){
 	}
 
 	void CLASS_DEF() {
-		string access;
+		int access = 1;
 		if (la.kind == 13) {
 			Get();
-			access = "+"; 
+			access = 1; 
 		} else if (la.kind == 14) {
 			Get();
-			access = "-"; 
+			access = -1; 
 		} else SynErr(59);
 		if (IsTypeFunction() ) {
 			DEC_FUNC();
 		} else if (StartOf(2)) {
-			DEC_VARS();
+			DEC_VARS(access);
 		} else SynErr(60);
 	}
 

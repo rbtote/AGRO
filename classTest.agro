@@ -1,24 +1,14 @@
 ﻿class auto{
     + int cilindros;
-    - float precio;
-}
-
-class camion : auto{
-    + float velocidad;
+    + float precio;
 }
 
 main {
     auto a,b;
-    camion c;
     int res;
 
-    a.cilindros = 1;
-    a.precio = 1.1;
-    b.cilindros = 1;
-    b.precio = 1.1;
-    c.cilindros = 1;
-    c.precio = 1;
-    c.velocidad = 1.1;
+    res[1] = 0;
+    res = a.cilindros + b.cilindros + a.precio;
+    print(res);
 
-    res = a.cilindros + b.cilindros + c.cilindros;
 }
