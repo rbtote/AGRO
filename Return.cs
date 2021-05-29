@@ -7,17 +7,18 @@ namespace AGRO_GRAMM
     class Return : Actions
     {
         string outVar;
-        int dirVar;
+        int dirVar, dirGlobal;
 
-        public Return(string outVar, SymbolTable _st)
+        public Return(string outVar, int dirGlobal, SymbolTable _st)
         {
+            this.dirGlobal = dirGlobal;
             this.outVar = outVar;
             this.dirVar = _st.getDir(outVar);
         }
 
         public override string ToString()
         {
-            return "return " + dirVar;
+            return "return " + dirVar + " " + dirGlobal;
         }
     }
 }

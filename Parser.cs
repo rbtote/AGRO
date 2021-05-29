@@ -687,7 +687,7 @@ bool IsDecVars(){
 		Expect(5);
 		if (StartOf(5)) {
 			if (la.kind == 43) {
-				RETURN(out returnVar);
+				RETURN(name, out returnVar);
 				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 			} else if (IsDecVars() ) {
 				DEC_VARS(1);
@@ -696,7 +696,7 @@ bool IsDecVars(){
 			}
 			while (StartOf(5)) {
 				if (la.kind == 43) {
-					RETURN(out returnVar);
+					RETURN(name, out returnVar);
 					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 				} else if (IsDecVars() ) {
 					DEC_VARS(1);
@@ -848,11 +848,11 @@ bool IsDecVars(){
 		}
 	}
 
-	void RETURN(out string returnVar ) {
+	void RETURN(string funcName, out string returnVar ) {
 		Expect(43);
 		HYPER_EXP();
 		Expect(12);
-		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); 
+		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable.getDir("_"+funcName), sTable)); 
 	}
 
 	void STATUTE() {

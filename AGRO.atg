@@ -632,10 +632,10 @@ DEC_FUNC				(. string name; int type; bool solvedReturn; string returnVar; .)
                                     sTable = sTable.newChildSymbolTable(); .)
     pl [ PARAMS_FUNC <name> ] pr
     cbl [
-     ( RETURN <out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
+     ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
       IF( IsDecVars() ) DEC_VARS <1> |
       STATUTE) 
-      { ( RETURN <out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
+      { ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
        IF( IsDecVars() ) DEC_VARS <1> |
        STATUTE 
        ) } ] 
@@ -709,9 +709,9 @@ PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
     }
 .
 
-RETURN < out string returnVar >
+RETURN <string funcName, out string returnVar >
 =
-    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); .)
+    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable.getDir("_"+funcName), sTable)); .)
 .
 
 EXP=
