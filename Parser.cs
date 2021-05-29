@@ -312,7 +312,7 @@ int checkArray(SymbolTable st, string name){
     stackOperand.Pop();
     stackTypes.Pop();
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-4;
+    int varDims = symbol.Length-3;
     if(1 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 1");
     }else{
@@ -325,7 +325,7 @@ int checkArray(SymbolTable st, string name){
 int checkMatrix(SymbolTable st, string name){
     int sizeDim = -1;
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-4;
+    int varDims = symbol.Length-3;
     if(2 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 2");
     }else{
@@ -365,6 +365,10 @@ void verifyLimit(SymbolTable st, string name, int sizeDim){
 
 void verifyLimit2(SymbolTable st, string name, int sizeDim){
     string tempName, tempName1, dim2;
+
+    if(sizeDim == -1){
+        return;
+    }
 
     string pos = stackOperand.Peek(); // S2
     Verify ver = new Verify(pos, sizeDim-1, st);
@@ -518,6 +522,10 @@ void validateObject(string className){
 
 void createObject(string objName, string className, SymbolTable st){
     st.putObject(objName, dirClasses[className]);
+}
+
+void checkMethodCall(){
+
 }
 
 /*--------------------------------------------------------------------------*/    
@@ -863,6 +871,8 @@ bool IsDecVars(){
 		} else if (IsFunctionCall() ) {
 			FUNC_CALL();
 			Expect(12);
+		} else if (IsMethodCall() ) {
+			METHOD_CALL();
 		} else if (la.kind == 46) {
 			CONDITIONAL();
 		} else if (la.kind == 48) {
@@ -960,6 +970,23 @@ bool IsDecVars(){
 		   program.Add(assign);
 		}
 		
+	}
+
+	void METHOD_CALL() {
+		string objectName, methodName; 
+		IDENT(out objectName );
+		Expect(21);
+		IDENT(out methodName );
+		Expect(9);
+		if (StartOf(6)) {
+			EXP();
+			while (la.kind == 11) {
+				Get();
+				EXP();
+			}
+		}
+		Expect(10);
+		Expect(12);
 	}
 
 	void CONDITIONAL() {

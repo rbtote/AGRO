@@ -9,5 +9,5 @@ Also, we validated some errors in compilation (use of non-declared vars)
 
 
 ## TODO
-* Error handling (Ask for second dim in 1-dim array)
+* Class nesting check
 * Finish virtual machine

@@ -257,7 +257,7 @@ int checkArray(SymbolTable st, string name){
     stackOperand.Pop();
     stackTypes.Pop();
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-4;
+    int varDims = symbol.Length-3;
     if(1 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 1");
     }else{
@@ -270,7 +270,7 @@ int checkArray(SymbolTable st, string name){
 int checkMatrix(SymbolTable st, string name){
     int sizeDim = -1;
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-4;
+    int varDims = symbol.Length-3;
     if(2 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 2");
     }else{
@@ -310,6 +310,10 @@ void verifyLimit(SymbolTable st, string name, int sizeDim){
 
 void verifyLimit2(SymbolTable st, string name, int sizeDim){
     string tempName, tempName1, dim2;
+
+    if(sizeDim == -1){
+        return;
+    }
 
     string pos = stackOperand.Peek(); // S2
     Verify ver = new Verify(pos, sizeDim-1, st);
@@ -463,6 +467,10 @@ void validateObject(string className){
 
 void createObject(string objName, string className, SymbolTable st){
     st.putObject(objName, dirClasses[className]);
+}
+
+void checkMethodCall(){
+
 }
 
 /*--------------------------------------------------------------------------*/    
@@ -623,7 +631,7 @@ DEC_VARS  <int access>               (. string name; int type; string className;
     )
 .
 
-DEC_FUNC				(. string name; int type; bool solvedReturn; string returnVar; .)
+DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .)
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. sTable.putSymbol(name, type, func, 1);
@@ -680,7 +688,7 @@ STATUTE=
     INPUT       |
     PRINT       |
     IF( IsFunctionCall() ) FUNC_CALL  semicolon|
- //   IF( IsMethodCall() ) METHOD_CALL  |
+    IF( IsMethodCall() ) METHOD_CALL  |
     CONDITIONAL |
     WHILE       |
     FOR         |
@@ -724,7 +732,7 @@ CLASS_DEF   (.int access = 1;.)
 =
     ( "+" (. access = 1; .)| "-" (. access = -1; .)) 
     ( 
-    IF( IsTypeFunction() ) DEC_FUNC |
+    IF( IsTypeFunction() ) DEC_FUNC  |
     DEC_VARS <access>
     )
 .
@@ -811,11 +819,15 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
         }
     .)
 .
-/*
-METHOD_CALL=
-    IDENT dot IDENT { dot IDENT } pl [ EXP { comma EXP } ] pr semicolon
+
+METHOD_CALL         (. string objectName, methodName; .)
+=
+    IDENT  < out objectName >
+    dot 
+    IDENT  < out methodName >/*{ dot IDENT }*/ 
+    pl [ EXP { comma EXP } ] pr semicolon
 .
-*/
+
 TERM=
     FACT { OPERATORS_TERM FACT (. check(sTable, TERM_OPERATORS); .) }
     (. check(sTable, TERM_OPERATORS); .)
