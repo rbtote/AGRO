@@ -46,6 +46,7 @@ namespace AGRO_GRAMM
         public SymbolTable parentSymbolTable;
         public Dictionary<string, int[]> symbols = new Dictionary<string, int[]>();
         public Dictionary<string, Dictionary<string, int>> objects = new Dictionary<string, Dictionary<string, int>>();
+        public Dictionary<string, SymbolTable> objectsContext = new Dictionary<string, SymbolTable>();
         public int id;
 
         public SymbolTable()

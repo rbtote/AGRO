@@ -590,7 +590,7 @@ PROGRAM=
 
 DECLARATION=
     
-    IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS <1> | DEC_CLASS
+    IF( IsTypeFunction() ) DEC_FUNC <""> | DEC_VARS <1> | DEC_CLASS
 .
 
 DEC_VARS  <int access>               (. string name; int type; string className; int dim1=0; int dim2=0;.)
@@ -631,14 +631,14 @@ DEC_VARS  <int access>               (. string name; int type; string className;
     )
 .
 
-DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .)
+DEC_FUNC <string className>	       (. string name; int type; bool solvedReturn; string returnVar; .)
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. sTable.putSymbol(name, type, func, 1);
-                                    dirFunc.Add(name, new Function(program.Count + 1));
+                                    dirFunc.Add(className+name, new Function(program.Count + 1));
                                     sTable.putSymbol("_" + name, type, var, 1);
                                     sTable = sTable.newChildSymbolTable(); .)
-    pl [ PARAMS_FUNC <name> ] pr
+    pl [ PARAMS_FUNC <name, className> ] pr
     cbl [
      ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
       IF( IsDecVars() ) DEC_VARS <1> |
@@ -648,7 +648,7 @@ DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .
        STATUTE 
        ) } ] 
      (. if (!solvedReturn) { SemErr("Function requires return"); } .)
-    cbr					(. dirFunc[name].countVars(sTable);
+    cbr					(. dirFunc[className+name].countVars(sTable);
                            sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
@@ -658,10 +658,12 @@ DEC_CLASS         (. string className; string parentClassName;.)
     "class" IDENT  < out className >            (. checkClassCreation(className); .)
     [ colon IDENT  < out parentClassName >      (. addParentClass(className, parentClassName); .)] 
     (. sTable = sTable.newChildSymbolTable(); .)
-    cbl { CLASS_DEF } cbr
+    cbl { CLASS_DEF < className > } cbr
     (. 
     dirClasses[className].setClassVars(sTable);
-    sTable = sTable.parentSymbolTable; 
+    SymbolTable aux = sTable;
+    sTable = sTable.parentSymbolTable;
+    sTable.objectsContext[className] = aux;
     .)
 .
 /*
@@ -705,11 +707,11 @@ TYPE_FUNC           < out int type >
     )
 .
 
-PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
+PARAMS_FUNC < string currFunc, string className >         		(. string name; int type; .)
 =
     SIMPLE_TYPE         < out type >
     IDENT		< out name >	(. sTable.putSymbol(name, type, var, 1);
-                                   dirFunc[currFunc].parameterTypes.Add(type); .)
+                                   dirFunc[className+currFunc].parameterTypes.Add(type); .)
     { 
      comma SIMPLE_TYPE	< out type >
      IDENT		< out name >	(. sTable.putSymbol(name, type, var, 1);
@@ -728,11 +730,11 @@ EXP=
     (. check(sTable, EXP_OPERATORS); .)
 .
 
-CLASS_DEF   (.int access = 1;.)
+CLASS_DEF <string className>  (.int access = 1;.)
 =
     ( "+" (. access = 1; .)| "-" (. access = -1; .)) 
     ( 
-    IF( IsTypeFunction() ) DEC_FUNC  |
+    IF( IsTypeFunction() ) DEC_FUNC <className+"."> |
     DEC_VARS <access>
     )
 .
@@ -820,11 +822,13 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
     .)
 .
 
-METHOD_CALL         (. string objectName, methodName; .)
+METHOD_CALL         (. string objectName, className, methodName, localParamType, funcParamType;
+                       int paramCount; .)
 =
     IDENT  < out objectName >
     dot 
-    IDENT  < out methodName >/*{ dot IDENT }*/ 
+    IDENT  < out methodName >
+    /*{ dot IDENT }*/ 
     pl [ EXP { comma EXP } ] pr semicolon
 .
 

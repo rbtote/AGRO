@@ -650,7 +650,7 @@ bool IsDecVars(){
 
 	void DECLARATION() {
 		if (IsTypeFunction() ) {
-			DEC_FUNC();
+			DEC_FUNC("");
 		} else if (StartOf(2)) {
 			DEC_VARS(1);
 		} else if (la.kind == 37) {
@@ -678,18 +678,18 @@ bool IsDecVars(){
 		sTable = sTable.parentSymbolTable; 
 	}
 
-	void DEC_FUNC() {
+	void DEC_FUNC(string className) {
 		string name; int type; bool solvedReturn; string returnVar; 
 		TYPE_FUNC(out type );
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
 		sTable.putSymbol(name, type, func, 1);
-		       dirFunc.Add(name, new Function(program.Count + 1));
+		       dirFunc.Add(className+name, new Function(program.Count + 1));
 		       sTable.putSymbol("_" + name, type, var, 1);
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
-			PARAMS_FUNC(name);
+			PARAMS_FUNC(name, className);
 		}
 		Expect(10);
 		Expect(5);
@@ -715,7 +715,7 @@ bool IsDecVars(){
 		}
 		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(6);
-		dirFunc[name].countVars(sTable);
+		dirFunc[className+name].countVars(sTable);
 		           sTable = sTable.parentSymbolTable;
 		           program.Add(new EndFunc()); 
 	}
@@ -797,11 +797,13 @@ bool IsDecVars(){
 		sTable = sTable.newChildSymbolTable(); 
 		Expect(5);
 		while (la.kind == 13 || la.kind == 14) {
-			CLASS_DEF();
+			CLASS_DEF(className );
 		}
 		Expect(6);
 		dirClasses[className].setClassVars(sTable);
-		sTable = sTable.parentSymbolTable; 
+		SymbolTable aux = sTable;
+		sTable = sTable.parentSymbolTable;
+		sTable.objectsContext[className] = aux;
 		
 	}
 
@@ -841,12 +843,12 @@ bool IsDecVars(){
 		} else SynErr(57);
 	}
 
-	void PARAMS_FUNC(string currFunc ) {
+	void PARAMS_FUNC(string currFunc, string className ) {
 		string name; int type; 
 		SIMPLE_TYPE(out type );
 		IDENT(out name );
 		sTable.putSymbol(name, type, var, 1);
-		       dirFunc[currFunc].parameterTypes.Add(type); 
+		       dirFunc[className+currFunc].parameterTypes.Add(type); 
 		while (la.kind == 11) {
 			Get();
 			SIMPLE_TYPE(out type );
@@ -884,7 +886,7 @@ bool IsDecVars(){
 		} else SynErr(58);
 	}
 
-	void CLASS_DEF() {
+	void CLASS_DEF(string className) {
 		int access = 1;
 		if (la.kind == 13) {
 			Get();
@@ -894,7 +896,7 @@ bool IsDecVars(){
 			access = -1; 
 		} else SynErr(59);
 		if (IsTypeFunction() ) {
-			DEC_FUNC();
+			DEC_FUNC(className+".");
 		} else if (StartOf(2)) {
 			DEC_VARS(access);
 		} else SynErr(60);
