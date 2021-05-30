@@ -227,9 +227,8 @@ class Memory:
         self.localTempMemory.pop()
 
 class CodeProcessor:
-    def __init__(self, code, cube, dirFunc, constants, debug):
+    def __init__(self, code, dirFunc, constants, debug):
         self.code = code
-        self.cube = cube
         self.dirFunc = dirFunc
         self.constants = constants
         self.debug = debug
@@ -306,7 +305,6 @@ class CodeProcessor:
 
         # Set values to constant memory
         for varToSet in listToSet:
-            print(varToSet)
             varToSet[1][3](int(varToSet[0][0]) - varToSet[1][1], varToSet[0][1])
 
     def consoleLog(self, text):
@@ -514,7 +512,6 @@ if __name__ == "__main__":
         # Use this filename extension to read output file from compiler
         extensionProgram = ".agro"
         extensionCode = extensionProgram + ".code"
-        extensionCube = extensionProgram + ".cube"
         extensionDirFunc = extensionProgram + ".dirfunc"
         extensionConstants = extensionProgram + ".constants"
 
@@ -529,26 +526,14 @@ if __name__ == "__main__":
         code = file.read().split('\n')
         file.close()
 
-        # Read cube program file
-        file = open(programName + extensionCube, 'r')
-        cube = json.load(file)
-        file.close()
-
-        if debug:
-            print(cube)
-
         # Read dirFunc for program
         file = open(programName + extensionDirFunc, 'r')
         dirFuncTxt = file.read().split('\n')
         file.close()
 
         dirFunc = {}
-        if debug:
-            print(dirFuncTxt)
         for line in dirFuncTxt:
             if len(line) < 2: break
-            if debug:
-                print(line)
             line = line.split('|')
             name = line[0]
             params = line[1].split()
@@ -580,9 +565,6 @@ if __name__ == "__main__":
                 "stringTmp":int(line[8])
             }
 
-        if debug:
-            print(dirFunc)
-
         # Read constants for program
         file = open(programName + extensionConstants, 'r')
         constants = file.read()
@@ -590,6 +572,6 @@ if __name__ == "__main__":
 
         constants = re.findall(r"(\d{5})\s(.*)\n", constants)
 
-        agroVM = CodeProcessor(code, cube, dirFunc, constants, debug)
+        agroVM = CodeProcessor(code, dirFunc, constants, debug)
         print(splashArt)
         agroVM.processCode()

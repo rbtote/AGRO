@@ -261,7 +261,7 @@ namespace AGRO_GRAMM
         /// <returns> A direction where the variable will be assigned </returns>
         private int assignDir(int type, int kind)
         {
-            const int temporal = 2, pointer = 3, constant = 4, array = 5;                            // Kind
+            const int var = 0, temporal = 2, pointer = 3, constant = 4, array = 5;                            // Kind
             const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;     // Type
             int dir = 0;
             if (id == 0)     //Global table
@@ -306,7 +306,8 @@ namespace AGRO_GRAMM
                                 break;
                         }
                         break;
-                    default:
+                    case var:
+                    case array:
                         switch (type)
                         {
                             case t_int:
@@ -323,13 +324,30 @@ namespace AGRO_GRAMM
                                 break;
                         }
                         break;
-
                 }
             }
             else
             {
                 switch (kind)
                 {
+                    case var:
+                    case array:
+                        switch (type)
+                        {
+                            case t_int:
+                                dir = localInt;
+                                localInt++;
+                                break;
+                            case t_float:
+                                dir = localFloat;
+                                localFloat++;
+                                break;
+                            case t_char:
+                                dir = localChar;
+                                localChar++;
+                                break;
+                        }
+                        break;
                     case temporal:
                         switch (type)
                         {
@@ -365,23 +383,6 @@ namespace AGRO_GRAMM
                             case t_string:
                                 dir = constString;
                                 constString++;
-                                break;
-                        }
-                        break;
-                    default:
-                        switch (type)
-                        {
-                            case t_int:
-                                dir = localInt;
-                                localInt++;
-                                break;
-                            case t_float:
-                                dir = localFloat;
-                                localFloat++;
-                                break;
-                            case t_char:
-                                dir = localChar;
-                                localChar++;
                                 break;
                         }
                         break;

@@ -12,17 +12,18 @@ namespace AGRO_GRAMM
 
         static void Main(string[] args)
         {
+
             if (args.Length < 1)
             {
                 Console.WriteLine("Usage: AGRO.exe programName");
                 return;
             }
 
+
             string programName = args[0];
-            //string programName = "programArrays";
+            //string programName = @".\..\..\..\VM\programs\programArrays";
             string extensionInput = ".agro";
             string extensionOuput = ".code";
-            string extensionCube = ".cube";
             string extensionDirFunc = ".dirfunc";
             string extensionConstants = ".constants";
             string dir = @"";
@@ -53,18 +54,6 @@ namespace AGRO_GRAMM
             catch (IOException)
             {
                 throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionOuput);
-            }
-
-            // Write output Cube file
-            try
-            {
-                using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionCube);
-
-                outputFile.Write(Cube.json);
-            }
-            catch (IOException)
-            {
-                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionCube);
             }
 
             // Write output DirFunc file
