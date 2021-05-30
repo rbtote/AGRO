@@ -20,6 +20,7 @@ namespace AGRO_GRAMM
         public void setParentClass(Classes parentClass)
         {
             this.parentClass = parentClass;
+            copyParentVars();
         }
 
         public void copyParentVars()
@@ -63,10 +64,7 @@ namespace AGRO_GRAMM
                         break;
                 }
             }
-            if (parentClass != null)
-            {
-                copyParentVars();
-            }
+            
         }
     }
 }

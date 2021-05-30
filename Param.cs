@@ -6,11 +6,12 @@ namespace AGRO_GRAMM
 {
     class Param : Actions
     {
-        string varName;
+        string varName,paramType;
         int dirVar;
         int count;
-        public Param(string varName, int count, SymbolTable _st)
+        public Param(string paramType, string varName, int count, SymbolTable _st)
         {
+            this.paramType = paramType;
             this.varName = varName;
             this.dirVar = _st.getDir(varName);
             this.count = count;
@@ -18,7 +19,7 @@ namespace AGRO_GRAMM
 
         public override string ToString()
         {
-            return "param " + dirVar + " param" + count;
+            return paramType + " " + dirVar + " param" + count;
         }
     }
 }

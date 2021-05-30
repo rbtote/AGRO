@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using System.Linq;
 using AGRO_GRAMM;
 using System.Collections.Generic;
 
@@ -518,12 +519,17 @@ void checkClassCreation(string className){
     dirClasses.Add(className, new Classes(program.Count + 1));
 }
 
-void addParentClass(string childClass, string parentClass){
+void addParentClass(string childClass, string parentClass, SymbolTable st){
     if(!dirClasses.ContainsKey(parentClass)){
         SemErr("Parent class <" + parentClass + "> is not declared.");
         return;
     }
     dirClasses[childClass].setParentClass(dirClasses[parentClass]);
+    //Copy to STABLE dirClasses[parentClass]
+    foreach (string key in dirClasses[parentClass].variables.Keys)
+    {
+        st.putSymbol(key, dirClasses[parentClass].variables[key][0],0,dirClasses[parentClass].variables[key][1]);
+    }
 }
 
 void validateObject(string className){
@@ -535,10 +541,31 @@ void validateObject(string className){
 
 void createObject(string objName, string className, SymbolTable st){
     st.putObject(objName, dirClasses[className]);
+    st.objectClasses[objName] = className;
 }
 
-void checkMethodCall(){
+void checkAttAccess(string attName, SymbolTable st){
+    if(st.getAccess(attName) != -1){
+        pushToOperandStack(attName, sTable);
+    }else{
+        SemErr("Trying to acces private symbol: <"+ attName + ">.");
+        stackTypes.Push(invalid);
+        stackOperand.Push(attName);
+    }
+}
 
+void checkMethodCall(string objectName, string methodName, SymbolTable st){
+    //Get all local directions of object attributes
+    string className = st.objectClasses[objectName];
+    Dictionary <string, int> objectVars = st.objects[objectName];
+    int paramCount = 0;
+    foreach (string varname in objectVars.Keys){
+        if(objectVars[varname]!= 0)
+        {
+            program.Add(new Param("object",objectName+"."+varname, paramCount, st));
+            paramCount ++;
+        }
+    }
 }
 
 /*--------------------------------------------------------------------------*/    
@@ -664,7 +691,7 @@ bool IsDecVars(){
 
 	void DECLARATION() {
 		if (IsTypeFunction() ) {
-			DEC_FUNC();
+			DEC_FUNC("");
 		} else if (StartOf(2)) {
 			DEC_VARS(1);
 		} else if (la.kind == 37) {
@@ -693,18 +720,18 @@ bool IsDecVars(){
 		sTable = sTable.parentSymbolTable; 
 	}
 
-	void DEC_FUNC() {
+	void DEC_FUNC(string className) {
 		string name; int type; bool solvedReturn; string returnVar; 
 		TYPE_FUNC(out type );
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
 		if(!sTable.putSymbol(name, type, func, 1)) { SemErr(name + " already exists"); }
-		       dirFunc.Add(name, new Function(program.Count));
+		       dirFunc.Add(className+name, new Function(program.Count));
 		       if(!sTable.putSymbol("_" + name, type, var, 1)) { SemErr(name + " already exists"); }
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
-			PARAMS_FUNC(name);
+			PARAMS_FUNC(className+name);
 		}
 		Expect(10);
 		Expect(5);
@@ -730,7 +757,7 @@ bool IsDecVars(){
 		}
 		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(6);
-		dirFunc[name].countVars(sTable);
+		dirFunc[className+name].countVars(sTable);
 		           sTable = sTable.parentSymbolTable;
 		           program.Add(new EndFunc()); 
 	}
@@ -804,15 +831,15 @@ bool IsDecVars(){
 		Expect(37);
 		IDENT(out className );
 		checkClassCreation(className); 
+		sTable = sTable.newChildSymbolTable(); 
 		if (la.kind == 28) {
 			Get();
 			IDENT(out parentClassName );
-			addParentClass(className, parentClassName); 
+			addParentClass(className, parentClassName, sTable); 
 		}
-		sTable = sTable.newChildSymbolTable(); 
 		Expect(5);
 		while (la.kind == 13 || la.kind == 14) {
-			CLASS_DEF();
+			CLASS_DEF(className );
 		}
 		Expect(6);
 		dirClasses[className].setClassVars(sTable);
@@ -888,6 +915,7 @@ bool IsDecVars(){
 			Expect(12);
 		} else if (IsMethodCall() ) {
 			METHOD_CALL();
+			Expect(12);
 		} else if (la.kind == 46) {
 			CONDITIONAL();
 		} else if (la.kind == 48) {
@@ -899,8 +927,8 @@ bool IsDecVars(){
 		} else SynErr(58);
 	}
 
-	void CLASS_DEF() {
-		int access = 1;
+	void CLASS_DEF(string className) {
+		int access = 1; 
 		if (la.kind == 13) {
 			Get();
 			access = 1; 
@@ -909,7 +937,7 @@ bool IsDecVars(){
 			access = -1; 
 		} else SynErr(59);
 		if (IsTypeFunction() ) {
-			DEC_FUNC();
+			DEC_FUNC(className+"." );
 		} else if (StartOf(2)) {
 			DEC_VARS(access);
 		} else SynErr(60);
@@ -951,7 +979,7 @@ bool IsDecVars(){
 			if (localParamType  != funcParamType) { 
 			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 			} 
-			program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
+			program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
 			paramCount ++; 
 			
 			while (la.kind == 11) {
@@ -965,7 +993,7 @@ bool IsDecVars(){
 				   if (localParamType  != funcParamType) { 
 				       SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 				   } 
-				   program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
+				   program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
 				   paramCount ++;
 				}
 				
@@ -988,20 +1016,46 @@ bool IsDecVars(){
 	}
 
 	void METHOD_CALL() {
-		string objectName, methodName; 
+		string name, objectName, methodName; int paramCount = 0; string localParamType; string funcParamType;
 		IDENT(out objectName );
 		Expect(21);
 		IDENT(out methodName );
+		checkMethodCall(objectName, methodName, sTable); name = sTable.objectClasses[objectName]+"."+methodName;
 		Expect(9);
 		if (StartOf(6)) {
-			EXP();
+			HYPER_EXP();
+			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+			if (localParamType  != funcParamType) { 
+			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
+			} 
+			program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+			paramCount ++; 
+			
 			while (la.kind == 11) {
 				Get();
-				EXP();
+				HYPER_EXP();
+				if(paramCount >= dirFunc[name].parameterTypes.Count){
+				   SemErr("Parameter number mismatch. Expected Just " + dirFunc[name].parameterTypes.Count + " Parameters. Found more");
+				}else{
+				   funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+				   localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+				   if (localParamType  != funcParamType) { 
+				       SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
+				   } 
+				   program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+				   paramCount ++;
+				}
+				
 			}
 		}
 		Expect(10);
-		Expect(12);
+		if(paramCount < dirFunc[name].parameterTypes.Count){
+		   SemErr("Parameter number mismatch. Expected " + dirFunc[name].parameterTypes.Count + " Parameters. Found " + paramCount + ""); 
+		}
+		program.Add(new GoSub(name)); 
+		// If not void create temp to store result of call
+		
 	}
 
 	void CONDITIONAL() {
@@ -1106,7 +1160,7 @@ bool IsDecVars(){
 			if (la.kind == 21) {
 				Get();
 				IDENT(out attrName );
-				stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); 
+				stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); 
 			} else {
 				Get();
 				dim1Size = checkArray(sTable, name); 
@@ -1221,7 +1275,7 @@ bool IsDecVars(){
 				if (la.kind == 21) {
 					Get();
 					IDENT(out attrName );
-					stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); 
+					stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); 
 				} else {
 					Get();
 					dim1Size = checkArray(sTable, name); 

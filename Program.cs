@@ -18,7 +18,7 @@ namespace AGRO_GRAMM
                 Console.WriteLine("Usage: AGRO.exe programName");
                 return;
             }
-
+            
 
             string programName = args[0];
             //string programName = @".\..\..\..\VM\programs\programArrays";

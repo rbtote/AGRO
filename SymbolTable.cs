@@ -46,6 +46,7 @@ namespace AGRO_GRAMM
         public SymbolTable parentSymbolTable;
         public Dictionary<string, int[]> symbols = new Dictionary<string, int[]>();
         public Dictionary<string, Dictionary<string, int>> objects = new Dictionary<string, Dictionary<string, int>>();
+        public Dictionary<string, string> objectClasses = new Dictionary<string, string>();
         public int id;
 
         public SymbolTable()
@@ -183,16 +184,13 @@ namespace AGRO_GRAMM
             foreach (string varName in classObj.variables.Keys)
             {
                 string nameObjVar = objName + "." + varName;
-                //Assign direction to all variables of the class, except for private ones
-                if (classObj.variables[varName][1] == 1)
-                {
-                    // t_int = 1, t_float = 2, t_char = 3
-                    putSymbol(nameObjVar, classObj.variables[varName][0], 0, 1);
-                    //Ej:     miCarroVelocidad, 2, 0
+                //Assign direction to all variables of the class, maintaining access
+                // t_int = 1, t_float = 2, t_char = 3
+                putSymbol(nameObjVar, classObj.variables[varName][0], 0, classObj.variables[varName][1]);
+                //Ej:     miCarro.Velocidad, type=2, kind=0, access=-1
 
-                    //Save these directions in the objects dictionary
-                    attributes[varName] = getDir(nameObjVar);
-                }
+                //Save these directions in the objects dictionary
+                attributes[varName] = getDir(nameObjVar);
             }
             return true;
         }

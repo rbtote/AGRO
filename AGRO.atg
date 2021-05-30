@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using System.Linq;
 using AGRO_GRAMM;
 using System.Collections.Generic;
 
@@ -463,12 +464,17 @@ void checkClassCreation(string className){
     dirClasses.Add(className, new Classes(program.Count + 1));
 }
 
-void addParentClass(string childClass, string parentClass){
+void addParentClass(string childClass, string parentClass, SymbolTable st){
     if(!dirClasses.ContainsKey(parentClass)){
         SemErr("Parent class <" + parentClass + "> is not declared.");
         return;
     }
     dirClasses[childClass].setParentClass(dirClasses[parentClass]);
+    //Copy to STABLE dirClasses[parentClass]
+    foreach (string key in dirClasses[parentClass].variables.Keys)
+    {
+        st.putSymbol(key, dirClasses[parentClass].variables[key][0],0,dirClasses[parentClass].variables[key][1]);
+    }
 }
 
 void validateObject(string className){
@@ -480,10 +486,31 @@ void validateObject(string className){
 
 void createObject(string objName, string className, SymbolTable st){
     st.putObject(objName, dirClasses[className]);
+    st.objectClasses[objName] = className;
 }
 
-void checkMethodCall(){
+void checkAttAccess(string attName, SymbolTable st){
+    if(st.getAccess(attName) != -1){
+        pushToOperandStack(attName, sTable);
+    }else{
+        SemErr("Trying to acces private symbol: <"+ attName + ">.");
+        stackTypes.Push(invalid);
+        stackOperand.Push(attName);
+    }
+}
 
+void checkMethodCall(string objectName, string methodName, SymbolTable st){
+    //Get all local directions of object attributes
+    string className = st.objectClasses[objectName];
+    Dictionary <string, int> objectVars = st.objects[objectName];
+    int paramCount = 0;
+    foreach (string varname in objectVars.Keys){
+        if(objectVars[varname]!= 0)
+        {
+            program.Add(new Param("object",objectName+"."+varname, paramCount, st));
+            paramCount ++;
+        }
+    }
 }
 
 /*--------------------------------------------------------------------------*/    
@@ -604,7 +631,7 @@ PROGRAM=
 
 DECLARATION=
     
-    IF( IsTypeFunction() ) DEC_FUNC | DEC_VARS <1> | DEC_CLASS
+    IF( IsTypeFunction() ) DEC_FUNC <""> | DEC_VARS <1> | DEC_CLASS
 .
 
 DEC_VARS  <int access>               (. string name; int type; string className; int dim1=0; int dim2=0;.)
@@ -645,14 +672,14 @@ DEC_VARS  <int access>               (. string name; int type; string className;
     )
 .
 
-DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .)
+DEC_FUNC  <string className>	       (. string name; int type; bool solvedReturn; string returnVar; .)
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. if(!sTable.putSymbol(name, type, func, 1)) { SemErr(name + " already exists"); }
-                                    dirFunc.Add(name, new Function(program.Count));
+                                    dirFunc.Add(className+name, new Function(program.Count));
                                     if(!sTable.putSymbol("_" + name, type, var, 1)) { SemErr(name + " already exists"); }
                                     sTable = sTable.newChildSymbolTable(); .)
-    pl [ PARAMS_FUNC <name> ] pr
+    pl [ PARAMS_FUNC <className+name> ] pr
     cbl [
      ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
       IF( IsDecVars() ) DEC_VARS <1> |
@@ -662,7 +689,7 @@ DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .
        STATUTE 
        ) } ] 
      (. if (!solvedReturn) { SemErr("Function requires return"); } .)
-    cbr					(. dirFunc[name].countVars(sTable);
+    cbr					(. dirFunc[className+name].countVars(sTable);
                            sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
@@ -670,9 +697,9 @@ DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .
 DEC_CLASS         (. string className; string parentClassName;.)
 =
     "class" IDENT  < out className >            (. checkClassCreation(className); .)
-    [ colon IDENT  < out parentClassName >      (. addParentClass(className, parentClassName); .)] 
     (. sTable = sTable.newChildSymbolTable(); .)
-    cbl { CLASS_DEF } cbr
+    [ colon IDENT  < out parentClassName >      (. addParentClass(className, parentClassName, sTable); .)] 
+    cbl { CLASS_DEF < className > } cbr
     (. 
     dirClasses[className].setClassVars(sTable);
     sTable = sTable.parentSymbolTable; 
@@ -703,7 +730,7 @@ STATUTE=
     INPUT       |
     PRINT       |
     IF( IsFunctionCall() ) FUNC_CALL  semicolon|
-    IF( IsMethodCall() ) METHOD_CALL  |
+    IF( IsMethodCall() ) METHOD_CALL  semicolon|
     CONDITIONAL |
     WHILE       |
     FOR         |
@@ -743,11 +770,11 @@ EXP=
     (. check(sTable, EXP_OPERATORS); .)
 .
 
-CLASS_DEF   (.int access = 1;.)
+CLASS_DEF <string className>   (. int access = 1; .)
 =
     ( "+" (. access = 1; .)| "-" (. access = -1; .)) 
     ( 
-    IF( IsTypeFunction() ) DEC_FUNC  |
+    IF( IsTypeFunction() ) DEC_FUNC < className+"." >  |
     DEC_VARS <access>
     )
 .
@@ -801,7 +828,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         if (localParamType  != funcParamType) { 
                             SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
-                        program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
+                        program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
                         paramCount ++; 
                     .) 
         { comma HYPER_EXP 
@@ -814,7 +841,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                             if (localParamType  != funcParamType) { 
                                 SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                             } 
-                            program.Add(new Param(stackOperand.Pop(), paramCount, sTable)); 
+                            program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
                             paramCount ++;
                         }
                     .) 
@@ -835,12 +862,45 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
     .)
 .
 
-METHOD_CALL         (. string objectName, methodName; .)
+METHOD_CALL         (. string name, objectName, methodName; int paramCount = 0; string localParamType; string funcParamType;.)
 =
     IDENT  < out objectName >
     dot 
-    IDENT  < out methodName >/*{ dot IDENT }*/ 
-    pl [ EXP { comma EXP } ] pr semicolon
+    IDENT  < out methodName >       (. checkMethodCall(objectName, methodName, sTable); name = sTable.objectClasses[objectName]+"."+methodName;.)
+    /*{ dot IDENT }*/ 
+    pl [ HYPER_EXP 
+    (. 
+        
+        funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+        localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+        if (localParamType  != funcParamType) { 
+            SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
+        } 
+        program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+        paramCount ++; 
+    .)
+    { comma HYPER_EXP 
+    (. 
+        if(paramCount >= dirFunc[name].parameterTypes.Count){
+            SemErr("Parameter number mismatch. Expected Just " + dirFunc[name].parameterTypes.Count + " Parameters. Found more");
+        }else{
+            funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
+            localParamType = typesInts[sTable.getType(stackOperand.Peek())];
+            if (localParamType  != funcParamType) { 
+                SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
+            } 
+            program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+            paramCount ++;
+        }
+    .) 
+    } ] pr 
+    (.
+        if(paramCount < dirFunc[name].parameterTypes.Count){
+            SemErr("Parameter number mismatch. Expected " + dirFunc[name].parameterTypes.Count + " Parameters. Found " + paramCount + ""); 
+        }
+        program.Add(new GoSub(name)); 
+        // If not void create temp to store result of call
+    .)
 .
 
 TERM=
@@ -856,7 +916,7 @@ VARIABLE_ASSIGN   (. string name; string attrName; int dim1Size=0; int dim2Size=
 =
     IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
     [
-    ( dot IDENT < out attrName >   (.  stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); .)
+    ( dot IDENT < out attrName >   (.  stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); .)
       /*{ dot IDENT }*/ ) | 
     ( 
     bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
@@ -871,7 +931,7 @@ VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0;.)
     IF( IsTypedFunctionCall(sTable) )   (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
     IDENT	< out name >                (. pushToOperandStack(name, sTable); .)
     [ 
-    ( dot IDENT < out attrName >        (.  stackOperand.Pop(); stackTypes.Pop(); pushToOperandStack(name+"."+attrName, sTable); .)
+    ( dot IDENT < out attrName >        (.  stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); .)
     /*{ dot IDENT }*/ ) |
     (
     bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
