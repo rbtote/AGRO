@@ -15,6 +15,7 @@ void uno(int a, int b){
 int dos(int a, float g){
 	int i;
 	i = a;
+	j = 10;
 	while(a>0){
 		a=a-k*j;
 		uno(a*2, a+k);

@@ -366,3 +366,13 @@ FodyWeavers.xsd
 
 # COCO/R SPECIFICS
 *.cs.old
+
+# Agro outputs
+*.agro.*
+
+# Runtime json
+*.runtimeconfig.*
+
+*.deps.*
+
+launch.json

@@ -1,0 +1,15 @@
+int a,b,c,d;
+
+void test(){
+    int k;
+    k = 444 + 1;
+}
+
+main {
+    float g;
+    b = 15;
+    c = 1;
+    d = 444;
+    g = 3.14;
+    print("El valor de g es:", g);
+}

@@ -13,7 +13,7 @@ namespace AGRO_GRAMM
         {
             this.dirGlobal = dirGlobal;
             this.outVar = outVar;
-            this.dirVar = _st.getDir(outVar);
+            this.dirVar = _st.getDir(this.outVar);
         }
 
         public override string ToString()

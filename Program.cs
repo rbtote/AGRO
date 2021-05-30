@@ -12,12 +12,20 @@ namespace AGRO_GRAMM
 
         static void Main(string[] args)
         {
-            string programName = "classTest";
+            if (args.Length < 1)
+            {
+                Console.WriteLine("Usage: AGRO.exe programName");
+                return;
+            }
+
+            string programName = args[0];
+            //string programName = "programArrays";
             string extensionInput = ".agro";
             string extensionOuput = ".code";
             string extensionCube = ".cube";
             string extensionDirFunc = ".dirfunc";
-            string dir = @"./../../../";
+            string extensionConstants = ".constants";
+            string dir = @"";
             string fileTest = dir + programName + extensionInput;
 
             Scanner scanner = new Scanner(fileTest);
@@ -32,7 +40,7 @@ namespace AGRO_GRAMM
             // Write output code file
             try
             {
-                using StreamWriter outputFile = new StreamWriter(dir + "/VM/" + programName + extensionInput + extensionOuput);
+                using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionOuput);
 
                 // Write in console and output file .agro.out
                 foreach (Actions act in parser.program)
@@ -50,7 +58,7 @@ namespace AGRO_GRAMM
             // Write output Cube file
             try
             {
-                using StreamWriter outputFile = new StreamWriter(dir + "/VM/" + programName + extensionInput + extensionCube);
+                using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionCube);
 
                 outputFile.Write(Cube.json);
             }
@@ -67,7 +75,7 @@ namespace AGRO_GRAMM
              */
             try
             {
-                using StreamWriter outputFile = new StreamWriter(dir + "/VM/" + programName + extensionInput + extensionDirFunc);
+                using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionDirFunc);
                 int QUAD_DIR, INT_COUNT, FLOAT_COUNT, CHAR_COUNT, STRING_COUNT, INT_TEMP_COUNT, FLOAT_TEMP_COUNT, CHAR_TEMP_COUNT, STRING_TEMP_COUNT;
 
                 // Global memory
@@ -84,7 +92,24 @@ namespace AGRO_GRAMM
                 STRING_TEMP_COUNT = globalScope.stringTempCount;
 
                 // Write function memory counters in this given order
-                outputFile.WriteLine($"_global {QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+                outputFile.WriteLine($"_global||{QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+
+                // Main memory
+                Function mainScope = new Function(Int32.Parse(parser.program[0].ToString().Split(' ')[1]));
+                mainScope.countVars(parser.mainSymbolTable);
+                QUAD_DIR = mainScope.quadIndex;
+                INT_COUNT = mainScope.intCount;
+                FLOAT_COUNT = mainScope.floatCount;
+                CHAR_COUNT = mainScope.charCount;
+                STRING_COUNT = mainScope.stringCount;
+                INT_TEMP_COUNT = mainScope.intTempCount;
+                FLOAT_TEMP_COUNT = mainScope.floatTempCount;
+                CHAR_TEMP_COUNT = mainScope.charTempCount;
+                STRING_TEMP_COUNT = mainScope.stringTempCount;
+
+                // Write function memory counters in this given order
+                outputFile.WriteLine($"_main||{QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+
 
                 // Clases memory?
 
@@ -102,8 +127,25 @@ namespace AGRO_GRAMM
                     CHAR_TEMP_COUNT = parser.dirFunc[key].charTempCount;
                     STRING_TEMP_COUNT = parser.dirFunc[key].stringTempCount;
 
+                    string funcParams = String.Join(' ', parser.dirFunc[key].parameterTypes);
+
                     // Write function memory counters in this given order
-                    outputFile.WriteLine($"{key} {QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+                    outputFile.WriteLine($"{key}|{funcParams}|{QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
+                }
+            }
+            catch (IOException)
+            {
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionCube);
+            }
+
+            // Write Constants file
+            try
+            {
+                using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionConstants);
+
+                foreach (int constDir in constants.Keys)
+                {
+                    outputFile.WriteLine($"{constDir} {constants[constDir]}");
                 }
             }
             catch (IOException)

@@ -124,6 +124,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 public SymbolTable   sTable;
+public SymbolTable   globalSymbolTable;
+public SymbolTable   mainSymbolTable;
 public Dictionary<string, Function> dirFunc   = new Dictionary<string, Function>();
 public Dictionary<string, Classes> dirClasses = new Dictionary<string, Classes>();
 
@@ -640,6 +642,7 @@ bool IsDecVars(){
 	
 	void PROGRAM() {
 		sTable = new SymbolTable();
+		globalSymbolTable = sTable; // Save first symboltable here
 		program.Add(new Goto(_goto, "", sTable, operandInts)); // Main GOTO. Always position 0
 		
 		while (StartOf(1)) {
@@ -675,6 +678,7 @@ bool IsDecVars(){
 			}
 		}
 		Expect(6);
+		mainSymbolTable = sTable; 
 		sTable = sTable.parentSymbolTable; 
 	}
 
@@ -684,7 +688,7 @@ bool IsDecVars(){
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
 		sTable.putSymbol(name, type, func, 1);
-		       dirFunc.Add(name, new Function(program.Count + 1));
+		       dirFunc.Add(name, new Function(program.Count));
 		       sTable.putSymbol("_" + name, type, var, 1);
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
@@ -1288,7 +1292,6 @@ bool IsDecVars(){
 		Get();
 		PROGRAM();
 		Expect(0);
-
 	}
 	
 	static readonly bool[,] set = {
@@ -1388,7 +1391,6 @@ public class Errors {
 			case 67: s = "invalid VARIABLE_FACT"; break;
 			case 68: s = "invalid REL_EXP"; break;
 			case 69: s = "invalid REL_OP"; break;
-
 			default: s = "error " + n; break;
 		}
 		errorStream.WriteLine(errMsgFormat, line, col, s);

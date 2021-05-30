@@ -69,6 +69,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 public SymbolTable   sTable;
+public SymbolTable   globalSymbolTable;
+public SymbolTable   mainSymbolTable;
 public Dictionary<string, Function> dirFunc   = new Dictionary<string, Function>();
 public Dictionary<string, Classes> dirClasses = new Dictionary<string, Classes>();
 
@@ -582,6 +584,7 @@ PRODUCTIONS
 PROGRAM= 
     (.
      sTable = new SymbolTable();
+     globalSymbolTable = sTable; // Save first symboltable here
      program.Add(new Goto(_goto, "", sTable, operandInts)); // Main GOTO. Always position 0
     .)
     { DECLARATION } MAIN
@@ -635,7 +638,7 @@ DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. sTable.putSymbol(name, type, func, 1);
-                                    dirFunc.Add(name, new Function(program.Count + 1));
+                                    dirFunc.Add(name, new Function(program.Count));
                                     sTable.putSymbol("_" + name, type, var, 1);
                                     sTable = sTable.newChildSymbolTable(); .)
     pl [ PARAMS_FUNC <name> ] pr
@@ -681,7 +684,8 @@ SIMPLE_TYPE         < out int type >
 
 MAIN=               (. sTable = sTable.newChildSymbolTable(); Goto mainGoto = (Goto)program[0]; mainGoto.setDirection(program.Count); .)
     "main" cbl ( IF( IsDecVars() ) DEC_VARS <1> | STATUTE ) { IF( IsDecVars() ) DEC_VARS <1> | STATUTE } cbr
-                    (. sTable = sTable.parentSymbolTable; .)
+                    (. mainSymbolTable = sTable; 
+                    sTable = sTable.parentSymbolTable; .)
 .
 
 STATUTE=
