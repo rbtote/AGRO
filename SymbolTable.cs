@@ -93,7 +93,7 @@ namespace AGRO_GRAMM
         public bool putConstantInt(string name, int type, int kind, int value)
         {
             bool flag = false;
-            if(id > 0)
+            if (id > 0)
                 parentSymbolTable.putConstantInt(name, type, kind, value);
             else
                 flag = true;
@@ -103,7 +103,7 @@ namespace AGRO_GRAMM
                     return false;
                 int dir = assignDir(type, kind);
                 int[] symbol = { type, kind, dir };
-                Program.constants[dir] = ""+value;
+                Program.constants[dir] = "" + value;
                 symbols.Add(name, symbol);
                 return true;
             }
@@ -233,7 +233,7 @@ namespace AGRO_GRAMM
             const int temporal = 2, pointer = 3, constant = 4, array = 5;                            // Kind
             const int t_int = 1, t_float = 2, t_char = 3, t_string = 6;     // Type
             int dir = 0;
-            if(id == 0)     //Global table
+            if (id == 0)     //Global table
             {
                 switch (kind)
                 {
@@ -371,7 +371,7 @@ namespace AGRO_GRAMM
         {
             const int t_int = 1, t_float = 2, t_char = 3;     // Type
             int dir = 0;
-            int size = dim2 > 0 ? dim1*dim2 : dim1;
+            int size = dim2 > 0 ? dim1 * dim2 : dim1;
             if (id == 0)     //Global table
             {
                 switch (type)

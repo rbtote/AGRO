@@ -124,6 +124,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 public SymbolTable   sTable;
+public SymbolTable   globalSymbolTable;
+public SymbolTable   mainSymbolTable;
 public Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
 
 Stack<String> stackOperand = new Stack<String>();
@@ -604,6 +606,7 @@ bool IsDecVars(){
 	
 	void PROGRAM() {
 		sTable = new SymbolTable();
+		globalSymbolTable = sTable; // Save first symboltable here
 		program.Add(new Goto(_goto, "", sTable, operandInts)); // Main GOTO. Always position 0
 		
 		while (StartOf(1)) {
@@ -637,6 +640,7 @@ bool IsDecVars(){
 			}
 		}
 		Expect(6);
+		mainSymbolTable = sTable; 
 		sTable = sTable.parentSymbolTable; 
 	}
 
@@ -646,7 +650,7 @@ bool IsDecVars(){
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
 		sTable.putSymbol(name, type, func);
-		       dirFunc.Add(name, new Function(program.Count + 1));
+		       dirFunc.Add(name, new Function(program.Count));
 		       sTable.putSymbol("_" + name, type, var);
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
@@ -658,7 +662,7 @@ bool IsDecVars(){
 		if (StartOf(5)) {
 			if (la.kind == 42) {
 				RETURN(out returnVar);
-				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
+				program.Add(new Return(stackOperand.Pop(), "_" + name, sTable)); solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 			} else if (IsDecVars() ) {
 				DEC_VARS();
 			} else {
@@ -667,7 +671,7 @@ bool IsDecVars(){
 			while (StartOf(5)) {
 				if (la.kind == 42) {
 					RETURN(out returnVar);
-					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
+					program.Add(new Return(stackOperand.Pop(), "_" + name, sTable)); solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 				} else if (IsDecVars() ) {
 					DEC_VARS();
 				} else {
@@ -800,7 +804,7 @@ bool IsDecVars(){
 		Expect(42);
 		HYPER_EXP();
 		Expect(12);
-		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); 
+		returnVar = stackOperand.Peek(); 
 	}
 
 	void STATUTE() {

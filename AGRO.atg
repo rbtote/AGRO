@@ -69,6 +69,8 @@ Dictionary<int, string> typesInts = JsonConvert.DeserializeObject<Dictionary<int
 				}}");
 
 public SymbolTable   sTable;
+public SymbolTable   globalSymbolTable;
+public SymbolTable   mainSymbolTable;
 public Dictionary<string, Function> dirFunc = new Dictionary<string, Function>();
 
 Stack<String> stackOperand = new Stack<String>();
@@ -546,6 +548,7 @@ PRODUCTIONS
 PROGRAM= 
     (.
      sTable = new SymbolTable();
+     globalSymbolTable = sTable; // Save first symboltable here
      program.Add(new Goto(_goto, "", sTable, operandInts)); // Main GOTO. Always position 0
     .)
     { DECLARATION } MAIN
@@ -599,15 +602,15 @@ DEC_FUNC				(. string name; int type; bool solvedReturn; string returnVar; .)
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. sTable.putSymbol(name, type, func);
-                                    dirFunc.Add(name, new Function(program.Count + 1));
+                                    dirFunc.Add(name, new Function(program.Count));
                                     sTable.putSymbol("_" + name, type, var);
                                     sTable = sTable.newChildSymbolTable(); .)
     pl [ PARAMS_FUNC <name> ] pr
     cbl [
-     ( RETURN <out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
+     ( RETURN <out returnVar> (. program.Add(new Return(stackOperand.Pop(), "_" + name, sTable)); solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
       IF( IsDecVars() ) DEC_VARS |
       STATUTE) 
-      { ( RETURN <out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
+      { ( RETURN <out returnVar> (. program.Add(new Return(stackOperand.Pop(), "_" + name, sTable)); solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
        IF( IsDecVars() ) DEC_VARS |
        STATUTE 
        ) } ] 
@@ -639,7 +642,8 @@ SIMPLE_TYPE         < out int type >
 
 MAIN=               (. sTable = sTable.newChildSymbolTable(); Goto mainGoto = (Goto)program[0]; mainGoto.setDirection(program.Count); .)
     "main" cbl ( IF( IsDecVars() ) DEC_VARS | STATUTE ) { IF( IsDecVars() ) DEC_VARS | STATUTE } cbr
-                    (. sTable = sTable.parentSymbolTable; .)
+                    (. mainSymbolTable = sTable; 
+                       sTable = sTable.parentSymbolTable; .)
 .
 
 STATUTE=
@@ -677,7 +681,7 @@ PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
 
 RETURN < out string returnVar >
 =
-    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable)); .)
+    "return" HYPER_EXP semicolon (. returnVar = stackOperand.Peek(); .)
 .
 
 EXP=

@@ -23,7 +23,20 @@ namespace AGRO_GRAMM
             foreach (string key in st.symbols.Keys)
             {
                 // TYPES:   t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6
-                // KINDS:   var = 0, func = 1, temporal = 2;
+                // KINDS:   var = 0, func = 1, temporal = 2, pointer = 3
+
+                int dims = 1;
+
+                switch (st.symbols[key].Length)
+                {
+                    case 4:
+                        dims = st.symbols[key][3];
+                        break;
+                    case 5:
+                        dims = st.symbols[key][3] * st.symbols[key][4];
+                        break;
+                }
+
                 switch (st.getType(key))
                 {
                     // INT
@@ -32,11 +45,13 @@ namespace AGRO_GRAMM
                         {
                             // VAR
                             case 0:
-                                intCount++;
+                            // FUNC
+                            case 1:
+                                intCount += dims;
                                 break;
                             // VAR TEMP
                             case 2:
-                                intTempCount++;
+                                intTempCount += dims;
                                 break;
                         }
                         break;
@@ -46,11 +61,13 @@ namespace AGRO_GRAMM
                         {
                             // VAR
                             case 0:
-                                floatCount++;
+                            // FUNC
+                            case 1:
+                                floatCount += dims;
                                 break;
                             // VAR TEMP
                             case 2:
-                                floatTempCount++;
+                                floatTempCount += dims;
                                 break;
                         }
                         break;
@@ -60,11 +77,13 @@ namespace AGRO_GRAMM
                         {
                             // VAR
                             case 0:
-                                charCount++;
+                            // FUNC
+                            case 1:
+                                charCount += dims;
                                 break;
                             // VAR TEMP
                             case 2:
-                                charTempCount++;
+                                charTempCount += dims;
                                 break;
                         }
                         break;
@@ -74,11 +93,13 @@ namespace AGRO_GRAMM
                         {
                             // VAR
                             case 0:
-                                stringCount++;
+                            // FUNC
+                            case 1:
+                                stringCount += dims;
                                 break;
                             // VAR TEMP
                             case 2:
-                                stringTempCount++;
+                                stringTempCount += dims;
                                 break;
                         }
                         break;

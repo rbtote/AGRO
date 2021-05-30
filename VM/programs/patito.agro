@@ -1,0 +1,36 @@
+﻿int i,j,k;
+float f;
+
+void uno(int a, int b){
+	if(a>0){
+		i = a + b * j + i;
+		print(i+j);
+		uno(a-i, j);
+	}
+	else{
+		print(a+b);
+	}
+}
+
+int dos(int a, float g){
+	int i;
+	i = a;
+	while(a>0){
+		a=a-k*j;
+		uno(a*2, a+k);
+		g = g*j-k;
+	}
+	return (i+k*j);
+}
+
+main{
+	i=2;
+	j=10;
+	k=i+1;
+	f=3.14;
+	while( i>0 ){
+		print(dos(i+k, f*3)+3);
+		print(i, j*2, f*2+1.5);
+		i = i-k;
+	}
+}
