@@ -1292,7 +1292,6 @@ bool IsDecVars(){
 		Get();
 		PROGRAM();
 		Expect(0);
-
 	}
 	
 	static readonly bool[,] set = {
@@ -1392,7 +1391,6 @@ public class Errors {
 			case 67: s = "invalid VARIABLE_FACT"; break;
 			case 68: s = "invalid REL_EXP"; break;
 			case 69: s = "invalid REL_OP"; break;
-
 			default: s = "error " + n; break;
 		}
 		errorStream.WriteLine(errMsgFormat, line, col, s);

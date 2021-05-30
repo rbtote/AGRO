@@ -1,0 +1,22 @@
+﻿class auto{
+    + int cilindros;
+    + float precio;
+    + int calculaVelocidad(){
+        int velocidad;
+        velocidad = precio*cilindros;
+        return velocidad;
+    }
+}
+
+main {
+    auto a,b;
+    int res[2];
+
+    res[1][2] = 1;
+
+    res = a.cilindros + b.cilindros + a.precio;
+    print(res);
+
+    a.calculaVelocidad();
+
+}

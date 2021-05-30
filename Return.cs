@@ -6,15 +6,14 @@ namespace AGRO_GRAMM
 {
     class Return : Actions
     {
-        string outVar, funcName;
+        string outVar;
         int dirVar, dirGlobal;
 
-        public Return(string outVar, string funcName, SymbolTable _st)
+        public Return(string outVar, int dirGlobal, SymbolTable _st)
         {
+            this.dirGlobal = dirGlobal;
             this.outVar = outVar;
-            this.funcName = funcName;
             this.dirVar = _st.getDir(this.outVar);
-            this.dirGlobal = _st.getDir(this.funcName);
         }
 
         public override string ToString()

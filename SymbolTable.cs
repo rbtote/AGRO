@@ -45,6 +45,7 @@ namespace AGRO_GRAMM
 
         public SymbolTable parentSymbolTable;
         public Dictionary<string, int[]> symbols = new Dictionary<string, int[]>();
+        public Dictionary<string, Dictionary<string, int>> objects = new Dictionary<string, Dictionary<string, int>>();
         public int id;
 
         public SymbolTable()
@@ -77,14 +78,14 @@ namespace AGRO_GRAMM
         /// <param name="type">Type of the variable to add (int,float,char,string)</param>
         /// <param name="kind">Kind of the variable to add (temporal, variable)</param>
         /// <returns></returns>
-        public bool putSymbol(string name, int type, int kind)
+        public bool putSymbol(string name, int type, int kind, int access)
         {
             if (symbols.ContainsKey(name))
             {
                 return false;
             }
             int dir = assignDir(type, kind);
-            int[] symbol = { type, kind, dir };
+            int[] symbol = { type, kind, dir, access };
             symbols.Add(name, symbol);
 
             return true;
@@ -171,6 +172,31 @@ namespace AGRO_GRAMM
             return true;
         }
 
+        public bool putObject(string objName, Classes classObj)
+        {
+            //Create dictionary for <attribute, directionAssigned
+            Dictionary<string, int> attributes = new Dictionary<string, int>();
+            //Append objName to objects dictionary
+            objects[objName] = attributes;
+            // Check all the variables of the class
+            //     structure <varName, type>
+            foreach (string varName in classObj.variables.Keys)
+            {
+                string nameObjVar = objName + "." + varName;
+                //Assign direction to all variables of the class, except for private ones
+                if (classObj.variables[varName][1] == 1)
+                {
+                    // t_int = 1, t_float = 2, t_char = 3
+                    putSymbol(nameObjVar, classObj.variables[varName][0], 0, 1);
+                    //Ej:     miCarroVelocidad, 2, 0
+
+                    //Save these directions in the objects dictionary
+                    attributes[varName] = getDir(nameObjVar);
+                }
+            }
+            return true;
+        }
+
         /// <summary>
         /// Gets the array of type,kind and direction of a variable in the table
         /// </summary>
@@ -220,6 +246,11 @@ namespace AGRO_GRAMM
         public int getDir(string name)
         {
             return getSymbol(name)[2];
+        }
+
+        public int getAccess(string name)
+        {
+            return getSymbol(name)[3];
         }
 
         /// <summary>
