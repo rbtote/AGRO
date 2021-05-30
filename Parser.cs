@@ -698,9 +698,9 @@ bool IsDecVars(){
 		TYPE_FUNC(out type );
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
-		sTable.putSymbol(name, type, func, 1);
+		if(!sTable.putSymbol(name, type, func, 1)) { SemErr(name + " already exists"); }
 		       dirFunc.Add(name, new Function(program.Count));
-		       sTable.putSymbol("_" + name, type, var, 1);
+		       if(!sTable.putSymbol("_" + name, type, var, 1)) { SemErr(name + " already exists"); }
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
@@ -741,11 +741,11 @@ bool IsDecVars(){
 			IDENT(out className );
 			validateObject(className); 
 			IDENT(out name );
-			sTable.putSymbol(name, t_obj, var, 1);  createObject(name, className, sTable); 
+			if (!sTable.putSymbol(name, t_obj, var, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
 			while (la.kind == 11) {
 				Get();
 				IDENT(out name );
-				sTable.putSymbol(name, t_obj, var, 1);  createObject(name, className, sTable); 
+				if (!sTable.putSymbol(name, t_obj, var, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
 			}
 			Expect(12);
 		} else if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
@@ -769,7 +769,7 @@ bool IsDecVars(){
 			   dim2 = 0;
 			}
 			else
-			   sTable.putSymbol(name, type, var, access);
+			   if (!sTable.putSymbol(name, type, var, access)) { SemErr(name + " already exists"); }
 			
 			while (la.kind == 11) {
 				Get();
@@ -792,7 +792,7 @@ bool IsDecVars(){
 				   dim2 = 0;
 				}
 				else
-				   sTable.putSymbol(name, type, var, access);
+				   if (!sTable.putSymbol(name, type, var, access)) { SemErr(name + " already exists"); }
 				
 			}
 			Expect(12);
@@ -860,13 +860,13 @@ bool IsDecVars(){
 		string name; int type; 
 		SIMPLE_TYPE(out type );
 		IDENT(out name );
-		sTable.putSymbol(name, type, var, 1);
+		if (!sTable.putSymbol(name, type, var, 1)) { SemErr(name + " already exists"); }
 		       dirFunc[currFunc].parameterTypes.Add(type); 
 		while (la.kind == 11) {
 			Get();
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
-			sTable.putSymbol(name, type, var, 1);
+			if (!sTable.putSymbol(name, type, var, 1)) { SemErr(name + " already exists"); }
 			      dirFunc[currFunc].parameterTypes.Add(type); 
 		}
 	}

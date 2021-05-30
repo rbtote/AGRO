@@ -1,12 +1,14 @@
-
 int i, j;
-
 int mat1[3][3];
 float mat2[3][3];
 
 class Math{
     + int a;
     - int b;
+}
+
+class MathSon : Math{
+    + int c;
 }
 
 void printMat(int matN) {
@@ -32,7 +34,7 @@ int owo(int toAssign){
 
 main {
     
-    for (i = 1; i < 3.5; i = i + 1;)
+    for (i = 1; i < 4; i = i + 1;)
     {
         for (j = 1; j < 4; j = j + 1;)
         {
@@ -42,15 +44,20 @@ main {
         }
     }
 
-    %% printMat(1);
-    %% printMat(2);
+    printMat(1);
+    printMat(2);
 
-    %% print(mat1[1][1]);
-    %% print(mat1[1][2]);
+    print(mat1[1][1]);
+    print(mat1[1][2]);
 
     Math a;
     a.a = 5;
     print(a.a);
 
     print(owo(10) + a.a);
+
+    MathSon b;
+    b.a = 3;
+    b.c = 5;
+    print(b.a, b.c);
 }

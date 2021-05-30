@@ -610,8 +610,8 @@ DECLARATION=
 DEC_VARS  <int access>               (. string name; int type; string className; int dim1=0; int dim2=0;.)
 =
     ( IDENT		            < out className >  (. validateObject(className); .)
-    IDENT                   < out name >    (. sTable.putSymbol(name, t_obj, var, 1);  createObject(name, className, sTable); .)
-    { comma IDENT           < out name >    (. sTable.putSymbol(name, t_obj, var, 1);  createObject(name, className, sTable); .)   
+    IDENT                   < out name >    (. if (!sTable.putSymbol(name, t_obj, var, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); .)
+    { comma IDENT           < out name >    (. if (!sTable.putSymbol(name, t_obj, var, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); .)   
     } semicolon ) |
     ( 
      SIMPLE_TYPE            < out type >
@@ -625,7 +625,7 @@ DEC_VARS  <int access>               (. string name; int type; string className;
             dim2 = 0;
         }
         else
-            sTable.putSymbol(name, type, var, access);
+            if (!sTable.putSymbol(name, type, var, access)) { SemErr(name + " already exists"); }
         .)
      { 
      comma IDENT         < out name >     
@@ -638,7 +638,7 @@ DEC_VARS  <int access>               (. string name; int type; string className;
             dim2 = 0;
         }
         else
-            sTable.putSymbol(name, type, var, access);
+            if (!sTable.putSymbol(name, type, var, access)) { SemErr(name + " already exists"); }
         .)
      } 
      semicolon 
@@ -648,9 +648,9 @@ DEC_VARS  <int access>               (. string name; int type; string className;
 DEC_FUNC	       (. string name; int type; bool solvedReturn; string returnVar; .)
 =				
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
-    IDENT			< out name > (. sTable.putSymbol(name, type, func, 1);
+    IDENT			< out name > (. if(!sTable.putSymbol(name, type, func, 1)) { SemErr(name + " already exists"); }
                                     dirFunc.Add(name, new Function(program.Count));
-                                    sTable.putSymbol("_" + name, type, var, 1);
+                                    if(!sTable.putSymbol("_" + name, type, var, 1)) { SemErr(name + " already exists"); }
                                     sTable = sTable.newChildSymbolTable(); .)
     pl [ PARAMS_FUNC <name> ] pr
     cbl [
@@ -723,11 +723,11 @@ TYPE_FUNC           < out int type >
 PARAMS_FUNC < string currFunc >             		(. string name; int type; .)
 =
     SIMPLE_TYPE         < out type >
-    IDENT		< out name >	(. sTable.putSymbol(name, type, var, 1);
+    IDENT		< out name >	(. if (!sTable.putSymbol(name, type, var, 1)) { SemErr(name + " already exists"); }
                                    dirFunc[currFunc].parameterTypes.Add(type); .)
     { 
      comma SIMPLE_TYPE	< out type >
-     IDENT		< out name >	(. sTable.putSymbol(name, type, var, 1);
+     IDENT		< out name >	(. if (!sTable.putSymbol(name, type, var, 1)) { SemErr(name + " already exists"); }
                                    dirFunc[currFunc].parameterTypes.Add(type); .)
     }
 .

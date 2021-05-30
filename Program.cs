@@ -131,7 +131,7 @@ namespace AGRO_GRAMM
             }
             catch (IOException)
             {
-                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionCube);
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionDirFunc);
             }
 
             // Write Constants file
@@ -146,7 +146,7 @@ namespace AGRO_GRAMM
             }
             catch (IOException)
             {
-                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionCube);
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionConstants);
             }
 
             /*
