@@ -31,7 +31,7 @@ namespace AGRO_GRAMM
 
         public override string ToString()
         {
-            return oper + " " + dirA  + " " + dirOut;
+            return oper + " " + dirA + " " + dirOut;
         }
     }
 }

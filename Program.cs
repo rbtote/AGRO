@@ -76,7 +76,7 @@ namespace AGRO_GRAMM
             try
             {
                 using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionDirFunc);
-                int QUAD_DIR, INT_COUNT, FLOAT_COUNT, CHAR_COUNT, STRING_COUNT, INT_TEMP_COUNT, FLOAT_TEMP_COUNT, CHAR_TEMP_COUNT, STRING_TEMP_COUNT;
+                int QUAD_DIR, INT_COUNT, FLOAT_COUNT, CHAR_COUNT, STRING_COUNT, INT_TEMP_COUNT, FLOAT_TEMP_COUNT, CHAR_TEMP_COUNT, STRING_TEMP_COUNT, POINTER_COUNT;
 
                 // Global memory
                 Function globalScope = new Function(Int32.Parse(parser.program[0].ToString().Split(' ')[1]));
@@ -90,7 +90,8 @@ namespace AGRO_GRAMM
                 FLOAT_TEMP_COUNT = globalScope.floatTempCount;
                 CHAR_TEMP_COUNT = globalScope.charTempCount;
                 STRING_TEMP_COUNT = globalScope.stringTempCount;
-
+                // ADD TO POINTER COUNT
+                POINTER_COUNT = globalScope.pointerCount;
                 // Write function memory counters in this given order
                 outputFile.WriteLine($"_global||{QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
 
@@ -106,7 +107,8 @@ namespace AGRO_GRAMM
                 FLOAT_TEMP_COUNT = mainScope.floatTempCount;
                 CHAR_TEMP_COUNT = mainScope.charTempCount;
                 STRING_TEMP_COUNT = mainScope.stringTempCount;
-
+                // ADD TO POINTER COUNT
+                POINTER_COUNT += mainScope.pointerCount;
                 // Write function memory counters in this given order
                 outputFile.WriteLine($"_main||{QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
 
@@ -126,12 +128,17 @@ namespace AGRO_GRAMM
                     FLOAT_TEMP_COUNT = parser.dirFunc[key].floatTempCount;
                     CHAR_TEMP_COUNT = parser.dirFunc[key].charTempCount;
                     STRING_TEMP_COUNT = parser.dirFunc[key].stringTempCount;
+                    // ADD TO POINTER COUNT
+                    POINTER_COUNT += parser.dirFunc[key].pointerCount;
 
                     string funcParams = String.Join(' ', parser.dirFunc[key].parameterTypes);
 
                     // Write function memory counters in this given order
                     outputFile.WriteLine($"{key}|{funcParams}|{QUAD_DIR} {INT_COUNT} {FLOAT_COUNT} {CHAR_COUNT} {STRING_COUNT} {INT_TEMP_COUNT} {FLOAT_TEMP_COUNT} {CHAR_TEMP_COUNT} {STRING_TEMP_COUNT}");
                 }
+
+                // POINTER MEMORY
+                outputFile.WriteLine($"_pointer||{0} {POINTER_COUNT} {0} {0} {0} {0} {0} {0} {0}");
             }
             catch (IOException)
             {

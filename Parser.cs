@@ -337,6 +337,12 @@ int checkMatrix(SymbolTable st, string name){
 }
 
 void verifyLimit(SymbolTable st, string name, int sizeDim){
+
+    // Verify S1 type is int
+    if (stackTypes.Peek() != t_int) {
+        SemErr("Int expected for array index");
+    }
+
     string aux;
     string tempName,tempName1;
     string dim2;
@@ -366,6 +372,11 @@ void verifyLimit(SymbolTable st, string name, int sizeDim){
 }
 
 void verifyLimit2(SymbolTable st, string name, int sizeDim){
+    // Verify S2 type is int
+    if (stackTypes.Peek() != t_int) {
+        SemErr("Int expected for array index");
+    }
+
     string tempName, tempName1, dim2;
 
     if(sizeDim == -1){
@@ -1292,6 +1303,7 @@ bool IsDecVars(){
 		Get();
 		PROGRAM();
 		Expect(0);
+
 	}
 	
 	static readonly bool[,] set = {
@@ -1391,6 +1403,7 @@ public class Errors {
 			case 67: s = "invalid VARIABLE_FACT"; break;
 			case 68: s = "invalid REL_EXP"; break;
 			case 69: s = "invalid REL_OP"; break;
+
 			default: s = "error " + n; break;
 		}
 		errorStream.WriteLine(errMsgFormat, line, col, s);

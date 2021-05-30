@@ -180,10 +180,10 @@ class Memory:
             ("char",        self.constChar,         self.constantMemory.getChar,        self.constantMemory.setChar),
             ("string",      self.constString,       self.constantMemory.getString,      self.constantMemory.setString),
 
-            ("int",         self.pointersMem,       self.constantMemory.getInt,         self.constantMemory.setInt)
+            ("int",         self.pointersMem,       self.pointersMemory.getInt,         self.pointersMemory.setInt)
         ]
 
-    def getValue(self, address):
+    def getValue(self, address, usePointerOut=True):
         "Iterate through memory address limits to find appropiate memory segment offset and get value"
         # ("orderedDirName", lower_limit_address)
         outputTuple = ()
@@ -193,11 +193,13 @@ class Memory:
             if (address < limitTuple[1]):
                 break
             outputTuple = limitTuple
-        
-        # Return offset value in memory. Normalized to 0
-        return outputTuple[2](address - outputTuple[1])
+        if usePointerOut and outputTuple[1] == self.pointersMem:
+            return self.getValue(outputTuple[2](address - outputTuple[1]))
+        else:
+            # Return offset value in memory. Normalized to 0
+            return outputTuple[2](address - outputTuple[1])
     
-    def setValue(self, address, value):
+    def setValue(self, address, value, usePointerOut=False):
         "Iterate through memory address limits to find appropiate memory segment offset and set value"
         # ("orderedDirName", lower_limit_address)
         outputTuple = ()
@@ -207,20 +209,12 @@ class Memory:
                 break
             outputTuple = limitTuple
         
-        # Sets offset value in memory. Normalized to 0
-        outputTuple[3](address - outputTuple[1], value)
-
-    def setValueOnPointer(self, originPointer, pointerToPointer):
-        # ("orderedDirName", lower_limit_address)
-        outputTuple = ()
-
-        for limitTuple in self.getOrderedDir():
-            if (pointerToPointer < limitTuple[1]):
-                break
-            outputTuple = limitTuple
-        
-        # Sets offset value in memory. Normalized to 0
-        outputTuple[3](self.getValue(pointerToPointer), self.getValue(originPointer))
+        if usePointerOut and outputTuple[1] == self.pointersMem:
+            # Sets offset value in memory. Normalized to 0
+            self.setValue(self.getValue(address, usePointerOut=False), value, False)
+        else:
+            # Sets offset value in memory. Normalized to 0
+            outputTuple[3](address - outputTuple[1], value)
 
     def pushContext(self):
         "Add new level on local memory context"
@@ -251,6 +245,7 @@ class CodeProcessor:
             ">":        self.simpleOperator,
             "<":        self.simpleOperator,
             "=":        self.assign,
+            "==":       self.simpleOperator,
             "goto":     self.goto,
             "gotoFalse":self.gotoFalse,
             "gotoTrue": self.gotoTrue,
@@ -269,6 +264,8 @@ class CodeProcessor:
 
         self.useDirFuncToAllocateInMethod("_main", self.memory.allocateLocalMemory)
         self.useDirFuncToAllocateTmpInMethod("_main", self.memory.allocateLocalTempMemory)
+
+        self.useDirFuncToAllocateInMethod("_pointer", self.memory.allocatePointersMemory)
 
         # Initialize constant memory
         c_int = 0
@@ -464,13 +461,11 @@ class CodeProcessor:
     def assign(self, quadArray):
         "Assigns dir value to dir value"
 
-        if int(quadArray[2]) >= self.memory.pointersMem:
-            self.memory.setValueOnPointer(int(quadArray[1]), int(quadArray[2]))
-        else:
-            self.memory.setValue(
-                int(quadArray[2]),
-                self.memory.getValue(int(quadArray[1]))
-            )
+        self.memory.setValue(
+            int(quadArray[2]),
+            self.memory.getValue(int(quadArray[1])),
+            usePointerOut=True
+        )
         
         # Move to next instruction
         self.codeLine += 1
@@ -490,7 +485,8 @@ class CodeProcessor:
             "/":    operator.truediv,
             "*":    operator.mul,
             ">":    operator.gt,
-            "<":    operator.lt
+            "<":    operator.lt,
+            "==":   operator.eq
         }
         op = quadArray[0]
         lDir = int(quadArray[1])
@@ -499,10 +495,11 @@ class CodeProcessor:
         rVal = self.memory.getValue(rDir)
         dirOut = int(quadArray[3])
         self.consoleLog("{0} = {1} {2} {3}\n{0} = {4} {2} {5}".format(dirOut, lDir, op, rDir, lVal, rVal))
-
+        
         self.memory.setValue(
             dirOut,
-            ops[op](lVal, rVal)
+            ops[op](lVal, rVal),
+            usePointerOut=False
         )
 
         # Move to next instruction
@@ -522,7 +519,7 @@ if __name__ == "__main__":
         extensionConstants = extensionProgram + ".constants"
 
         # Debug flag
-        debug = True
+        debug = False
 
         # Program name without extension
         programName = sys.argv[1]

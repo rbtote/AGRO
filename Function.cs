@@ -7,13 +7,13 @@ namespace AGRO_GRAMM
     public class Function
     {
         public int variableCount, tmpCount, quadIndex;
-        public int intCount, floatCount, charCount, stringCount;
+        public int intCount, floatCount, charCount, stringCount, pointerCount;
         public int intTempCount, floatTempCount, charTempCount, stringTempCount;
         public List<int> parameterTypes;
         public Function(int quadIndex)
         {
             this.quadIndex = quadIndex;
-            intCount = floatCount = charCount = stringCount = 0;
+            intCount = floatCount = charCount = stringCount = pointerCount = 0;
             intTempCount = floatTempCount = charTempCount = stringTempCount = 0;
             parameterTypes = new List<int>();
         }
@@ -53,6 +53,10 @@ namespace AGRO_GRAMM
                             case 2:
                                 intTempCount += dims;
                                 break;
+                            // POINTER
+                            case 3:
+                                pointerCount += dims;
+                                break;
                         }
                         break;
                     // FLOAT
@@ -68,6 +72,10 @@ namespace AGRO_GRAMM
                             // VAR TEMP
                             case 2:
                                 floatTempCount += dims;
+                                break;
+                            // POINTER
+                            case 3:
+                                pointerCount += dims;
                                 break;
                         }
                         break;
@@ -85,6 +93,10 @@ namespace AGRO_GRAMM
                             case 2:
                                 charTempCount += dims;
                                 break;
+                            // POINTER
+                            case 3:
+                                pointerCount += dims;
+                                break;
                         }
                         break;
                     // STRING
@@ -100,6 +112,10 @@ namespace AGRO_GRAMM
                             // VAR TEMP
                             case 2:
                                 stringTempCount += dims;
+                                break;
+                            // POINTER
+                            case 3:
+                                pointerCount += dims;
                                 break;
                         }
                         break;
