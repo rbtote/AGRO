@@ -27,14 +27,16 @@ namespace AGRO_GRAMM
 
                 int dims = 1;
 
-                switch (st.symbols[key].Length)
+                if (st.getDim1(key) != 0)
                 {
-                    case 4:
-                        dims = st.symbols[key][3];
-                        break;
-                    case 5:
-                        dims = st.symbols[key][3] * st.symbols[key][4];
-                        break;
+                    if (st.getDim2(key) != 0)
+                    {
+                        dims = st.getDim1(key) * st.getDim2(key);
+                    }
+                    else
+                    {
+                        dims = st.getDim1(key);
+                    }
                 }
 
                 switch (st.getType(key))

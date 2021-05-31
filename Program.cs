@@ -13,16 +13,15 @@ namespace AGRO_GRAMM
         static void Main(string[] args)
         {
 
-            /*
             if (args.Length < 1)
             {
                 Console.WriteLine("Usage: AGRO.exe programName");
                 return;
             }
-            */
 
-            //string programName = args[0];
-            string programName = @".\..\..\..\VM\programs\programArrays";
+
+            string programName = args[0];
+            //string programName = @".\..\..\..\VM\programs\programArrays";
             string extensionInput = ".agro";
             string extensionOuput = ".code";
             string extensionDirFunc = ".dirfunc";
@@ -144,6 +143,21 @@ namespace AGRO_GRAMM
                 foreach (int constDir in constants.Keys)
                 {
                     outputFile.WriteLine($"{constDir} {constants[constDir]}");
+                }
+            }
+            catch (IOException)
+            {
+                throw new FatalError("Cannot open file " + dir + programName + extensionInput + extensionConstants);
+            }
+
+            // Write Classes file
+            try
+            {
+                using StreamWriter outputFile = new StreamWriter(dir + programName + extensionInput + extensionClasses);
+
+                foreach (string key in parser.dirClasses.Keys)
+                {
+                    outputFile.WriteLine($"{key} {parser.dirClasses[key].intCount} {parser.dirClasses[key].floatCount} {parser.dirClasses[key].charCount} {parser.dirClasses[key].stringCount}");
                 }
             }
             catch (IOException)

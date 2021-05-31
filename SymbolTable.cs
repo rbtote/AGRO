@@ -105,7 +105,7 @@ namespace AGRO_GRAMM
                 if (symbols.ContainsKey(name))
                     return false;
                 int dir = assignDir(type, kind);
-                int[] symbol = { type, kind, dir, 0, 0, 1};
+                int[] symbol = { type, kind, dir, 0, 0, 1 };
                 Program.constants[dir] = "" + value;
                 symbols.Add(name, symbol);
                 return true;
@@ -248,6 +248,16 @@ namespace AGRO_GRAMM
         public int getAccess(string name)
         {
             return getSymbol(name)[5];
+        }
+
+        public int getDim1(string name)
+        {
+            return getSymbol(name)[3];
+        }
+
+        public int getDim2(string name)
+        {
+            return getSymbol(name)[4];
         }
 
         /// <summary>

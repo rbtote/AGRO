@@ -10,7 +10,8 @@ class Math{
 class MathSon : Math{
     + int c;
     + void makeMath(int i){
-        print("Hola", i);
+        c = 10;
+        print("Hola ", i, "\n");
     }
 }
 
@@ -21,12 +22,13 @@ void printMat(int matN) {
         for (j = 0; j < 3; j = j + 1;)
         {
             if (matN == 1){
-                print(mat1[i][j]);
+                print(mat1[i][j], " ");
             }
             else {
-                print(mat2[i][j]);
+                print(mat2[i][j], " ");
             }
         }
+        print("\n");
     }
 }
 
@@ -50,13 +52,16 @@ main {
     printMat(1);
     printMat(2);
 
-    print(mat1[1][1]);
-    print(mat1[1][2]);
+    print(mat1[1][1], "\n");
+    print(mat1[1][2], "\n");
 
     MathSon b;
     b.a = 3;
     b.c = 5;
-    print(b.a, b.c);
+    print(b.a, "\n", b.c, "\n");
 
+    %% Assigns 10 to b.c
     b.makeMath(i);
+
+    print(b.c, "\n");
 }

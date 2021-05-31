@@ -257,10 +257,38 @@ class CodeProcessor:
         # AGRO second extension for generated Constants file
         extensionConstants = extensionProgram + ".constants"
 
+        # AGRO second extension for generated Class file
+        extensionClasses = extensionProgram + ".classes";
+
         # Read agro.code file. Split by \n into array
         file = open(self.programName + extensionCode, 'r')
         self.code = file.read().split('\n')
         file.close()
+
+        # Read agro.classes file. Split by \n into array
+        file = open(self.programName + extensionClasses, 'r')
+        classesTxt = file.read().split('\n')
+        file.close()
+
+        '''
+            Process classes file into structure
+            classes["class_name"] = {
+                "int":      int count,
+                "float":    float count,
+                "char":     char count,
+                "string":   string count
+            }
+        '''
+        self.classes = {}
+        for line in classesTxt:
+            if len(line) < 2: break
+            line = line.split()
+            self.classes[line[0]] = {
+                "int":      int(line[1]),
+                "float":    int(line[2]),
+                "char":     int(line[3]),
+                "string":   int(line[4])
+            }
 
         # Read agro.dirfunc file. Split by \n into array
         file = open(self.programName + extensionDirFunc, 'r')
@@ -337,21 +365,32 @@ class CodeProcessor:
         # Param stack used to call functions
         self.paramStack = []
 
+        # Param stack used to call object methods
+        self.objectParamStack = []
+
+        # Stack used to return object states
+        self.objectReturnDir = []
+
         # Actual processor instructions map to function handlers 
         self.instructions = {
             "+":        self.simpleOperator,
             "-":        self.simpleOperator,
             "/":        self.simpleOperator,
+            "//":        self.simpleOperator,
             "*":        self.simpleOperator,
             ">":        self.simpleOperator,
             "<":        self.simpleOperator,
             "=":        self.assign,
             "==":       self.simpleOperator,
+            "!=":       self.simpleOperator,
             "<=":       self.simpleOperator,
             ">=":       self.simpleOperator,
             "++":       self.add1,
-            "+=":       self.simpleOperator,
+            "+=":       self.addEqual,
             "--":       self.sub1,
+            "-=":       self.subEqual,
+            "*=":       self.mulEqual,
+            "/=":       self.divEqual,
             "&&":       self.simpleOperator,
             "||":       self.simpleOperator,
             "%":        self.simpleOperator,
@@ -365,19 +404,21 @@ class CodeProcessor:
             "endfunc":  self.endfunc,
             "return":   self._return,
             "input":    self._input,
-            "verify":   self.verify
+            "verify":   self.verify,
+            "object":   self._object
         }
 
         # Processor simple operator methods
         self.simpleOperators = {
             "+":    operator.add,
-            "+=":   operator.add,
             "-":    operator.sub,
             "/":    operator.truediv,
+            "//":   operator.floordiv,
             "*":    operator.mul,
             ">":    operator.gt,
             "<":    operator.lt,
             "==":   operator.eq,
+            "!=":   operator.ne,
             "<=":   operator.le,
             ">=":   operator.ge,
             "%":    operator.mod,
@@ -444,6 +485,52 @@ class CodeProcessor:
         for varToSet in listToSet:
             varToSet[1][3](int(varToSet[0][0]) - varToSet[1][1], varToSet[0][1])
 
+    def _object(self, quadArray):
+        "object param quad that appends parameter to call a function"
+        self.objectParamStack.append(int(quadArray[1]))
+        # Move to next instruction
+        self.codeLine += 1
+
+    def divEqual(self, quadArray):
+        "operator /="
+        self.memory.setValue(
+            int(quadArray[2]),
+            self.memory.getValue(int(quadArray[2])) / self.memory.getValue(int(quadArray[1])),
+            usePointerOut=False
+        )
+        # Move to next instruction
+        self.codeLine += 1
+
+    def mulEqual(self, quadArray):
+        "operator *="
+        self.memory.setValue(
+            int(quadArray[2]),
+            self.memory.getValue(int(quadArray[2])) * self.memory.getValue(int(quadArray[1])),
+            usePointerOut=False
+        )
+        # Move to next instruction
+        self.codeLine += 1
+
+    def subEqual(self, quadArray):
+        "operator -="
+        self.memory.setValue(
+            int(quadArray[2]),
+            self.memory.getValue(int(quadArray[2])) - self.memory.getValue(int(quadArray[1])),
+            usePointerOut=False
+        )
+        # Move to next instruction
+        self.codeLine += 1
+
+    def addEqual(self, quadArray):
+        "operator +="
+        self.memory.setValue(
+            int(quadArray[2]),
+            self.memory.getValue(int(quadArray[2])) + self.memory.getValue(int(quadArray[1])),
+            usePointerOut=False
+        )
+        # Move to next instruction
+        self.codeLine += 1
+
     def _or(self, lVal, rVal):
         "Mimics operator ||"
         return lVal or rVal;
@@ -451,6 +538,7 @@ class CodeProcessor:
     def _and(self, lVal, rVal):
         "Mimics operator &&"
         return lVal and rVal;
+        
 
     def sub1(self, quadArray):
         "operator --"
@@ -504,8 +592,60 @@ class CodeProcessor:
         "Assigns return value to global return variable named the same as function. Uses self.assign instead"
         self.assign(quadArray)
 
+    def endMethod(self, quadArray):
+        "Ends method by returning object state to previous MemoryContext"
+        
+        currentObjectReturnDirs = self.objectReturnDir.pop()
+
+        values = []
+
+        # Ordered values from inner memory are saved into tmp array
+        intCount = 0
+        floatCount = 0
+        charCount = 0
+
+        for i in range(len(currentObjectReturnDirs)):
+            if currentObjectReturnDirs[i][0] == "int":
+                values.append(self.memory.getValue(self.memory.localInt + intCount))
+                intCount += 1
+            elif currentObjectReturnDirs[i][0] == "float":
+                values.append(self.memory.getValue(self.memory.localFloat + floatCount))
+                floatCount += 1
+            elif currentObjectReturnDirs[i][0] == "char":
+                values.append(self.memory.getValue(self.memory.localChar + charCount))
+                charCount += 1
+
+        # Drop method context and return to previous context
+        self.memory.popContext()
+        
+        # Ordered vars from currentObjectReturnDirs are assigned to previous local memory
+        intCount = 0
+        floatCount = 0
+        charCount = 0
+
+        for i in range(len(currentObjectReturnDirs)):
+            if currentObjectReturnDirs[i][0] == "int":
+                if values[i] is not None:
+                    self.memory.setValue(currentObjectReturnDirs[i][1], values[i])
+                intCount += 1
+            elif currentObjectReturnDirs[i][0] == "float":
+                if values[i] is not None:
+                    self.memory.setValue(currentObjectReturnDirs[i][1], values[i])
+                floatCount += 1
+            elif currentObjectReturnDirs[i][0] == "char":
+                if values[i] is not None:
+                    self.memory.setValue(currentObjectReturnDirs[i][1], values[i])
+                charCount += 1
+
+        self.codeLine = self.jumpStack.pop()[1]
+
+
     def endfunc(self, quadArray):
         "Pops local memory context and pop jump stack to return to program execution"
+        if '.' in self.jumpStack[-1][0]:
+            self.endMethod(quadArray)
+            return
+
         self.memory.popContext()
         self.codeLine = self.jumpStack.pop()[1]
 
@@ -589,6 +729,10 @@ class CodeProcessor:
     def gosub(self, quadArray):
         "Allocates function memory and puts needed parameters into new MemoryContext depending on dirFunc parameter type list"
 
+        if '.' in quadArray[1]:
+            self.goMethod(quadArray)
+            return
+
         # Allocate local memory for dirFunc
         self.useDirFuncToAllocateInMethod(quadArray[1], self.memory.allocateLocalMemory)
 
@@ -628,15 +772,63 @@ class CodeProcessor:
         self.codeLine = self.dirFunc[quadArray[1]]['index']
 
     def goMethod(self, quadArray):
-        '''
-        [45678] = pointer int 1
-        [21343] = float 2.34123
+        funcName = quadArray[1]
+        className = quadArray[1].split('.')[0]
 
-            1. Allocate method memory, locales y temp del método (parámetros también)
-            2. Asignar valor de parámetros del objeto en orden a la nueva memoria desde la memoria vieja
-            3. Asignar valor de parámetros en orden
-            4. (12345)
-        '''
+        objectParams = []
+
+        values = {}
+
+        totalToAssign = self.dirFunc[funcName].copy()
+        varTypes = ["int", "float", "char", "string"]
+        for t in varTypes:
+            totalToAssign[t] += self.classes[className][t]
+            
+            # For each type
+            # Pop the amount of needed variables for the object from the object param stack. 
+            for _ in range(self.classes[className][t]):
+                objectParams.append((t, self.objectParamStack.pop()))
+        
+        # Reverse object params to make it in order
+        objectParams.reverse()
+
+        for t in varTypes:
+            # Assign values in order for each var type
+            values[t] = []
+            for i in range(self.classes[className][t]):
+                values[t].append(self.memory.getValue(objectParams[i][1]))
+            
+
+        self.memory.allocateLocalMemory(totalToAssign["int"], totalToAssign["float"], totalToAssign["char"], totalToAssign["string"])
+        self.memory.allocateLocalTempMemory(totalToAssign["intTmp"], totalToAssign["floatTmp"], totalToAssign["charTmp"], totalToAssign["stringTmp"])
+
+        # Ordered vars from function are assigned to local memory
+        intCount = 0
+        floatCount = 0
+        charCount = 0
+
+        for i in range(len(objectParams)):
+            if objectParams[i][0] == "int":
+                if values["int"][i] is not None:
+                    self.memory.setValue(self.memory.localInt + intCount, values["int"][i])
+                intCount += 1
+            elif objectParams[i][0] == "float":
+                if values["float"][i] is not None:
+                    self.memory.setValue(self.memory.localFloat + floatCount, values["float"][i])
+                floatCount += 1
+            elif objectParams[i][0] == "char":
+                if values["char"][i] is not None:
+                    self.memory.setValue(self.memory.localChar + charCount, values["char"][i])
+                charCount += 1
+
+        self.objectReturnDir.append(objectParams)
+
+        # Save function name and next instruction pointer to continue program after endfunc
+        self.jumpStack.append((quadArray[1], self.codeLine + 1))
+
+        # Moves to function code index
+        self.codeLine = self.dirFunc[quadArray[1]]['index']
+
 
     def assign(self, quadArray):
         "Assigns dir value to dir value"
@@ -654,7 +846,11 @@ class CodeProcessor:
 
     def _print(self, quadArray):
         "Prints dir value"
-        print(self.memory.getValue(int(quadArray[1])))
+        tmpVal = self.memory.getValue(int(quadArray[1]))
+        if tmpVal == "\\n":
+            print("")
+        else:
+            print(tmpVal, end='')
         
         # Move to next instruction
         self.codeLine += 1
