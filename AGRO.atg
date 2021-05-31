@@ -575,8 +575,8 @@ notQuote	= ANY - '"' - "\r\n".
 TOKENS
 
 id			= letter { letter | digit }.
-cte_I		= ['-'] digit { digit }.
-cte_F		= ['-'] digit { digit } "." digit { digit }.
+cte_I		= digit { digit }.
+cte_F		= digit { digit } "." digit { digit }.
 ctr_Str 	= '"' {notQuote} '"'.
 cbl         = "{".
 cbr         = "}".

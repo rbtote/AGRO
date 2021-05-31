@@ -194,8 +194,9 @@ class Memory:
             ("int",         self.pointersMem,       self.pointersMemory.getInt,         self.pointersMemory.setInt)
         ]
 
-    def findDir(self, address):
-        "(var_type, lower_limit_address, getter, setter)"
+    def getValue(self, address, usePointerOut=True):
+        "Iterate through memory address limits to find appropiate memory segment offset and get value"
+        # (var_type, lower_limit_address, getter, setter)
         outputTuple = ()
 
         # Find lower limit and return tuple with memory space
@@ -203,13 +204,6 @@ class Memory:
             if (address < limitTuple[1]):
                 break
             outputTuple = limitTuple
-
-        return outputTuple
-
-    def getValue(self, address, usePointerOut=True):
-        "Iterate through memory address limits to find appropiate memory segment offset and get value"
-        # (var_type, lower_limit_address, getter, setter)
-        outputTuple = self.findDir(address)
         
         if usePointerOut and outputTuple[1] == self.pointersMem:
             return self.getValue(outputTuple[2](address - outputTuple[1]))
@@ -220,7 +214,13 @@ class Memory:
     def setValue(self, address, value, usePointerOut=False):
         "Iterate through memory address limits to find appropiate memory segment offset and set value"
         # (var_type, lower_limit_address, getter, setter)
-        outputTuple = self.findDir(address)
+        outputTuple = ()
+
+        # Find lower limit and return tuple with memory space
+        for limitTuple in self.getOrderedDir():
+            if (address < limitTuple[1]):
+                break
+            outputTuple = limitTuple
         
         if usePointerOut and outputTuple[1] == self.pointersMem:
             # Sets offset value in memory. Normalized to 0

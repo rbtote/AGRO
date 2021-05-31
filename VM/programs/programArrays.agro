@@ -10,14 +10,10 @@ class Math{
 class MathSon : Math{
     + int c;
     + void makeMath(int i){
-        print("Hola");
+        print("Hola", i);
     }
 }
 
-
-%%dirClasses  b <- a
-
-%% main {  b obj; }   %% b.priv
 
 void printMat(int matN) {
     for (i = 0; i < 3; i = i + 1;)
@@ -41,12 +37,11 @@ int owo(int toAssign){
 }
 
 main {
-    int sss,ddd,yyy,ttt;
-    for (i = 1; i < 4; i = i + 1;)
+
+    for (i = 1; i < 4; i ++;)
     {
-        for (j = 1; j < 4; j = j + 1;)
+        for (j = 1; j < 4; j ++;)
         {
-            %% print(i,j,"---");
             mat1[i-1][j-1] = i * j;
             mat2[i-1][j-1] = i / j;
         }
@@ -57,11 +52,6 @@ main {
 
     print(mat1[1][1]);
     print(mat1[1][2]);
-
-    %%Math a;
-
-
-    %%print(owo(10) + a.a);
 
     MathSon b;
     b.a = 3;

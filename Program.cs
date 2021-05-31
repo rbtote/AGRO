@@ -13,19 +13,21 @@ namespace AGRO_GRAMM
         static void Main(string[] args)
         {
 
+            /*
             if (args.Length < 1)
             {
                 Console.WriteLine("Usage: AGRO.exe programName");
                 return;
             }
-            
+            */
 
-            string programName = args[0];
-            //string programName = @".\..\..\..\VM\programs\programArrays";
+            //string programName = args[0];
+            string programName = @".\..\..\..\VM\programs\programArrays";
             string extensionInput = ".agro";
             string extensionOuput = ".code";
             string extensionDirFunc = ".dirfunc";
             string extensionConstants = ".constants";
+            string extensionClasses = ".classes";
             string dir = @"";
             string fileTest = dir + programName + extensionInput;
 
