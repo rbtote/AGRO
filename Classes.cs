@@ -58,6 +58,10 @@ namespace AGRO_GRAMM
                         variables[key][0] = 3;
                         charCount++;
                         break;
+                    // VOID
+                    case 4:
+                        variables[key][0] = 4;
+                        break;
                     // STRING
                     case 6:
                         stringCount++;

@@ -867,11 +867,16 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
     .)
 .
 
-METHOD_CALL         (. string name, objectName, methodName; int paramCount = 0; string localParamType; string funcParamType;.)
+METHOD_CALL         (. string name, objectName, methodName, className; int paramCount = 0; string localParamType; string funcParamType;.)
 =
     IDENT  < out objectName >
     dot 
-    IDENT  < out methodName >       (. checkMethodCall(objectName, methodName, sTable); name = sTable.objectClasses[objectName]+"."+methodName;.)
+    IDENT  < out methodName >       
+    (.
+        checkMethodCall(objectName, methodName, sTable); 
+        className = sTable.objectClasses[objectName];
+        name = className+"."+methodName;
+    .)
     /*{ dot IDENT }*/ 
     pl [ HYPER_EXP 
     (. 
@@ -905,6 +910,13 @@ METHOD_CALL         (. string name, objectName, methodName; int paramCount = 0; 
         }
         program.Add(new GoSub(name)); 
         // If not void create temp to store result of call
+        if(sTable.getType(objectName+"."+methodName) != t_void){
+            pushToOperandStack(createTemp(sTable.getType(objectName+"."+methodName), sTable), sTable);
+            string leftOper = stackOperand.Peek();
+            Assign assign = new Assign(_equal, objectName+"._"+methodName, leftOper, sTable, operandInts);
+            assign.setDirOut(sTable, leftOper);
+            program.Add(assign);
+        }
     .)
 .
 
@@ -934,6 +946,7 @@ VARIABLE_ASSIGN   (. string name; string attrName; int dim1Size=0; int dim2Size=
 VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0;.)
 =
     IF( IsTypedFunctionCall(sTable) )   (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
+    IF( IsMethodCall() ) (. stackOperator.Push(_pl); .) METHOD_CALL (. stackOperator.Pop(); .) |
     IDENT	< out name >                (. pushToOperandStack(name, sTable); .)
     [ 
     ( dot IDENT < out attrName >        (.  stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); .)

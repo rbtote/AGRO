@@ -9,9 +9,8 @@ class Math{
 
 class MathSon : Math{
     + int c;
-    + void makeMath(int i){
-        c = 10;
-        print("Hola ", i, "\n");
+    + int getc(){
+        return c;
     }
 }
 
@@ -32,10 +31,9 @@ void printMat(int matN) {
     }
 }
 
-int owo(int toAssign){
+void owo(int toAssign){
     Math a;
     a.a = toAssign;
-    return a.a;
 }
 
 main {
@@ -61,7 +59,7 @@ main {
     print(b.a, "\n", b.c, "\n");
 
     %% Assigns 10 to b.c
-    b.makeMath(i);
-
+    print(b.getc());
+    %%print(owo(b.a));
     print(b.c, "\n");
 }

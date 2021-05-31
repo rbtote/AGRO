@@ -1021,11 +1021,14 @@ bool IsDecVars(){
 	}
 
 	void METHOD_CALL() {
-		string name, objectName, methodName; int paramCount = 0; string localParamType; string funcParamType;
+		string name, objectName, methodName, className; int paramCount = 0; string localParamType; string funcParamType;
 		IDENT(out objectName );
 		Expect(21);
 		IDENT(out methodName );
-		checkMethodCall(objectName, methodName, sTable); name = sTable.objectClasses[objectName]+"."+methodName;
+		checkMethodCall(objectName, methodName, sTable); 
+		className = sTable.objectClasses[objectName];
+		name = className+"."+methodName;
+		
 		Expect(9);
 		if (StartOf(6)) {
 			HYPER_EXP();
@@ -1060,6 +1063,13 @@ bool IsDecVars(){
 		}
 		program.Add(new GoSub(name)); 
 		// If not void create temp to store result of call
+		if(sTable.getType(objectName+"."+methodName) != t_void){
+		   pushToOperandStack(createTemp(sTable.getType(objectName+"."+methodName), sTable), sTable);
+		   string leftOper = stackOperand.Peek();
+		   Assign assign = new Assign(_equal, objectName+"._"+methodName, leftOper, sTable, operandInts);
+		   assign.setDirOut(sTable, leftOper);
+		   program.Add(assign);
+		}
 		
 	}
 
@@ -1272,6 +1282,10 @@ bool IsDecVars(){
 		if (IsTypedFunctionCall(sTable) ) {
 			stackOperator.Push(_pl); 
 			FUNC_CALL();
+			stackOperator.Pop(); 
+		} else if (IsMethodCall() ) {
+			stackOperator.Push(_pl); 
+			METHOD_CALL();
 			stackOperator.Pop(); 
 		} else if (la.kind == 1) {
 			IDENT(out name );
