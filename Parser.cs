@@ -103,8 +103,6 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_equal}:'=',
 				{_different}:'!=',
 				{_and}:'&&',
-				{_and}:'and',
-				{_or}:'or',
 				{_or}:'||',
                 {_print}: 'print',
                 {_input}: 'input',

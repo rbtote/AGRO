@@ -229,6 +229,7 @@ public class Scanner {
 		for (int i = 65; i <= 90; ++i) start[i] = 1;
 		for (int i = 97; i <= 122; ++i) start[i] = 1;
 		for (int i = 48; i <= 57; ++i) start[i] = 34;
+		start[45] = 35; 
 		start[34] = 4; 
 		start[123] = 6; 
 		start[125] = 7; 
@@ -238,8 +239,7 @@ public class Scanner {
 		start[41] = 11; 
 		start[44] = 12; 
 		start[59] = 13; 
-		start[43] = 35; 
-		start[45] = 36; 
+		start[43] = 36; 
 		start[42] = 37; 
 		start[47] = 38; 
 		start[37] = 16; 
@@ -463,15 +463,16 @@ public class Scanner {
 				else if (ch == '.') {AddCh(); goto case 2;}
 				else {t.kind = 2; break;}
 			case 35:
+				recEnd = pos; recKind = 14;
+				if (ch >= '0' && ch <= '9') {AddCh(); goto case 34;}
+				else if (ch == '=') {AddCh(); goto case 19;}
+				else if (ch == '-') {AddCh(); goto case 23;}
+				else {t.kind = 14; break;}
+			case 36:
 				recEnd = pos; recKind = 13;
 				if (ch == '=') {AddCh(); goto case 18;}
 				else if (ch == '+') {AddCh(); goto case 22;}
 				else {t.kind = 13; break;}
-			case 36:
-				recEnd = pos; recKind = 14;
-				if (ch == '=') {AddCh(); goto case 19;}
-				else if (ch == '-') {AddCh(); goto case 23;}
-				else {t.kind = 14; break;}
 			case 37:
 				recEnd = pos; recKind = 15;
 				if (ch == '*') {AddCh(); goto case 14;}

@@ -48,8 +48,6 @@ Dictionary<int, string> operandInts = JsonConvert.DeserializeObject<Dictionary<i
 				{_equal}:'=',
 				{_different}:'!=',
 				{_and}:'&&',
-				{_and}:'and',
-				{_or}:'or',
 				{_or}:'||',
                 {_print}: 'print',
                 {_input}: 'input',
@@ -577,8 +575,8 @@ notQuote	= ANY - '"' - "\r\n".
 TOKENS
 
 id			= letter { letter | digit }.
-cte_I		= digit { digit }.
-cte_F		= digit { digit } "." digit { digit }.
+cte_I		= ['-'] digit { digit }.
+cte_F		= ['-'] digit { digit } "." digit { digit }.
 ctr_Str 	= '"' {notQuote} '"'.
 cbl         = "{".
 cbr         = "}".
