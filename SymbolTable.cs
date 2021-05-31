@@ -39,7 +39,8 @@ namespace AGRO_GRAMM
             POINTERS = 50001-x
          * 
           "symbols": {
-            id: [type, kind, dir, val?null]
+            id: [type, kind, dir, dim1?0, dim2?0, access:[-1|1]]
+            symbols.len(6)
           }
         */
 
@@ -79,14 +80,14 @@ namespace AGRO_GRAMM
         /// <param name="type">Type of the variable to add (int,float,char,string)</param>
         /// <param name="kind">Kind of the variable to add (temporal, variable)</param>
         /// <returns></returns>
-        public bool putSymbol(string name, int type, int kind, int access)
+        public bool putSymbol(string name, int type, int kind, int dim1, int dim2, int access)
         {
             if (symbols.ContainsKey(name))
             {
                 return false;
             }
             int dir = assignDir(type, kind);
-            int[] symbol = { type, kind, dir, access };
+            int[] symbol = { type, kind, dir, dim1, dim2, access };
             symbols.Add(name, symbol);
 
             return true;
@@ -104,7 +105,7 @@ namespace AGRO_GRAMM
                 if (symbols.ContainsKey(name))
                     return false;
                 int dir = assignDir(type, kind);
-                int[] symbol = { type, kind, dir };
+                int[] symbol = { type, kind, dir, 0, 0, 1};
                 Program.constants[dir] = "" + value;
                 symbols.Add(name, symbol);
                 return true;
@@ -124,7 +125,7 @@ namespace AGRO_GRAMM
                 if (symbols.ContainsKey(name))
                     return false;
                 int dir = assignDir(type, kind);
-                int[] symbol = { type, kind, dir };
+                int[] symbol = { type, kind, dir, 0, 0, 1 };
                 Program.constants[dir] = "" + value;
                 symbols.Add(name, symbol);
                 return true;
@@ -144,7 +145,7 @@ namespace AGRO_GRAMM
                 if (symbols.ContainsKey(name))
                     return false;
                 int dir = assignDir(type, kind);
-                int[] symbol = { type, kind, dir };
+                int[] symbol = { type, kind, dir, 0, 0, 1 };
                 Program.constants[dir] = "" + value;
                 symbols.Add(name, symbol);
                 return true;
@@ -152,7 +153,7 @@ namespace AGRO_GRAMM
             return true;
         }
 
-        public bool putSymbolArray(string name, int type, int kind, int dim1, int dim2)
+        public bool putSymbolArray(string name, int type, int kind, int dim1, int dim2, int access)
         {
             if (symbols.ContainsKey(name))
             {
@@ -164,10 +165,8 @@ namespace AGRO_GRAMM
             symbol.Add(kind);
             symbol.Add(dir);
             symbol.Add(dim1);
-            if (dim2 > 0)
-            {
-                symbol.Add(dim2);
-            }
+            symbol.Add(dim2);
+            symbol.Add(access);
             symbols.Add(name, symbol.ToArray());
 
             return true;
@@ -186,8 +185,8 @@ namespace AGRO_GRAMM
                 string nameObjVar = objName + "." + varName;
                 //Assign direction to all variables of the class, maintaining access
                 // t_int = 1, t_float = 2, t_char = 3
-                putSymbol(nameObjVar, classObj.variables[varName][0], 0, classObj.variables[varName][1]);
-                //Ej:     miCarro.Velocidad, type=2, kind=0, access=-1
+                putSymbol(nameObjVar, classObj.variables[varName][0], 0, 0, 0, classObj.variables[varName][1]);
+                //Ej:     miCarro.Velocidad, type=2, kind=0, dim1=0, dim2=0, access=-1
 
                 //Save these directions in the objects dictionary
                 attributes[varName] = getDir(nameObjVar);
@@ -248,7 +247,7 @@ namespace AGRO_GRAMM
 
         public int getAccess(string name)
         {
-            return getSymbol(name)[3];
+            return getSymbol(name)[5];
         }
 
         /// <summary>

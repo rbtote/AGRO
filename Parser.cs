@@ -154,7 +154,8 @@ string createTemp(int type, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
-    st.putSymbol(tempName, type, temporal, 1);
+    //putSymbol(string name, int type, int kind, int dim1, int dim2, int access)
+    st.putSymbol(tempName, type, temporal, 0, 0, 1);
     return tempName;
 }
 
@@ -162,7 +163,7 @@ string createTempInt(int tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
-    st.putSymbol(tempName, t_int, temporal, 1);
+    st.putSymbol(tempName, t_int, temporal, 0, 0, 1);
     return tempName;
 }
 
@@ -191,7 +192,8 @@ string createTempFloat(float tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
     tempCont+=1;
-    st.putSymbol(tempName, t_float, temporal, 1);
+    //putSymbol(string name, int type, int kind, int dim1, int dim2, int access)
+    st.putSymbol(tempName, t_float, temporal, 0, 0, 1);
     return tempName;
 }
 
@@ -286,7 +288,8 @@ void check(SymbolTable st, int[] arr){
             {
                 SemErr("Invalid operation: " + typesInts[leftType] + " " + operandInts[operat] + " " + typesInts[rightType]);
             }
-            st.putSymbol(tempName, quad.typeOut, temporal, 1);
+            //putSymbol(string name, int type, int kind, int dim1, int dim2, int access)
+            st.putSymbol(tempName, quad.typeOut, temporal, 0, 0, 1);
             quad.setDirOut(st, tempName);
             program.Add(quad);
             pushToOperandStack(tempName, st);
@@ -313,7 +316,9 @@ int checkArray(SymbolTable st, string name){
     stackOperand.Pop();
     stackTypes.Pop();
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-3;
+    //id: [type, kind, dir, dim1?0, dim2?0, access:[-1|1]]
+
+    int varDims = symbol[3] != 0 ? symbol[4] != 0 ? 2 : 1 : 0;
     if(1 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 1");
     }else{
@@ -326,7 +331,7 @@ int checkArray(SymbolTable st, string name){
 int checkMatrix(SymbolTable st, string name){
     int sizeDim = -1;
     int[] symbol = st.getSymbol(name);
-    int varDims = symbol.Length-3;
+    int varDims = symbol[3] != 0 ? symbol[4] != 0 ? 2 : 1 : 0;
     if(2 > varDims){
         SemErr("Variable " + name + " has " + varDims + " dimension, asked for 2");
     }else{
@@ -350,20 +355,21 @@ void verifyLimit(SymbolTable st, string name, int sizeDim){
     Verify ver = new Verify(pos, sizeDim-1, st);
     program.Add(ver);
     int[] symbol = st.getSymbol(name);
-    if(symbol.Length > 4){
+    //id: [type, kind, dir, dim1?0, dim2?0, access:[-1|1]]
+    if(symbol[4] > 0){
         // We have 2 dims
         aux = stackOperand.Pop();  //Result of expression
         dim2 = createConstInt(symbol[4],st);
         tempName1 = "_t" + tempCont;
         tempCont+=1;
         Cuadruple quad = new Cuadruple(_add, aux, createConstInt(1,st), tempName1, st, operandInts); //We need to add 1 to the S1 value to get the right dim
-        st.putSymbol(tempName1, quad.typeOut, temporal, 1);
+        st.putSymbol(tempName1, quad.typeOut, temporal, 0, 0, 1);
         quad.setDirOut(st, tempName1);
         program.Add(quad);
         tempName = "_t" + tempCont;
         tempCont+=1;
         Cuadruple quad1 = new Cuadruple(_mul,tempName1,dim2,tempName, st, operandInts);   // (S1+1) * Dim2
-        st.putSymbol(tempName, quad.typeOut, temporal, 1);
+        st.putSymbol(tempName, quad.typeOut, temporal, 0, 0, 1);
         quad1.setDirOut(st, tempName);
         program.Add(quad1);
         pushToOperandStack(tempName, st);                                       //Top of operand is ^
@@ -391,7 +397,7 @@ void verifyLimit2(SymbolTable st, string name, int sizeDim){
     tempName = "_t" + tempCont;
     tempCont+=1;
     Cuadruple quad = new Cuadruple(_add,aux2,aux1,tempName, st, operandInts);   // (S1+1) * Dim2 + S2
-    st.putSymbol(tempName, quad.typeOut, temporal, 1);
+    st.putSymbol(tempName, quad.typeOut, temporal, 0, 0, 1);
     quad.setDirOut(st, tempName);
     program.Add(quad);
     tempName1 = "_t" + tempCont;
@@ -402,7 +408,7 @@ void verifyLimit2(SymbolTable st, string name, int sizeDim){
     dim2 = createConstInt(symbol[4],st);
 
     Cuadruple quad1 = new Cuadruple(_sub,tempName,dim2,tempName1, st, operandInts);   // (S1+1) * Dim2 + S2 - Dim2
-    st.putSymbol(tempName1, quad.typeOut, temporal, 1);
+    st.putSymbol(tempName1, quad.typeOut, temporal, 0, 0, 1);
     quad1.setDirOut(st, tempName1);
     program.Add(quad1);
 
@@ -418,7 +424,7 @@ void endArray(SymbolTable st, string name){
     tempName = "_t" + tempCont;
     tempCont+=1;
     Cuadruple quad = new Cuadruple(_add,tempDir,auxEnd,tempName, st, operandInts);   // DimBase + res
-    st.putSymbol(tempName, quad.typeOut, pointer, 1);
+    st.putSymbol(tempName, quad.typeOut, pointer, 0, 0, 1);
     quad.setDirOut(st, tempName);
     program.Add(quad);
     pushToOperandStack(tempName, st);
@@ -526,7 +532,8 @@ void addParentClass(string childClass, string parentClass, SymbolTable st){
     //Copy to STABLE dirClasses[parentClass]
     foreach (string key in dirClasses[parentClass].variables.Keys)
     {
-        st.putSymbol(key, dirClasses[parentClass].variables[key][0],0,dirClasses[parentClass].variables[key][1]);
+        //putSymbol(string name, int type,                  int kind, int dim1, int dim2, int access)
+        st.putSymbol(key, dirClasses[parentClass].variables[key][0], 0, 0, 0,       dirClasses[parentClass].variables[key][1]);
     }
 }
 
@@ -723,9 +730,9 @@ bool IsDecVars(){
 		TYPE_FUNC(out type );
 		solvedReturn = (type == t_void); 
 		IDENT(out name );
-		if(!sTable.putSymbol(name, type, func, 1)) { SemErr(name + " already exists"); }
+		if(!sTable.putSymbol(name, type, func, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       dirFunc.Add(className+name, new Function(program.Count));
-		       if(!sTable.putSymbol("_" + name, type, var, 1)) { SemErr(name + " already exists"); }
+		       if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       sTable = sTable.newChildSymbolTable(); 
 		Expect(9);
 		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
@@ -766,11 +773,11 @@ bool IsDecVars(){
 			IDENT(out className );
 			validateObject(className); 
 			IDENT(out name );
-			if (!sTable.putSymbol(name, t_obj, var, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
+			if (!sTable.putSymbol(name, t_obj, var, 0, 0, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
 			while (la.kind == 11) {
 				Get();
 				IDENT(out name );
-				if (!sTable.putSymbol(name, t_obj, var, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
+				if (!sTable.putSymbol(name, t_obj, var, 0, 0, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
 			}
 			Expect(12);
 		} else if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
@@ -789,12 +796,12 @@ bool IsDecVars(){
 				}
 			}
 			if(dim1>0){
-			   sTable.putSymbolArray(name, type, var, dim1, dim2);
+			   sTable.putSymbolArray(name, type, var, dim1, dim2, 1);
 			   dim1 = 0;
 			   dim2 = 0;
 			}
 			else
-			   if (!sTable.putSymbol(name, type, var, access)) { SemErr(name + " already exists"); }
+			   if (!sTable.putSymbol(name, type, var, 0, 0, access)) { SemErr(name + " already exists"); }
 			
 			while (la.kind == 11) {
 				Get();
@@ -812,12 +819,12 @@ bool IsDecVars(){
 					}
 				}
 				if(dim1>0){
-				   sTable.putSymbolArray(name, type, var, dim1, dim2);
+				   sTable.putSymbolArray(name, type, var, dim1, dim2, 1);
 				   dim1 = 0;
 				   dim2 = 0;
 				}
 				else
-				   if (!sTable.putSymbol(name, type, var, access)) { SemErr(name + " already exists"); }
+				   if (!sTable.putSymbol(name, type, var, 0, 0, access)) { SemErr(name + " already exists"); }
 				
 			}
 			Expect(12);
@@ -885,13 +892,13 @@ bool IsDecVars(){
 		string name; int type; 
 		SIMPLE_TYPE(out type );
 		IDENT(out name );
-		if (!sTable.putSymbol(name, type, var, 1)) { SemErr(name + " already exists"); }
+		if (!sTable.putSymbol(name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       dirFunc[currFunc].parameterTypes.Add(type); 
 		while (la.kind == 11) {
 			Get();
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
-			if (!sTable.putSymbol(name, type, var, 1)) { SemErr(name + " already exists"); }
+			if (!sTable.putSymbol(name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
 			      dirFunc[currFunc].parameterTypes.Add(type); 
 		}
 	}
