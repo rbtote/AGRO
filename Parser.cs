@@ -733,7 +733,8 @@ bool IsDecVars(){
 		if(!sTable.putSymbol(name, type, func, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       dirFunc.Add(className+name, new Function(program.Count));
 		       if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
-		       sTable = sTable.newChildSymbolTable(); 
+		       sTable = sTable.newChildSymbolTable();
+		       if (className.Length != 0) { sTable.updateLocalOffsetsFromParent(); } 
 		Expect(9);
 		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
 			PARAMS_FUNC(className+name);
@@ -763,6 +764,7 @@ bool IsDecVars(){
 		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(6);
 		dirFunc[className+name].countVars(sTable);
+		           if (className.Length != 0) { sTable.updateLocalOffsetsToParent(); }
 		           sTable = sTable.parentSymbolTable;
 		           program.Add(new EndFunc()); 
 	}
@@ -1064,7 +1066,7 @@ bool IsDecVars(){
 		program.Add(new GoSub(name)); 
 		// If not void create temp to store result of call
 		if(sTable.getType(objectName+"."+methodName) != t_void){
-		   pushToOperandStack(createTemp(sTable.getType(objectName+"."+methodName), sTable), sTable);
+		   pushToOperandStack(createTemp(sTable.getType(objectName+"._"+methodName), sTable), sTable);
 		   string leftOper = stackOperand.Peek();
 		   Assign assign = new Assign(_equal, objectName+"._"+methodName, leftOper, sTable, operandInts);
 		   assign.setDirOut(sTable, leftOper);

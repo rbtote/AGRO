@@ -15,12 +15,12 @@ namespace AGRO_GRAMM
         int globalTempChar = 20001;
 
         //Local variables
-        int localInt = 28001;
-        int localFloat = 30001;
-        int localChar = 32001;
-        int localTempInt = 34001;
-        int localTempFloat = 36001;
-        int localTempChar = 38001;
+        public int localInt = 28001;
+        public int localFloat = 30001;
+        public int localChar = 32001;
+        public int localTempInt = 34001;
+        public int localTempFloat = 36001;
+        public int localTempChar = 38001;
 
         //Constant variables
         int constInt = 42001;
@@ -71,6 +71,32 @@ namespace AGRO_GRAMM
         public SymbolTable newChildSymbolTable()
         {
             return new SymbolTable(this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void updateLocalOffsetsFromParent()
+        {
+            this.localInt = parentSymbolTable.localInt;
+            this.localFloat = parentSymbolTable.localFloat;
+            this.localChar = parentSymbolTable.localChar;
+            this.localTempInt = parentSymbolTable.localTempInt;
+            this.localTempFloat = parentSymbolTable.localTempFloat;
+            this.localTempChar = parentSymbolTable.localTempChar;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void updateLocalOffsetsToParent()
+        {
+            parentSymbolTable.localInt = this.localInt;
+            parentSymbolTable.localFloat = this.localFloat;
+            parentSymbolTable.localChar = this.localChar;
+            parentSymbolTable.localTempInt = this.localTempInt;
+            parentSymbolTable.localTempFloat = this.localTempFloat;
+            parentSymbolTable.localTempChar = this.localTempChar;
         }
 
         /// <summary>
@@ -185,7 +211,9 @@ namespace AGRO_GRAMM
                 string nameObjVar = objName + "." + varName;
                 //Assign direction to all variables of the class, maintaining access
                 // t_int = 1, t_float = 2, t_char = 3
-                putSymbol(nameObjVar, classObj.variables[varName][0], 0, 0, 0, classObj.variables[varName][1]);
+
+                // Jump if
+                putSymbol(nameObjVar, classObj.variables[varName][0], classObj.variables[varName][2], 0, 0, classObj.variables[varName][1]);
                 //Ej:     miCarro.Velocidad, type=2, kind=0, dim1=0, dim2=0, access=-1
 
                 //Save these directions in the objects dictionary

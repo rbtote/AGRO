@@ -802,11 +802,23 @@ class CodeProcessor:
         self.memory.allocateLocalMemory(totalToAssign["int"], totalToAssign["float"], totalToAssign["char"], totalToAssign["string"])
         self.memory.allocateLocalTempMemory(totalToAssign["intTmp"], totalToAssign["floatTmp"], totalToAssign["charTmp"], totalToAssign["stringTmp"])
 
+        # Get Param types from dirFunc
+        paramTypes = self.dirFunc[quadArray[1]]["params"]
+        paramValues = []
+
+        # Pop params values from param stack depending on dirFunc param count
+        for _ in paramTypes:
+            paramValues.append(self.paramStack.pop())
+        
+        # Reverse params from stack to queue
+        paramValues.reverse()
+
         # Ordered vars from function are assigned to local memory
         intCount = 0
         floatCount = 0
         charCount = 0
 
+        # Add object params to method call
         for i in range(len(objectParams)):
             if objectParams[i][0] == "int":
                 if values["int"][i] is not None:
@@ -819,6 +831,18 @@ class CodeProcessor:
             elif objectParams[i][0] == "char":
                 if values["char"][i] is not None:
                     self.memory.setValue(self.memory.localChar + charCount, values["char"][i])
+                charCount += 1
+
+        # Add function params to method call
+        for i in range(len(paramTypes)):
+            if paramTypes[i] == "int":
+                self.memory.setValue(self.memory.localInt + intCount, paramValues[i])
+                intCount += 1
+            elif paramTypes[i] == "float":
+                self.memory.setValue(self.memory.localFloat + floatCount, paramValues[i])
+                floatCount += 1
+            elif paramTypes[i] == "char":
+                self.memory.setValue(self.memory.localChar + charCount, paramValues[i])
                 charCount += 1
 
         self.objectReturnDir.append(objectParams)

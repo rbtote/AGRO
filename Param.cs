@@ -6,7 +6,7 @@ namespace AGRO_GRAMM
 {
     class Param : Actions
     {
-        string varName,paramType;
+        string varName, paramType;
         int dirVar;
         int count;
         public Param(string paramType, string varName, int count, SymbolTable _st)

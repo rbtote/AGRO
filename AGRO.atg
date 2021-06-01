@@ -683,7 +683,8 @@ DEC_FUNC  <string className>	       (. string name; int type; bool solvedReturn;
     IDENT			< out name > (. if(!sTable.putSymbol(name, type, func, 0, 0, 1)) { SemErr(name + " already exists"); }
                                     dirFunc.Add(className+name, new Function(program.Count));
                                     if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
-                                    sTable = sTable.newChildSymbolTable(); .)
+                                    sTable = sTable.newChildSymbolTable();
+                                    if (className.Length != 0) { sTable.updateLocalOffsetsFromParent(); } .)
     pl [ PARAMS_FUNC <className+name> ] pr
     cbl [
      ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
@@ -695,6 +696,7 @@ DEC_FUNC  <string className>	       (. string name; int type; bool solvedReturn;
        ) } ] 
      (. if (!solvedReturn) { SemErr("Function requires return"); } .)
     cbr					(. dirFunc[className+name].countVars(sTable);
+                           if (className.Length != 0) { sTable.updateLocalOffsetsToParent(); }
                            sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
@@ -911,7 +913,7 @@ METHOD_CALL         (. string name, objectName, methodName, className; int param
         program.Add(new GoSub(name)); 
         // If not void create temp to store result of call
         if(sTable.getType(objectName+"."+methodName) != t_void){
-            pushToOperandStack(createTemp(sTable.getType(objectName+"."+methodName), sTable), sTable);
+            pushToOperandStack(createTemp(sTable.getType(objectName+"._"+methodName), sTable), sTable);
             string leftOper = stackOperand.Peek();
             Assign assign = new Assign(_equal, objectName+"._"+methodName, leftOper, sTable, operandInts);
             assign.setDirOut(sTable, leftOper);

@@ -3,9 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-/VM/
-
-
 # User-specific files
 *.rsuser
 *.suo
@@ -368,7 +365,11 @@ FodyWeavers.xsd
 *.cs.old
 
 # Agro outputs
-*.agro.*
+*.agro.code
+*.agro.cube
+*.agro.constants
+*.agro.dirfunc
+*.agro.classes
 
 # Runtime json
 *.runtimeconfig.*

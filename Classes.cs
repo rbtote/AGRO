@@ -38,9 +38,15 @@ namespace AGRO_GRAMM
                 // TYPES:   t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6
                 // KINDS:   var = 0, func = 1
                 // ACCESS:  public = 1, private = -1
-                int[] varsKey = { 0, 0 };
+                //              { TYPE, ACCESS, KIND}
+                int[] varsKey = { 0, 0, 0 };
                 variables[key] = varsKey;
                 variables[key][1] = st.getAccess(key);
+                variables[key][2] = st.getKind(key);
+
+                // Omit func allocation
+                if (variables[key][2] == 1) continue;
+
                 switch (st.getType(key))
                 {
                     // INT
@@ -68,7 +74,7 @@ namespace AGRO_GRAMM
                         break;
                 }
             }
-            
+
         }
     }
 }
