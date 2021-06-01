@@ -59,8 +59,11 @@ Las variables globales se escriben fuera del contexto de `main`, con la sintaxis
 Cada definición de clase debe tener la estructura: (**class** + `nombre de la clase`) seguido de llaves, y cada declaración dentro de la clase debe tener el indicador de accesibilidad del atributo o método antes de la declaración deseada.
 
 &nbsp;&nbsp;&nbsp; *class = nombreClase {
+
 &nbsp;&nbsp;&nbsp; ...
+
 &nbsp;&nbsp;&nbsp; ...
+
 &nbsp;&nbsp;&nbsp; }*
 
 ```
@@ -94,7 +97,9 @@ Cada definición de funcion debe tener la estructura: (**tipo** + `nombre de la 
 Recordando que las funciones pueden retornar cualquier tipo primitivo de datos o no regresar nada si se declaran como tipo void.
 
 &nbsp;&nbsp;&nbsp; *tipoFunc = nombreFunc() {
+
 &nbsp;&nbsp;&nbsp; ...
+
 &nbsp;&nbsp;&nbsp; }*
 
 ```
@@ -113,8 +118,7 @@ int getC() {
 ### Asignación
 En **AGRO** contamos con 3 tipos de asignaciones:
 
-`Asignación normal` : Consta de simplemente una variable objetivo y el valor que se le quiera asignar, con la siguiente sintaxis:
-* variable objetivo = valor a asignar;*
+`Asignación normal` : Consta de simplemente una variable objetivo y el valor que se le quiera asignar, como se muestra a continuación:
 ```
 a = (b+4)/c-1;
 ```
