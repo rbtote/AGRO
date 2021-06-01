@@ -58,7 +58,9 @@ Las variables globales se escriben fuera del contexto de `main`, con la sintaxis
 ### Clases
 Cada definición de clase debe tener la estructura: (**class** + `nombre de la clase`) seguido de llaves, y cada declaración dentro de la clase debe tener el indicador de accesibilidad del atributo o método antes de la declaración deseada.
 
-&nbsp;&nbsp;&nbsp;&nbsp;*class = nombreClase {  
+De igual manera, se puede especificar que la clase tiene herencia simple de otra clase, con la estructura: (**class** + `nombre de la clase` **:** `nombre clase parent`). Lo que hará que la clase que estamos definiendo tenga los métodos y atributos de su clase parent.
+
+&nbsp;&nbsp;&nbsp;&nbsp;*class = nombreClase : claseParent {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;}*
