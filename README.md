@@ -153,7 +153,7 @@ El estatuto de condicion se define de la siguiente manera:
 &nbsp;&nbsp;*if(condicion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
-Y si es necesario, se puede incluir una parte de else:
+Y si es necesario, se puede incluir una parte de else:   
 &nbsp;&nbsp;*if(condicion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
