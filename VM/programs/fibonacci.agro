@@ -1,0 +1,42 @@
+int fibonacciRecursive(int n) {
+    int out;
+    if (n < 2) {
+        out = n;
+    }
+    else {
+        out = (fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2));
+    }
+    return out;
+}
+
+int fibonacciCycle(int n) {
+    int a, b, c, i, out;
+    a = 0;
+    b = 1;
+
+    if(n == 0) {
+        out = a;
+    }
+    else {
+        for(i = 2; i <= n; i++;)
+        {
+            c = a + b;
+            a = b;
+            b = c;
+        }
+        out = b;
+    }
+
+    return out;
+}
+
+main {
+    int number;
+    print("Insert fibonacci target number");
+    input(number);
+
+    print("Recursive fibonacci: ", fibonacciRecursive(number));
+    print("Cyclic fibonacci: ", fibonacciCycle(number));
+    number--;
+    print(number);
+}

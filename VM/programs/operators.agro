@@ -1,0 +1,30 @@
+int a, b;
+float c;
+
+main {
+    a = 3;
+    b = 2;
+    c = 5;
+
+    for (a = 1; a < 10; a += 3;) {
+        print("a        = ", a, "\n");
+        print("b        = ", b, "\n");
+        print("c        = ", c, "\n");
+        print("a + b    = ", a + b, "\n");
+        print("c / a    = ", c / a, "\n");
+        print("c // a   = ", c // a, "\n");
+        b--;
+        print("b --     = ", b, "\n");
+        b++;
+        print("b ++     = ", b, "\n");
+        b += 2;
+        print("b += 2   = ", b, "\n");
+        b -= 3;
+        print("b -= 3   = ", b, "\n");
+        b *= 2;
+        print("b *= 2   = ", b, "\n");
+        b /= 2;
+        print("b /= 2   = ", b, "\n");
+        print("------", "\n");
+    }
+}

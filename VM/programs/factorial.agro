@@ -1,0 +1,14 @@
+int factorial(int n) {
+    int out;
+    if (n == 0) {
+        out = 1;
+    }
+    else {
+        out = (n * factorial(n - 1));
+    }
+    return out;
+}
+
+main {
+    print(factorial(5));
+}

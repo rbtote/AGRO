@@ -9,8 +9,20 @@ class Math{
 
 class MathSon : Math{
     + int c;
-    + int getc(){
+    
+    + void printC(){
+        print(c, "\n");
+    }
+    
+    + int getc(int ok){
+        print("a: ", a, "\n");
+        print("ok: ", ok, "\n");
         return c;
+    }
+
+    + void printA(){
+        int x;
+        print(a, "\n");
     }
 }
 
@@ -36,6 +48,12 @@ void owo(int toAssign){
     a.a = toAssign;
 }
 
+int generateOne() {
+    int one;
+    one = 7;
+    return one;
+}
+
 main {
 
     for (i = 1; i < 4; i ++;)
@@ -56,10 +74,11 @@ main {
     MathSon b;
     b.a = 3;
     b.c = 5;
-    print(b.a, "\n", b.c, "\n");
 
-    %% Assigns 10 to b.c
-    print(b.getc());
-    %%print(owo(b.a));
-    print(b.c, "\n");
+    i = generateOne();
+    i = b.getc(7) + 10;
+
+    print("C: ", b.c, "\n");
+
+    print("i: ", i, "\n");
 }
