@@ -58,7 +58,7 @@ Las variables globales se escriben fuera del contexto de `main`, con la sintaxis
 ### Clases
 Cada definición de clase debe tener la estructura: (**class** + `nombre de la clase`) seguido de llaves, y cada declaración dentro de la clase debe tener el indicador de accesibilidad del atributo o método antes de la declaración deseada.
 
-&nbsp;&nbsp;&nbsp;&nbsp;*class = nombreClase {
+&nbsp;&nbsp;&nbsp;&nbsp;*class = nombreClase {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;}*
@@ -93,7 +93,7 @@ class MathSon : Math{
 Cada definición de funcion debe tener la estructura: (**tipo** + `nombre de la función`) seguido de paréntesis que pueden contener los parámetros necesarios de la función y llaves.
 Recordando que las funciones pueden retornar cualquier tipo primitivo de datos o no regresar nada si se declaran como tipo void.
 
-&nbsp;&nbsp;&nbsp;&nbsp;*tipoFunc = nombreFunc() {
+&nbsp;&nbsp;&nbsp;&nbsp;*tipoFunc = nombreFunc() {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;}*
 
