@@ -33,6 +33,7 @@ El lenguaje AGRO consta de los siguientes tipos de datos primitivos
 |int  |Valor númerico sin puntos decimales     |0, 1, 2, 3,...
 |float|Valor númerio con puntos decimales      |0.5, 1.1, 4.5, 1.0...
 |char|Cualquier letra rodeada por comillas simples| 'c', 'a', ...
+|string|Cualquier combinación de letras rodeada por comillas dobles| "str", "a", ...
 
 
 ## :clipboard: Estructura del Programa
@@ -75,6 +76,7 @@ Las variables globales se escriben fuera del contexto de `main`, con la sintaxis
     int i,j;
     float f;
     char c;
+    string s;
 ```
 
 ### Clases
