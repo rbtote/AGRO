@@ -1,5 +1,21 @@
-# AGRO COMPILER
+# AGRO
 by Aglahir Jimenez and Roberto Ramírez
+
+- [AGRO LANGUAGE - Lenguaje de Programación](#AGRO)
+  - [Tipos de Datos](#:memo:-Tipos-de-datos)
+  - [Estructura del Programa](#:clipboard:-Estructura-del-programa)
+  - [Contextos en AGRO](#:bookmark_tabs:-Contextos-en-AGRO)
+    - [Global](#Globales)
+    - [Clases](#Clases)
+    - [Funciones](#funciones)
+  - [Estatutos en AGRO](#:pencil2:-Estatutos-en-AGRO)
+    - [Asignación](#Asignación)
+    - [Input / Output](#Input-/-Output)
+    - [Condiciones](#Condiciones)
+    - [Ciclos](#Ciclos-(While-/-For))
+    - [LLamadas](#Llamadas-(Funciones-/-Métodos))
+  - [Expresiones](#:triangular_ruler:-Expresiones-en-AGRO)
+  - [Comentarios en AGRO](#:triangular_flag_on_post:-Comentarios-en-AGRO)
 
 ## :beginner: Introducción
 
@@ -215,6 +231,7 @@ mergeSort(n);
 ```
 i = b.getc(7) + 10;
 ```
+
 ## :triangular_ruler: Expresiones en AGRO
 
 ### Operadores Aritméticos
@@ -247,3 +264,11 @@ i = b.getc(7) + 10;
 |Mayor igual que|>=|
 |Igual|==|
 |Diferente a|!=|
+
+## :triangular_flag_on_post: Comentarios en AGRO
+Se utiliza el prefijo **%%** a las líneas que se quieran etiquetar como comentarios
+```
+%% Comentario
+int a;
+%% print(a);
+```
