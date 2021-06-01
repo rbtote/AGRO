@@ -200,3 +200,50 @@ for (i = 0; i < n; i += 2;) {
 ```
 
 ### Llamadas (Funciones / Métodos)
+El comportamiento de las llamadas a funciones globales y a métodos de objetos es básicamente igual, se pueden usar como parte de expresiones solamente si éstas regresan algún valor(no son declaradas como void). Se valida que el número de parámetros que se envían coincida con el número de parámetros que la función o método necesitan.
+
+`Llamada a función`: Es la llamada a una función definida de manera global antes del contexto de main con la siguiente sintaxis:   
+&nbsp;&nbsp;*nombreFuncion(parametro,...)*
+
+```
+mergeSort(n);
+```
+
+`Llamada a método`: Es la llamada a un método definido en alguna clase, se requiere que se especifique el objeto del que se tomará el método y el nombre del método.   
+&nbsp;&nbsp;*nombreObjeto.nombreMetodo(parametro,...)*
+
+```
+i = b.getc(7) + 10;
+```
+## :triangular_ruler: Expresiones en AGRO
+
+### Operadores Aritméticos
+**Operadores Binarios**  
+
+|Operación |Token|
+|-----|--------|
+|Suma|+|
+|Resta|-|
+|Multiplicación|*|
+|División|/|
+|Módulo|%|   
+|División entera|//|   
+|Exponenciación|**|   
+-----
+### Operadores Lógicos
+**Operadores Binarios**
+|Operación |Token|
+|-----|--------|
+|And|&&|
+|Or| || |
+----
+### Operadores Relacionales 
+**Operadores Binarios**
+|Operación |Token|
+|-----|--------|
+|Menor que|<|
+|Mayor que|>|
+|Menor igual que|<=|
+|Mayor igual que|>=|
+|Igual|==|
+|Diferente a|!=|
