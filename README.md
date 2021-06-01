@@ -1,7 +1,7 @@
 # AGRO
 by Aglahir Jimenez and Roberto Ramírez
 
-- [AGRO LANGUAGE - Lenguaje de Programación](#AGRO)
+- [AGRO LANGUAGE](#AGRO)
   - [Tipos de Datos](#:memo:-Tipos-de-datos)
   - [Estructura del Programa](#:clipboard:-Estructura-del-programa)
   - [Contextos en AGRO](#:bookmark_tabs:-Contextos-en-AGRO)
@@ -14,7 +14,7 @@ by Aglahir Jimenez and Roberto Ramírez
     - [Condiciones](#Condiciones)
     - [Ciclos](#Ciclos-(While-/-For))
     - [LLamadas](#Llamadas-(Funciones-/-Métodos))
-  - [Expresiones](#:triangular_ruler:-Expresiones-en-AGRO)
+  - [Expresiones](#Expresiones-en-AGRO)
   - [Comentarios en AGRO](#:triangular_flag_on_post:-Comentarios-en-AGRO)
 
 ## :beginner: Introducción
