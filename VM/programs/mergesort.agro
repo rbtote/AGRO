@@ -81,6 +81,31 @@ void populateArr(int n) {
     }
 }
 
+int binarySearch(int lower, int upper, int target) {
+    int mid, output;
+    mid = (lower + upper) / 2;
+    print("upper: ", upper, "  lower: ", lower, "  midVal: ", arr[mid], "\n");
+    if (upper >= lower) {
+
+        if (arr[mid] == target) {
+            output = mid;
+        }
+        else {
+            if (arr[mid] < target) {
+                output = binarySearch(mid + 1, upper, target);
+            }
+            else {
+                output = binarySearch(lower, mid - 1, target);
+            }
+        }
+    }
+    else {
+        output = (0-1);
+    }
+
+    return output;
+}
+
 %% WORKS
 void printArr(int n) {
     int i;
@@ -100,5 +125,10 @@ main {
 
     mergeSort(n);
     printArr(n);
+
+    int target, result;
+    target = 10;
+    result = binarySearch(0, n, target);
+    print(target, " exists? (-1 if not) : (", target, " at pos ", result, ")", "\n");
 
 }
