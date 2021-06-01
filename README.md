@@ -14,7 +14,7 @@ by Aglahir Jiménez and Roberto Ramírez
     - [Condiciones](#Condiciones)
     - [Ciclos](#Ciclos-(While-/-For))
     - [LLamadas](#Llamadas-(Funciones-/-Métodos))
-  - [Expresiones](#Expresiones-en-AGRO)
+  - [Expresiones](#triangular_ruler-Expresiones-en-AGRO)
   - [Comentarios en AGRO](#triangular_flag_on_post-Comentarios-en-AGRO)
 
 ## :beginner: Introducción
