@@ -2,13 +2,13 @@
 by Aglahir Jiménez and Roberto Ramírez
 
 - [AGRO LANGUAGE](#AGRO)
-  - [Tipos de Datos](#:memo:-Tipos-de-datos)
-  - [Estructura del Programa](#:clipboard:-Estructura-del-programa)
-  - [Contextos en AGRO](#:bookmark_tabs:-Contextos-en-AGRO)
+  - [Tipos de Datos](#memo-Tipos-de-datos)
+  - [Estructura del Programa](#clipboard-Estructura-del-programa)
+  - [Contextos en AGRO](#bookmark_tabs-Contextos-en-AGRO)
     - [Global](#Globales)
     - [Clases](#Clases)
     - [Funciones](#funciones)
-  - [Estatutos en AGRO](#:pencil2:-Estatutos-en-AGRO)
+  - [Estatutos en AGRO](#pencil2-Estatutos-en-AGRO)
     - [Asignación](#Asignación)
     - [Input / Output](#Input-/-Output)
     - [Condiciones](#Condiciones)
