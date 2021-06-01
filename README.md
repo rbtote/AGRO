@@ -149,7 +149,7 @@ print("El valor de a es: ",a);
 ```
 
 ### Condiciones
-El estatuto de condicion se define de la siguiente manera:
+El estatuto de condicion se define de la siguiente manera:   
 &nbsp;&nbsp;*if(condicion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
