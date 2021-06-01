@@ -1,5 +1,5 @@
 # AGRO
-by Aglahir Jimenez and Roberto Ramírez
+by Aglahir Jiménez and Roberto Ramírez
 
 - [AGRO LANGUAGE](#AGRO)
   - [Tipos de Datos](#:memo:-Tipos-de-datos)
@@ -15,7 +15,7 @@ by Aglahir Jimenez and Roberto Ramírez
     - [Ciclos](#Ciclos-(While-/-For))
     - [LLamadas](#Llamadas-(Funciones-/-Métodos))
   - [Expresiones](#Expresiones-en-AGRO)
-  - [Comentarios en AGRO](#:triangular_flag_on_post:-Comentarios-en-AGRO)
+  - [Comentarios en AGRO](#triangular_flag_on_post-Comentarios-en-AGRO)
 
 ## :beginner: Introducción
 
