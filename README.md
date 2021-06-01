@@ -3,12 +3,12 @@ by Aglahir Jiménez and Roberto Ramírez
 
 - [AGRO LANGUAGE](#AGRO)
   - [Tipos de Datos](#memo-Tipos-de-datos)
-  - [Variables dimensionadas](#1234-Variables-dimensionadas)
   - [Estructura del Programa](#clipboard-Estructura-del-programa)
   - [Contextos en AGRO](#bookmark_tabs-Contextos-en-AGRO)
     - [Global](#Globales)
     - [Clases](#Clases)
     - [Funciones](#funciones)
+  - [Variables dimensionadas](#1234-Variables-dimensionadas)
   - [Estatutos en AGRO](#pencil2-Estatutos-en-AGRO)
     - [Asignación](#Asignación)
     - [Input / Output](#Input-/-Output)
@@ -30,26 +30,6 @@ El lenguaje AGRO consta de los siguientes tipos de datos primitivos
 |float|Valor númerio con puntos decimales      |0.5, 1.1, 4.5, 1.0...
 |char|Cualquier letra rodeada por comillas simples| 'c', 'a', ...
 
-## :1234: Variables dimensionadas
-
-`Arreglos`: Los arreglos son variables definidas con 1 dimension, se declaran con la siguiente sintaxis en la declaración de variables:   
-&nbsp;&nbsp;&nbsp; *tipo = literal[ dimension ];*   
-Y para poder ser accesados se requiere el índice, el cual es la evaluación de alguna expresión que tenga tipo entero.
-&nbsp;&nbsp;&nbsp; *nombre[ expresion ] = expresion;*   
-```
-int arr[10];
-arr[0] = 1;
-arr[a+3-c] = b;
-```
-`Matrices`: Las matrices son variables definidas con 2 dimensiones, se declaran de manera similar a los arreglos, con la adición de una dimensión más que tenemos que especificar.
-&nbsp;&nbsp;&nbsp; *tipo = literal[ dimension1 ] [ dimension2 ];*   
-Y para poder ser accesados se requiere el índice de cada dimension, los cuales son la evaluación de alguna expresión que tenga tipo entero.
-&nbsp;&nbsp;&nbsp; *nombre[ expresion ] [ expresion ] = expresion;*   
-```
-int m[10][10];
-m[0][9] = 1;
-m[a+3-c][c] = c*b;
-```
 
 ## :clipboard: Estructura del Programa
 
@@ -146,6 +126,27 @@ int getC() {
     return c;
 }
 
+```
+
+## :1234: Variables dimensionadas
+
+`Arreglos`: Los arreglos son variables definidas con 1 dimension, se declaran con la siguiente sintaxis en la declaración de variables:   
+&nbsp;&nbsp;&nbsp; *tipo = literal[ dimension ];*   
+Y para poder ser accesados se requiere el índice, el cual es la evaluación de alguna expresión que tenga tipo entero.
+&nbsp;&nbsp;&nbsp; *nombre[ expresion ] = expresion;*   
+```
+int arr[10];
+arr[0] = 1;
+arr[a+3-c] = b;
+```
+`Matrices`: Las matrices son variables definidas con 2 dimensiones, se declaran de manera similar a los arreglos, con la adición de una dimensión más que tenemos que especificar.
+&nbsp;&nbsp;&nbsp; *tipo = literal[ dimension1 ] [ dimension2 ];*   
+Y para poder ser accesados se requiere el índice de cada dimension, los cuales son la evaluación de alguna expresión que tenga tipo entero.
+&nbsp;&nbsp;&nbsp; *nombre[ expresion ] [ expresion ] = expresion;*   
+```
+int m[10][10];
+m[0][9] = 1;
+m[a+3-c][c] = c*b;
 ```
 
 ## :pencil2: Estatutos en AGRO
