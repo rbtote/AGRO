@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://vignette3.wikia.nocookie.net/pkmnshuffle/images/1/1e/Aggron.png" />
+</p>
+
 # AGRO
 by Aglahir Jiménez and Roberto Ramírez
 
