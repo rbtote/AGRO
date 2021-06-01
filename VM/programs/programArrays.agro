@@ -1,84 +1,15 @@
-int i, j;
-int mat1[3][3];
-float mat2[3][3];
+string a;
 
-class Math{
-    + int a;
-    - int b;
-}
-
-class MathSon : Math{
-    + int c;
-    
-    + void printC(){
-        print(c, "\n");
-    }
-    
-    + int getc(int ok){
-        print("a: ", a, "\n");
-        print("ok: ", ok, "\n");
-        return c;
-    }
-
-    + void printA(){
-        int x;
-        print(a, "\n");
-    }
-}
-
-
-void printMat(int matN) {
-    for (i = 0; i < 3; i = i + 1;)
-    {
-        for (j = 0; j < 3; j = j + 1;)
-        {
-            if (matN == 1){
-                print(mat1[i][j], " ");
-            }
-            else {
-                print(mat2[i][j], " ");
-            }
-        }
-        print("\n");
-    }
-}
-
-void owo(int toAssign){
-    Math a;
-    a.a = toAssign;
-}
-
-int generateOne() {
-    int one;
-    one = 7;
-    return one;
-}
-
-main {
-
-    for (i = 1; i < 4; i ++;)
-    {
-        for (j = 1; j < 4; j ++;)
-        {
-            mat1[i-1][j-1] = i * j;
-            mat2[i-1][j-1] = i / j;
-        }
-    }
-
-    printMat(1);
-    printMat(2);
-
-    print(mat1[1][1], "\n");
-    print(mat1[1][2], "\n");
-
-    MathSon b;
-    b.a = 3;
-    b.c = 5;
-
-    i = generateOne();
-    i = b.getc(7) + 10;
-
-    print("C: ", b.c, "\n");
-
-    print("i: ", i, "\n");
+main{
+	char aa;
+	string a;
+	string b;
+	a = a*3;
+	aa = 'a';
+	b = "Perro";
+	if(a != b){
+		print("diferentes");
+	}
+	input(a);
+	print(a);
 }

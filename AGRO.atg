@@ -133,6 +133,13 @@ string createConstString(string value, SymbolTable st){
     return constName;
 }
 
+string createConstChar(char value, SymbolTable st){
+    string constName;
+    constName = "_" + value;
+    st.putConstantChar(constName, t_char, constant, value);
+    return constName;
+}
+
 string createTempFloat(float tempp, SymbolTable st){
     string tempName;
     tempName = "_t" + tempCont;
@@ -585,6 +592,7 @@ id			= letter { letter | digit }.
 cte_I		= digit { digit }.
 cte_F		= digit { digit } "." digit { digit }.
 ctr_Str 	= '"' {notQuote} '"'.
+ctr_Chr 	= '\'' letter '\''.
 cbl         = "{".
 cbr         = "}".
 bl          = "[".
@@ -723,7 +731,8 @@ SIMPLE_TYPE         < out int type >
     (
     "int"           (. type = t_int; .)   |
     "float"         (. type = t_float; .) |
-    "char"          (. type = t_char; .)
+    "char"          (. type = t_char; .)  |
+    "string"        (. type = t_string; .)
     )
 .
 
@@ -975,6 +984,7 @@ FACT
     ( pl (. stackOperator.Push(_pl); .)  HYPER_EXP pr (. stackOperator.Pop(); .) )                                                  |
     ( [ ( "+" | "-" ) ] ( cte_I  (. pushToOperandStack(createConstInt(Int32.Parse(t.val), sTable), sTable); .) | cte_F (. pushToOperandStack(createConstFloat(float.Parse(t.val), sTable), sTable); .)) )         |
     ( ctr_Str  (. pushToOperandStack(createConstString(t.val, sTable), sTable); .))                                     |
+    ( ctr_Chr  (. pushToOperandStack(createConstChar(t.val.ToCharArray()[1], sTable), sTable);  .))                          |
     ( VARIABLE_FACT )
 .
 

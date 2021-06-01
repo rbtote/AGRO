@@ -17,39 +17,40 @@ public class Parser {
 	public const int _cte_I = 2;
 	public const int _cte_F = 3;
 	public const int _ctr_Str = 4;
-	public const int _cbl = 5;
-	public const int _cbr = 6;
-	public const int _bl = 7;
-	public const int _br = 8;
-	public const int _pl = 9;
-	public const int _pr = 10;
-	public const int _comma = 11;
-	public const int _semicolon = 12;
-	public const int _add = 13;
-	public const int _sub = 14;
-	public const int _mul = 15;
-	public const int _exponent = 16;
-	public const int _div = 17;
-	public const int _intdiv = 18;
-	public const int _module = 19;
-	public const int _equal = 20;
-	public const int _dot = 21;
-	public const int _sadd = 22;
-	public const int _ssub = 23;
-	public const int _sdiv = 24;
-	public const int _smul = 25;
-	public const int _increment = 26;
-	public const int _decrement = 27;
-	public const int _colon = 28;
-	public const int _less = 29;
-	public const int _greater = 30;
-	public const int _lesseq = 31;
-	public const int _greatereq = 32;
-	public const int _equaleq = 33;
-	public const int _different = 34;
-	public const int _and = 35;
-	public const int _or = 36;
-	public const int maxT = 52;
+	public const int _ctr_Chr = 5;
+	public const int _cbl = 6;
+	public const int _cbr = 7;
+	public const int _bl = 8;
+	public const int _br = 9;
+	public const int _pl = 10;
+	public const int _pr = 11;
+	public const int _comma = 12;
+	public const int _semicolon = 13;
+	public const int _add = 14;
+	public const int _sub = 15;
+	public const int _mul = 16;
+	public const int _exponent = 17;
+	public const int _div = 18;
+	public const int _intdiv = 19;
+	public const int _module = 20;
+	public const int _equal = 21;
+	public const int _dot = 22;
+	public const int _sadd = 23;
+	public const int _ssub = 24;
+	public const int _sdiv = 25;
+	public const int _smul = 26;
+	public const int _increment = 27;
+	public const int _decrement = 28;
+	public const int _colon = 29;
+	public const int _less = 30;
+	public const int _greater = 31;
+	public const int _lesseq = 32;
+	public const int _greatereq = 33;
+	public const int _equaleq = 34;
+	public const int _different = 35;
+	public const int _and = 36;
+	public const int _or = 37;
+	public const int maxT = 54;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -185,6 +186,13 @@ string createConstString(string value, SymbolTable st){
     string constName;
     constName = "_" + value;
     st.putConstantString(constName, t_string, constant, value);
+    return constName;
+}
+
+string createConstChar(char value, SymbolTable st){
+    string constName;
+    constName = "_" + value;
+    st.putConstantChar(constName, t_char, constant, value);
     return constName;
 }
 
@@ -699,20 +707,20 @@ bool IsDecVars(){
 			DEC_FUNC("");
 		} else if (StartOf(2)) {
 			DEC_VARS(1);
-		} else if (la.kind == 37) {
+		} else if (la.kind == 38) {
 			DEC_CLASS();
-		} else SynErr(53);
+		} else SynErr(55);
 	}
 
 	void MAIN() {
 		sTable = sTable.newChildSymbolTable(); Goto mainGoto = (Goto)program[0]; mainGoto.setDirection(program.Count); 
-		Expect(41);
-		Expect(5);
+		Expect(43);
+		Expect(6);
 		if (IsDecVars() ) {
 			DEC_VARS(1);
 		} else if (StartOf(3)) {
 			STATUTE();
-		} else SynErr(54);
+		} else SynErr(56);
 		while (StartOf(4)) {
 			if (IsDecVars() ) {
 				DEC_VARS(1);
@@ -720,7 +728,7 @@ bool IsDecVars(){
 				STATUTE();
 			}
 		}
-		Expect(6);
+		Expect(7);
 		mainSymbolTable = sTable; 
 		sTable = sTable.parentSymbolTable; 
 	}
@@ -735,14 +743,14 @@ bool IsDecVars(){
 		       if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       sTable = sTable.newChildSymbolTable();
 		       if (className.Length != 0) { sTable.updateLocalOffsetsFromParent(); } 
-		Expect(9);
-		if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
+		Expect(10);
+		if (StartOf(5)) {
 			PARAMS_FUNC(className+name);
 		}
-		Expect(10);
-		Expect(5);
-		if (StartOf(5)) {
-			if (la.kind == 43) {
+		Expect(11);
+		Expect(6);
+		if (StartOf(6)) {
+			if (la.kind == 45) {
 				RETURN(name, out returnVar);
 				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 			} else if (IsDecVars() ) {
@@ -750,8 +758,8 @@ bool IsDecVars(){
 			} else {
 				STATUTE();
 			}
-			while (StartOf(5)) {
-				if (la.kind == 43) {
+			while (StartOf(6)) {
+				if (la.kind == 45) {
 					RETURN(name, out returnVar);
 					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
 				} else if (IsDecVars() ) {
@@ -762,7 +770,7 @@ bool IsDecVars(){
 			}
 		}
 		if (!solvedReturn) { SemErr("Function requires return"); } 
-		Expect(6);
+		Expect(7);
 		dirFunc[className+name].countVars(sTable);
 		           if (className.Length != 0) { sTable.updateLocalOffsetsToParent(); }
 		           sTable = sTable.parentSymbolTable;
@@ -776,25 +784,25 @@ bool IsDecVars(){
 			validateObject(className); 
 			IDENT(out name );
 			if (!sTable.putSymbol(name, t_obj, var, 0, 0, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
-			while (la.kind == 11) {
+			while (la.kind == 12) {
 				Get();
 				IDENT(out name );
 				if (!sTable.putSymbol(name, t_obj, var, 0, 0, 1)) { SemErr(name + " already exists"); }  createObject(name, className, sTable); 
 			}
-			Expect(12);
-		} else if (la.kind == 38 || la.kind == 39 || la.kind == 40) {
+			Expect(13);
+		} else if (StartOf(5)) {
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
-			if (la.kind == 7) {
+			if (la.kind == 8) {
 				Get();
 				Expect(2);
 				dim1 = Int32.Parse(t.val); 
-				Expect(8);
-				if (la.kind == 7) {
+				Expect(9);
+				if (la.kind == 8) {
 					Get();
 					Expect(2);
 					dim2 = Int32.Parse(t.val); 
-					Expect(8);
+					Expect(9);
 				}
 			}
 			if(dim1>0){
@@ -805,19 +813,19 @@ bool IsDecVars(){
 			else
 			   if (!sTable.putSymbol(name, type, var, 0, 0, access)) { SemErr(name + " already exists"); }
 			
-			while (la.kind == 11) {
+			while (la.kind == 12) {
 				Get();
 				IDENT(out name );
-				if (la.kind == 7) {
+				if (la.kind == 8) {
 					Get();
 					Expect(2);
 					dim1 = Int32.Parse(t.val); 
-					Expect(8);
-					if (la.kind == 7) {
+					Expect(9);
+					if (la.kind == 8) {
 						Get();
 						Expect(2);
 						dim2 = Int32.Parse(t.val); 
-						Expect(8);
+						Expect(9);
 					}
 				}
 				if(dim1>0){
@@ -829,26 +837,26 @@ bool IsDecVars(){
 				   if (!sTable.putSymbol(name, type, var, 0, 0, access)) { SemErr(name + " already exists"); }
 				
 			}
-			Expect(12);
-		} else SynErr(55);
+			Expect(13);
+		} else SynErr(57);
 	}
 
 	void DEC_CLASS() {
 		string className; string parentClassName;
-		Expect(37);
+		Expect(38);
 		IDENT(out className );
 		checkClassCreation(className); 
 		sTable = sTable.newChildSymbolTable(); 
-		if (la.kind == 28) {
+		if (la.kind == 29) {
 			Get();
 			IDENT(out parentClassName );
 			addParentClass(className, parentClassName, sTable); 
 		}
-		Expect(5);
-		while (la.kind == 13 || la.kind == 14) {
+		Expect(6);
+		while (la.kind == 14 || la.kind == 15) {
 			CLASS_DEF(className );
 		}
-		Expect(6);
+		Expect(7);
 		dirClasses[className].setClassVars(sTable);
 		sTable = sTable.parentSymbolTable; 
 		
@@ -861,33 +869,36 @@ bool IsDecVars(){
 
 	void SIMPLE_TYPE(out int type ) {
 		type = undef; 
-		if (la.kind == 38) {
+		if (la.kind == 39) {
 			Get();
 			type = t_int; 
-		} else if (la.kind == 39) {
-			Get();
-			type = t_float; 
 		} else if (la.kind == 40) {
 			Get();
-			type = t_char; 
-		} else SynErr(56);
-	}
-
-	void TYPE_FUNC(out int type ) {
-		type = undef; 
-		if (la.kind == 38) {
-			Get();
-			type = t_int; 
-		} else if (la.kind == 39) {
-			Get();
 			type = t_float; 
-		} else if (la.kind == 40) {
+		} else if (la.kind == 41) {
 			Get();
 			type = t_char; 
 		} else if (la.kind == 42) {
 			Get();
+			type = t_string; 
+		} else SynErr(58);
+	}
+
+	void TYPE_FUNC(out int type ) {
+		type = undef; 
+		if (la.kind == 39) {
+			Get();
+			type = t_int; 
+		} else if (la.kind == 40) {
+			Get();
+			type = t_float; 
+		} else if (la.kind == 41) {
+			Get();
+			type = t_char; 
+		} else if (la.kind == 44) {
+			Get();
 			type = t_void; 
-		} else SynErr(57);
+		} else SynErr(59);
 	}
 
 	void PARAMS_FUNC(string currFunc ) {
@@ -896,7 +907,7 @@ bool IsDecVars(){
 		IDENT(out name );
 		if (!sTable.putSymbol(name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       dirFunc[currFunc].parameterTypes.Add(type); 
-		while (la.kind == 11) {
+		while (la.kind == 12) {
 			Get();
 			SIMPLE_TYPE(out type );
 			IDENT(out name );
@@ -906,71 +917,71 @@ bool IsDecVars(){
 	}
 
 	void RETURN(string funcName, out string returnVar ) {
-		Expect(43);
+		Expect(45);
 		HYPER_EXP();
-		Expect(12);
+		Expect(13);
 		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable.getDir("_"+funcName), sTable)); 
 	}
 
 	void STATUTE() {
-		if (la.kind == 44) {
+		if (la.kind == 46) {
 			INPUT();
-		} else if (la.kind == 45) {
+		} else if (la.kind == 47) {
 			PRINT();
 		} else if (IsFunctionCall() ) {
 			FUNC_CALL();
-			Expect(12);
+			Expect(13);
 		} else if (IsMethodCall() ) {
 			METHOD_CALL();
-			Expect(12);
-		} else if (la.kind == 46) {
-			CONDITIONAL();
+			Expect(13);
 		} else if (la.kind == 48) {
+			CONDITIONAL();
+		} else if (la.kind == 50) {
 			WHILE();
-		} else if (la.kind == 49) {
+		} else if (la.kind == 51) {
 			FOR();
 		} else if (la.kind == 1) {
 			ASSIGN();
-		} else SynErr(58);
+		} else SynErr(60);
 	}
 
 	void CLASS_DEF(string className) {
 		int access = 1; 
-		if (la.kind == 13) {
+		if (la.kind == 14) {
 			Get();
 			access = 1; 
-		} else if (la.kind == 14) {
+		} else if (la.kind == 15) {
 			Get();
 			access = -1; 
-		} else SynErr(59);
+		} else SynErr(61);
 		if (IsTypeFunction() ) {
 			DEC_FUNC(className+"." );
 		} else if (StartOf(2)) {
 			DEC_VARS(access);
-		} else SynErr(60);
+		} else SynErr(62);
 	}
 
 	void INPUT() {
-		Expect(44);
-		Expect(9);
+		Expect(46);
+		Expect(10);
 		VARIABLE_ASSIGN();
 		checkInputOutput(sTable, _input); 
-		Expect(10);
-		Expect(12);
+		Expect(11);
+		Expect(13);
 	}
 
 	void PRINT() {
-		Expect(45);
-		Expect(9);
+		Expect(47);
+		Expect(10);
 		HYPER_EXP();
 		checkInputOutput(sTable, _print); 
-		while (la.kind == 11) {
+		while (la.kind == 12) {
 			Get();
 			HYPER_EXP();
 			checkInputOutput(sTable, _print); 
 		}
-		Expect(10);
-		Expect(12);
+		Expect(11);
+		Expect(13);
 	}
 
 	void FUNC_CALL() {
@@ -978,8 +989,8 @@ bool IsDecVars(){
 		IDENT(out name );
 		if (sTable.getSymbol(name) == null) { SemErr("Function does not exists"); }
 		 program.Add(new Era(name)); 
-		Expect(9);
-		if (StartOf(6)) {
+		Expect(10);
+		if (StartOf(7)) {
 			HYPER_EXP();
 			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
 			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
@@ -989,7 +1000,7 @@ bool IsDecVars(){
 			program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
 			paramCount ++; 
 			
-			while (la.kind == 11) {
+			while (la.kind == 12) {
 				Get();
 				HYPER_EXP();
 				if(paramCount >= dirFunc[name].parameterTypes.Count){
@@ -1006,7 +1017,7 @@ bool IsDecVars(){
 				
 			}
 		}
-		Expect(10);
+		Expect(11);
 		if(paramCount < dirFunc[name].parameterTypes.Count){
 		   SemErr("Parameter number mismatch. Expected " + dirFunc[name].parameterTypes.Count + " Parameters. Found " + paramCount + ""); 
 		}
@@ -1025,14 +1036,14 @@ bool IsDecVars(){
 	void METHOD_CALL() {
 		string name, objectName, methodName, className; int paramCount = 0; string localParamType; string funcParamType;
 		IDENT(out objectName );
-		Expect(21);
+		Expect(22);
 		IDENT(out methodName );
 		checkMethodCall(objectName, methodName, sTable); 
 		className = sTable.objectClasses[objectName];
 		name = className+"."+methodName;
 		
-		Expect(9);
-		if (StartOf(6)) {
+		Expect(10);
+		if (StartOf(7)) {
 			HYPER_EXP();
 			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
 			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
@@ -1042,7 +1053,7 @@ bool IsDecVars(){
 			program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
 			paramCount ++; 
 			
-			while (la.kind == 11) {
+			while (la.kind == 12) {
 				Get();
 				HYPER_EXP();
 				if(paramCount >= dirFunc[name].parameterTypes.Count){
@@ -1059,7 +1070,7 @@ bool IsDecVars(){
 				
 			}
 		}
-		Expect(10);
+		Expect(11);
 		if(paramCount < dirFunc[name].parameterTypes.Count){
 		   SemErr("Parameter number mismatch. Expected " + dirFunc[name].parameterTypes.Count + " Parameters. Found " + paramCount + ""); 
 		}
@@ -1076,13 +1087,13 @@ bool IsDecVars(){
 	}
 
 	void CONDITIONAL() {
-		Expect(46);
-		Expect(9);
+		Expect(48);
+		Expect(10);
 		HYPER_EXP();
 		makeIf(sTable); 
-		Expect(10);
+		Expect(11);
 		BLOCK();
-		if (la.kind == 47) {
+		if (la.kind == 49) {
 			Get();
 			makeElse(sTable); 
 			BLOCK();
@@ -1091,51 +1102,51 @@ bool IsDecVars(){
 	}
 
 	void WHILE() {
-		Expect(48);
-		Expect(9);
+		Expect(50);
+		Expect(10);
 		stackJumps.Push(program.Count); 
 		HYPER_EXP();
 		makeLoop(sTable); 
-		Expect(10);
+		Expect(11);
 		BLOCK();
 		makeLoopEnd(sTable); 
 	}
 
 	void FOR() {
-		Expect(49);
-		Expect(9);
+		Expect(51);
+		Expect(10);
 		ASSIGN();
 		stackJumps.Push(program.Count); 
 		HYPER_EXP();
 		makeFor(sTable); 
-		Expect(12);
+		Expect(13);
 		ASSIGN();
 		forTrue(sTable); 
-		Expect(10);
+		Expect(11);
 		BLOCK();
 		makeForEnd(sTable); 
 	}
 
 	void ASSIGN() {
 		VARIABLE_ASSIGN();
-		if (StartOf(7)) {
-			if (StartOf(8)) {
+		if (StartOf(8)) {
+			if (StartOf(9)) {
 				SHORT_ASSIGN();
 			} else {
 				Get();
 				stackOperator.Push(_equal); 
 			}
 			HYPER_EXP();
-		} else if (la.kind == 26 || la.kind == 27) {
+		} else if (la.kind == 27 || la.kind == 28) {
 			STEP();
-		} else SynErr(61);
-		Expect(12);
+		} else SynErr(63);
+		Expect(13);
 		checkAssign(sTable); 
 	}
 
 	void HYPER_EXP() {
 		SUPER_EXP();
-		while (StartOf(9)) {
+		while (StartOf(10)) {
 			REL_EXP();
 			SUPER_EXP();
 			check(sTable, RELEXP_OPERATORS); 
@@ -1145,8 +1156,8 @@ bool IsDecVars(){
 
 	void EXP() {
 		TERM();
-		while (la.kind == 13 || la.kind == 14) {
-			if (la.kind == 13) {
+		while (la.kind == 14 || la.kind == 15) {
+			if (la.kind == 14) {
 				Get();
 				stackOperator.Push(_add); 
 			} else {
@@ -1161,7 +1172,7 @@ bool IsDecVars(){
 
 	void TERM() {
 		FACT();
-		while (StartOf(10)) {
+		while (StartOf(11)) {
 			OPERATORS_TERM();
 			FACT();
 			check(sTable, TERM_OPERATORS); 
@@ -1173,8 +1184,8 @@ bool IsDecVars(){
 		string name; string attrName; int dim1Size=0; int dim2Size=0;
 		IDENT(out name );
 		pushToOperandStack(name, sTable); 
-		if (la.kind == 7 || la.kind == 21) {
-			if (la.kind == 21) {
+		if (la.kind == 8 || la.kind == 22) {
+			if (la.kind == 22) {
 				Get();
 				IDENT(out attrName );
 				stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); 
@@ -1183,13 +1194,13 @@ bool IsDecVars(){
 				dim1Size = checkArray(sTable, name); 
 				EXP();
 				verifyLimit(sTable, name, dim1Size); 
-				Expect(8);
-				if (la.kind == 7) {
+				Expect(9);
+				if (la.kind == 8) {
 					dim2Size = checkMatrix(sTable, name); 
 					Get();
 					EXP();
 					verifyLimit2(sTable, name, dim2Size); 
-					Expect(8);
+					Expect(9);
 				}
 				endArray(sTable, name); 
 			}
@@ -1197,49 +1208,49 @@ bool IsDecVars(){
 	}
 
 	void SHORT_ASSIGN() {
-		if (la.kind == 22) {
+		if (la.kind == 23) {
 			Get();
 			stackOperator.Push(_sadd); 
-		} else if (la.kind == 23) {
-			Get();
-			stackOperator.Push(_ssub); 
-		} else if (la.kind == 25) {
-			Get();
-			stackOperator.Push(_smul); 
 		} else if (la.kind == 24) {
 			Get();
+			stackOperator.Push(_ssub); 
+		} else if (la.kind == 26) {
+			Get();
+			stackOperator.Push(_smul); 
+		} else if (la.kind == 25) {
+			Get();
 			stackOperator.Push(_sdiv); 
-		} else SynErr(62);
+		} else SynErr(64);
 	}
 
 	void STEP() {
-		if (la.kind == 26) {
+		if (la.kind == 27) {
 			Get();
 			stackOperator.Push(_increment); 
-		} else if (la.kind == 27) {
+		} else if (la.kind == 28) {
 			Get();
 			stackOperator.Push(_decrement); 
-		} else SynErr(63);
+		} else SynErr(65);
 	}
 
 	void BLOCK() {
-		Expect(5);
+		Expect(6);
 		while (StartOf(3)) {
 			STATUTE();
 		}
-		Expect(6);
+		Expect(7);
 	}
 
 	void FACT() {
-		if (la.kind == 9) {
+		if (la.kind == 10) {
 			Get();
 			stackOperator.Push(_pl); 
 			HYPER_EXP();
-			Expect(10);
+			Expect(11);
 			stackOperator.Pop(); 
-		} else if (StartOf(11)) {
-			if (la.kind == 13 || la.kind == 14) {
-				if (la.kind == 13) {
+		} else if (StartOf(12)) {
+			if (la.kind == 14 || la.kind == 15) {
+				if (la.kind == 14) {
 					Get();
 				} else {
 					Get();
@@ -1251,32 +1262,35 @@ bool IsDecVars(){
 			} else if (la.kind == 3) {
 				Get();
 				pushToOperandStack(createConstFloat(float.Parse(t.val), sTable), sTable); 
-			} else SynErr(64);
+			} else SynErr(66);
 		} else if (la.kind == 4) {
 			Get();
 			pushToOperandStack(createConstString(t.val, sTable), sTable); 
+		} else if (la.kind == 5) {
+			Get();
+			pushToOperandStack(createConstChar(t.val.ToCharArray()[1], sTable), sTable);  
 		} else if (la.kind == 1) {
 			VARIABLE_FACT();
-		} else SynErr(65);
+		} else SynErr(67);
 	}
 
 	void OPERATORS_TERM() {
-		if (la.kind == 15) {
+		if (la.kind == 16) {
 			Get();
 			stackOperator.Push(_mul); 
-		} else if (la.kind == 17) {
-			Get();
-			stackOperator.Push(_div); 
-		} else if (la.kind == 16) {
-			Get();
-			stackOperator.Push(_exponent); 
 		} else if (la.kind == 18) {
 			Get();
-			stackOperator.Push(_intdiv); 
+			stackOperator.Push(_div); 
+		} else if (la.kind == 17) {
+			Get();
+			stackOperator.Push(_exponent); 
 		} else if (la.kind == 19) {
 			Get();
+			stackOperator.Push(_intdiv); 
+		} else if (la.kind == 20) {
+			Get();
 			stackOperator.Push(_module); 
-		} else SynErr(66);
+		} else SynErr(68);
 	}
 
 	void VARIABLE_FACT() {
@@ -1292,8 +1306,8 @@ bool IsDecVars(){
 		} else if (la.kind == 1) {
 			IDENT(out name );
 			pushToOperandStack(name, sTable); 
-			if (la.kind == 7 || la.kind == 21) {
-				if (la.kind == 21) {
+			if (la.kind == 8 || la.kind == 22) {
+				if (la.kind == 22) {
 					Get();
 					IDENT(out attrName );
 					stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); 
@@ -1302,23 +1316,23 @@ bool IsDecVars(){
 					dim1Size = checkArray(sTable, name); 
 					EXP();
 					verifyLimit(sTable, name, dim1Size); 
-					Expect(8);
-					if (la.kind == 7) {
+					Expect(9);
+					if (la.kind == 8) {
 						dim2Size = checkMatrix(sTable, name); 
 						Get();
 						EXP();
 						verifyLimit2(sTable, name, dim2Size); 
-						Expect(8);
+						Expect(9);
 					}
 					endArray(sTable, name); 
 				}
 			}
-		} else SynErr(67);
+		} else SynErr(69);
 	}
 
 	void SUPER_EXP() {
 		EXP();
-		while (StartOf(12)) {
+		while (StartOf(13)) {
 			REL_OP();
 			EXP();
 			check(sTable, RELOP_OPERATORS); 
@@ -1327,47 +1341,47 @@ bool IsDecVars(){
 	}
 
 	void REL_EXP() {
-		if (la.kind == 50) {
+		if (la.kind == 52) {
 			Get();
 			stackOperator.Push(_and); 
-		} else if (la.kind == 35) {
-			Get();
-			stackOperator.Push(_and); 
-		} else if (la.kind == 51) {
-			Get();
-			stackOperator.Push(_or); 
 		} else if (la.kind == 36) {
 			Get();
+			stackOperator.Push(_and); 
+		} else if (la.kind == 53) {
+			Get();
 			stackOperator.Push(_or); 
-		} else SynErr(68);
+		} else if (la.kind == 37) {
+			Get();
+			stackOperator.Push(_or); 
+		} else SynErr(70);
 	}
 
 	void REL_OP() {
-		if (la.kind == 29 || la.kind == 30) {
-			if (la.kind == 30) {
+		if (la.kind == 30 || la.kind == 31) {
+			if (la.kind == 31) {
 				Get();
 				stackOperator.Push(_greater); 
 			} else {
 				Get();
 				stackOperator.Push(_less); 
 			}
-		} else if (la.kind == 31 || la.kind == 32) {
-			if (la.kind == 32) {
+		} else if (la.kind == 32 || la.kind == 33) {
+			if (la.kind == 33) {
 				Get();
 				stackOperator.Push(_greatereq); 
 			} else {
 				Get();
 				stackOperator.Push(_lesseq); 
 			}
-		} else if (la.kind == 33 || la.kind == 34) {
-			if (la.kind == 33) {
+		} else if (la.kind == 34 || la.kind == 35) {
+			if (la.kind == 34) {
 				Get();
 				stackOperator.Push(_equaleq); 
 			} else {
 				Get();
 				stackOperator.Push(_different); 
 			}
-		} else SynErr(69);
+		} else SynErr(71);
 	}
 
 
@@ -1382,19 +1396,20 @@ bool IsDecVars(){
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _T,_x,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_x, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_x,_T, _T,_T,_T,_x, _T,_T,_x,_x, _x,_x},
-		{_x,_T,_T,_T, _T,_x,_x,_x, _x,_T,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _x,_x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_T,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_T,_x, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_T,_T, _x,_x,_x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_T,_T, _T,_x,_T,_T, _x,_x,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_T,_T,_T, _T,_x,_T,_T, _x,_x,_x,_x},
+		{_x,_T,_T,_T, _T,_T,_x,_x, _x,_x,_T,_x, _x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_T,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _T,_T,_T,_T, _T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x}
 
 	};
 } // end Parser
@@ -1413,71 +1428,73 @@ public class Errors {
 			case 2: s = "cte_I expected"; break;
 			case 3: s = "cte_F expected"; break;
 			case 4: s = "ctr_Str expected"; break;
-			case 5: s = "cbl expected"; break;
-			case 6: s = "cbr expected"; break;
-			case 7: s = "bl expected"; break;
-			case 8: s = "br expected"; break;
-			case 9: s = "pl expected"; break;
-			case 10: s = "pr expected"; break;
-			case 11: s = "comma expected"; break;
-			case 12: s = "semicolon expected"; break;
-			case 13: s = "add expected"; break;
-			case 14: s = "sub expected"; break;
-			case 15: s = "mul expected"; break;
-			case 16: s = "exponent expected"; break;
-			case 17: s = "div expected"; break;
-			case 18: s = "intdiv expected"; break;
-			case 19: s = "module expected"; break;
-			case 20: s = "equal expected"; break;
-			case 21: s = "dot expected"; break;
-			case 22: s = "sadd expected"; break;
-			case 23: s = "ssub expected"; break;
-			case 24: s = "sdiv expected"; break;
-			case 25: s = "smul expected"; break;
-			case 26: s = "increment expected"; break;
-			case 27: s = "decrement expected"; break;
-			case 28: s = "colon expected"; break;
-			case 29: s = "less expected"; break;
-			case 30: s = "greater expected"; break;
-			case 31: s = "lesseq expected"; break;
-			case 32: s = "greatereq expected"; break;
-			case 33: s = "equaleq expected"; break;
-			case 34: s = "different expected"; break;
-			case 35: s = "and expected"; break;
-			case 36: s = "or expected"; break;
-			case 37: s = "\"class\" expected"; break;
-			case 38: s = "\"int\" expected"; break;
-			case 39: s = "\"float\" expected"; break;
-			case 40: s = "\"char\" expected"; break;
-			case 41: s = "\"main\" expected"; break;
-			case 42: s = "\"void\" expected"; break;
-			case 43: s = "\"return\" expected"; break;
-			case 44: s = "\"input\" expected"; break;
-			case 45: s = "\"print\" expected"; break;
-			case 46: s = "\"if\" expected"; break;
-			case 47: s = "\"else\" expected"; break;
-			case 48: s = "\"while\" expected"; break;
-			case 49: s = "\"for\" expected"; break;
-			case 50: s = "\"and\" expected"; break;
-			case 51: s = "\"or\" expected"; break;
-			case 52: s = "??? expected"; break;
-			case 53: s = "invalid DECLARATION"; break;
-			case 54: s = "invalid MAIN"; break;
-			case 55: s = "invalid DEC_VARS"; break;
-			case 56: s = "invalid SIMPLE_TYPE"; break;
-			case 57: s = "invalid TYPE_FUNC"; break;
-			case 58: s = "invalid STATUTE"; break;
-			case 59: s = "invalid CLASS_DEF"; break;
-			case 60: s = "invalid CLASS_DEF"; break;
-			case 61: s = "invalid ASSIGN"; break;
-			case 62: s = "invalid SHORT_ASSIGN"; break;
-			case 63: s = "invalid STEP"; break;
-			case 64: s = "invalid FACT"; break;
-			case 65: s = "invalid FACT"; break;
-			case 66: s = "invalid OPERATORS_TERM"; break;
-			case 67: s = "invalid VARIABLE_FACT"; break;
-			case 68: s = "invalid REL_EXP"; break;
-			case 69: s = "invalid REL_OP"; break;
+			case 5: s = "ctr_Chr expected"; break;
+			case 6: s = "cbl expected"; break;
+			case 7: s = "cbr expected"; break;
+			case 8: s = "bl expected"; break;
+			case 9: s = "br expected"; break;
+			case 10: s = "pl expected"; break;
+			case 11: s = "pr expected"; break;
+			case 12: s = "comma expected"; break;
+			case 13: s = "semicolon expected"; break;
+			case 14: s = "add expected"; break;
+			case 15: s = "sub expected"; break;
+			case 16: s = "mul expected"; break;
+			case 17: s = "exponent expected"; break;
+			case 18: s = "div expected"; break;
+			case 19: s = "intdiv expected"; break;
+			case 20: s = "module expected"; break;
+			case 21: s = "equal expected"; break;
+			case 22: s = "dot expected"; break;
+			case 23: s = "sadd expected"; break;
+			case 24: s = "ssub expected"; break;
+			case 25: s = "sdiv expected"; break;
+			case 26: s = "smul expected"; break;
+			case 27: s = "increment expected"; break;
+			case 28: s = "decrement expected"; break;
+			case 29: s = "colon expected"; break;
+			case 30: s = "less expected"; break;
+			case 31: s = "greater expected"; break;
+			case 32: s = "lesseq expected"; break;
+			case 33: s = "greatereq expected"; break;
+			case 34: s = "equaleq expected"; break;
+			case 35: s = "different expected"; break;
+			case 36: s = "and expected"; break;
+			case 37: s = "or expected"; break;
+			case 38: s = "\"class\" expected"; break;
+			case 39: s = "\"int\" expected"; break;
+			case 40: s = "\"float\" expected"; break;
+			case 41: s = "\"char\" expected"; break;
+			case 42: s = "\"string\" expected"; break;
+			case 43: s = "\"main\" expected"; break;
+			case 44: s = "\"void\" expected"; break;
+			case 45: s = "\"return\" expected"; break;
+			case 46: s = "\"input\" expected"; break;
+			case 47: s = "\"print\" expected"; break;
+			case 48: s = "\"if\" expected"; break;
+			case 49: s = "\"else\" expected"; break;
+			case 50: s = "\"while\" expected"; break;
+			case 51: s = "\"for\" expected"; break;
+			case 52: s = "\"and\" expected"; break;
+			case 53: s = "\"or\" expected"; break;
+			case 54: s = "??? expected"; break;
+			case 55: s = "invalid DECLARATION"; break;
+			case 56: s = "invalid MAIN"; break;
+			case 57: s = "invalid DEC_VARS"; break;
+			case 58: s = "invalid SIMPLE_TYPE"; break;
+			case 59: s = "invalid TYPE_FUNC"; break;
+			case 60: s = "invalid STATUTE"; break;
+			case 61: s = "invalid CLASS_DEF"; break;
+			case 62: s = "invalid CLASS_DEF"; break;
+			case 63: s = "invalid ASSIGN"; break;
+			case 64: s = "invalid SHORT_ASSIGN"; break;
+			case 65: s = "invalid STEP"; break;
+			case 66: s = "invalid FACT"; break;
+			case 67: s = "invalid FACT"; break;
+			case 68: s = "invalid OPERATORS_TERM"; break;
+			case 69: s = "invalid VARIABLE_FACT"; break;
+			case 70: s = "invalid REL_EXP"; break;
+			case 71: s = "invalid REL_OP"; break;
 
 			default: s = "error " + n; break;
 		}
