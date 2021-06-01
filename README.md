@@ -134,9 +134,19 @@ a++;
 
 ### Input / Output
 
-`Input`
+`Input`: Es el estatuto que se usa para poder ingresar valores tecleados por el usuario al código, tiene la sintaxis:
+*input(variable);*
+```
+int a;
+input(a);
+```
 
-`Output`:
+`Output`: Este es el estatuo que usamos para poder imprimir en pantalla los valores de alguna variable interna, podemos imprimir varios valores si los separamos con **,**, de igual manera podemos imprimir letreros, especificados con palabras entre comillas, la sintaxis es:
+*print(variable,variable ,...)*
+```
+int a;
+print("El valor de a es: ",a);
+```
 
 ### Condiciones
 
