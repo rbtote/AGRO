@@ -149,12 +149,12 @@ print("El valor de a es: ",a);
 ```
 
 ### Condiciones
-El estatuto de condicion se define de la siguiente manera:   
-&nbsp;&nbsp;*if(condicion) {  
+El estatuto de condicion es una evaluación de una expresión, y entra al bloque entre llaves si la expresión se evalua como verdadera, se define de la siguiente manera:   
+&nbsp;&nbsp;*if(expresion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
-Y si es necesario, se puede incluir una parte de else:   
-&nbsp;&nbsp;*if(condicion) {  
+Y si es necesario, se puede incluir una parte de else a la que se entrará en el caso de que la expresión se evalue como falso, teniendo la siguiente estructura:   
+&nbsp;&nbsp;*if(expresion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
 &nbsp;&nbsp;*else {  
@@ -163,13 +163,40 @@ Y si es necesario, se puede incluir una parte de else:
 ```
 int out;
 if (n < 2) {
-        out = n;
-    }
-    else {
-        out = (fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2));
-    }
+    out = n;
+}
+else 
+{
+    out = (fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2));
+}
 ```
 
 ### Ciclos (While / For)
+En AGRO contamos con dos diferentes estatutos en los cuales podemos realizar ciclos, siendo el while y el for, teniendo una sintaxis parecida a C++.
+
+`while` : Este estatuto es un ciclo mientras una expresión se evalue como verdadera, tiene la siguiente sintaxis:  
+&nbsp;&nbsp;*while(expresión) {  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
+&nbsp;&nbsp;}*
+
+```
+while (i <= mid) {
+    arr[k] = arr[k] + (arr[i] % max) * max;
+    k ++;
+    i ++;
+}
+```
+
+`for`: Este estatuto es un ciclo, con una variable de control y su paso definido en la definición.
+Primero hacemos una asignación inicial, después entraremos al bloque mientras la expresión definida se evalue como verdadera, y al final de cada iteración, ejecutaremos la asignación que se encuentra despues de la expresión a evaluar.
+&nbsp;&nbsp;*for(asignación; expresión; asignación;) {  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
+&nbsp;&nbsp;}*
+
+```
+for (i = 0; i < n; i += 2;) {
+    arr[i] = 10 - i;
+}
+```
 
 ### Llamadas (Funciones / Métodos)
