@@ -149,6 +149,26 @@ print("El valor de a es: ",a);
 ```
 
 ### Condiciones
+El estatuto de condicion se define de la siguiente manera:
+&nbsp;&nbsp;*if(condicion) {  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
+&nbsp;&nbsp;}*
+Y si es necesario, se puede incluir una parte de else:
+&nbsp;&nbsp;*if(condicion) {  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
+&nbsp;&nbsp;}*
+&nbsp;&nbsp;*else {  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
+&nbsp;&nbsp;}*
+```
+int out;
+if (n < 2) {
+        out = n;
+    }
+    else {
+        out = (fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2));
+    }
+```
 
 ### Ciclos (While / For)
 
