@@ -32,11 +32,9 @@ int fibonacciCycle(int n) {
 
 main {
     int number;
-    print("Insert fibonacci target number");
+    print("Insert fibonacci target number", "\n");
     input(number);
 
-    print("Recursive fibonacci: ", fibonacciRecursive(number));
-    print("Cyclic fibonacci: ", fibonacciCycle(number));
-    number--;
-    print(number);
+    print("Recursive fibonacci: ", fibonacciRecursive(number), "\n");
+    print("Cyclic fibonacci: ", fibonacciCycle(number), "\n");
 }

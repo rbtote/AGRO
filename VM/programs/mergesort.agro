@@ -124,10 +124,12 @@ main {
     print("----------", "\n");
 
     mergeSort(n);
+    print("\n", "MergeSort", "\n");
     printArr(n);
 
     int target, result;
     target = 10;
+    print("\n", "BinarySearch", "\n");
     result = binarySearch(0, n, target);
     print(target, " exists? (-1 if not) : (", target, " at pos ", result, ")", "\n");
 

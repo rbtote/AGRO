@@ -536,12 +536,16 @@ void addParentClass(string childClass, string parentClass, SymbolTable st){
         SemErr("Parent class <" + parentClass + "> is not declared.");
         return;
     }
+
     dirClasses[childClass].setParentClass(dirClasses[parentClass]);
     //Copy to STABLE dirClasses[parentClass]
     foreach (string key in dirClasses[parentClass].variables.Keys)
     {
         //putSymbol(string name, int type,                  int kind, int dim1, int dim2, int access)
-        st.putSymbol(key, dirClasses[parentClass].variables[key][0], 0, 0, 0,       dirClasses[parentClass].variables[key][1]);
+        st.putSymbol(key, dirClasses[parentClass].variables[key][0], dirClasses[parentClass].variables[key][2], 0, 0, dirClasses[parentClass].variables[key][1]);
+        if(dirClasses[parentClass].variables[key][2] == func){
+            dirFunc[childClass+"."+key] = dirFunc[parentClass+"."+key];
+        }
     }
 }
 
@@ -740,7 +744,8 @@ bool IsDecVars(){
 		IDENT(out name );
 		if(!sTable.putSymbol(name, type, func, 0, 0, 1)) { SemErr(name + " already exists"); }
 		       dirFunc.Add(className+name, new Function(program.Count));
-		       if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
+		       if (className.Length == 0) { if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); } }
+		       else { sTable.putSymbol("_" + type, type, var, 0, 0, 1); }
 		       sTable = sTable.newChildSymbolTable();
 		       if (className.Length != 0) { sTable.updateLocalOffsetsFromParent(); } 
 		Expect(10);
@@ -749,30 +754,28 @@ bool IsDecVars(){
 		}
 		Expect(11);
 		Expect(6);
-		if (StartOf(6)) {
-			if (la.kind == 45) {
-				RETURN(name, out returnVar);
-				solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
-			} else if (IsDecVars() ) {
+		if (StartOf(4)) {
+			if (IsDecVars() ) {
 				DEC_VARS(1);
 			} else {
 				STATUTE();
 			}
-			while (StartOf(6)) {
-				if (la.kind == 45) {
-					RETURN(name, out returnVar);
-					solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); 
-				} else if (IsDecVars() ) {
+			while (StartOf(4)) {
+				if (IsDecVars() ) {
 					DEC_VARS(1);
 				} else {
 					STATUTE();
 				}
 			}
 		}
+		if (la.kind == 45) {
+			RETURN((className.Length == 0) ? name : ""+type, out returnVar);
+			solvedReturn = true; checkReturn(sTable, (className.Length == 0) ? ("_" + name) : ("_" + type), returnVar); 
+		}
 		if (!solvedReturn) { SemErr("Function requires return"); } 
 		Expect(7);
 		dirFunc[className+name].countVars(sTable);
-		           if (className.Length != 0) { sTable.updateLocalOffsetsToParent(); }
+		           if (className.Length != 0  && false) { sTable.updateLocalOffsetsToParent(); }
 		           sTable = sTable.parentSymbolTable;
 		           program.Add(new EndFunc()); 
 	}
@@ -916,13 +919,6 @@ bool IsDecVars(){
 		}
 	}
 
-	void RETURN(string funcName, out string returnVar ) {
-		Expect(45);
-		HYPER_EXP();
-		Expect(13);
-		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable.getDir("_"+funcName), sTable)); 
-	}
-
 	void STATUTE() {
 		if (la.kind == 46) {
 			INPUT();
@@ -943,6 +939,13 @@ bool IsDecVars(){
 		} else if (la.kind == 1) {
 			ASSIGN();
 		} else SynErr(60);
+	}
+
+	void RETURN(string funcName, out string returnVar ) {
+		Expect(45);
+		HYPER_EXP();
+		Expect(13);
+		returnVar = stackOperand.Peek(); program.Add(new Return(stackOperand.Pop(), sTable.getDir("_"+funcName), sTable)); 
 	}
 
 	void CLASS_DEF(string className) {
@@ -990,7 +993,7 @@ bool IsDecVars(){
 		if (sTable.getSymbol(name) == null) { SemErr("Function does not exists"); }
 		 program.Add(new Era(name)); 
 		Expect(10);
-		if (StartOf(7)) {
+		if (StartOf(6)) {
 			HYPER_EXP();
 			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
 			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
@@ -1043,7 +1046,7 @@ bool IsDecVars(){
 		name = className+"."+methodName;
 		
 		Expect(10);
-		if (StartOf(7)) {
+		if (StartOf(6)) {
 			HYPER_EXP();
 			funcParamType = typesInts[dirFunc[name].parameterTypes[paramCount]];
 			localParamType = typesInts[sTable.getType(stackOperand.Peek())];
@@ -1077,11 +1080,11 @@ bool IsDecVars(){
 		program.Add(new GoSub(name)); 
 		// If not void create temp to store result of call
 		if(sTable.getType(objectName+"."+methodName) != t_void){
-		   pushToOperandStack(createTemp(sTable.getType(objectName+"._"+methodName), sTable), sTable);
-		   string leftOper = stackOperand.Peek();
-		   Assign assign = new Assign(_equal, objectName+"._"+methodName, leftOper, sTable, operandInts);
-		   assign.setDirOut(sTable, leftOper);
-		   program.Add(assign);
+		pushToOperandStack(createTemp(sTable.getType(objectName + "." + methodName), sTable), sTable);
+		string leftOper = stackOperand.Peek();
+		Assign assign = new Assign(_equal, objectName+"._"+ sTable.getType(objectName + "." + methodName), leftOper, sTable, operandInts);
+		assign.setDirOut(sTable, leftOper);
+		program.Add(assign);
 		}
 		
 	}
@@ -1129,8 +1132,8 @@ bool IsDecVars(){
 
 	void ASSIGN() {
 		VARIABLE_ASSIGN();
-		if (StartOf(8)) {
-			if (StartOf(9)) {
+		if (StartOf(7)) {
+			if (StartOf(8)) {
 				SHORT_ASSIGN();
 			} else {
 				Get();
@@ -1146,7 +1149,7 @@ bool IsDecVars(){
 
 	void HYPER_EXP() {
 		SUPER_EXP();
-		while (StartOf(10)) {
+		while (StartOf(9)) {
 			REL_EXP();
 			SUPER_EXP();
 			check(sTable, RELEXP_OPERATORS); 
@@ -1172,7 +1175,7 @@ bool IsDecVars(){
 
 	void TERM() {
 		FACT();
-		while (StartOf(11)) {
+		while (StartOf(10)) {
 			OPERATORS_TERM();
 			FACT();
 			check(sTable, TERM_OPERATORS); 
@@ -1248,7 +1251,7 @@ bool IsDecVars(){
 			HYPER_EXP();
 			Expect(11);
 			stackOperator.Pop(); 
-		} else if (StartOf(12)) {
+		} else if (StartOf(11)) {
 			if (la.kind == 14 || la.kind == 15) {
 				if (la.kind == 14) {
 					Get();
@@ -1332,7 +1335,7 @@ bool IsDecVars(){
 
 	void SUPER_EXP() {
 		EXP();
-		while (StartOf(13)) {
+		while (StartOf(12)) {
 			REL_OP();
 			EXP();
 			check(sTable, RELOP_OPERATORS); 
@@ -1402,7 +1405,6 @@ bool IsDecVars(){
 		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_T,_T, _T,_x,_T,_T, _x,_x,_x,_x},
 		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_T,_T, _T,_x,_T,_T, _x,_x,_x,_x},
 		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
-		{_x,_T,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_T,_T,_T, _T,_x,_T,_T, _x,_x,_x,_x},
 		{_x,_T,_T,_T, _T,_T,_x,_x, _x,_x,_T,_x, _x,_x,_T,_T, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
 		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_T,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
 		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},

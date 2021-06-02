@@ -480,12 +480,16 @@ void addParentClass(string childClass, string parentClass, SymbolTable st){
         SemErr("Parent class <" + parentClass + "> is not declared.");
         return;
     }
+
     dirClasses[childClass].setParentClass(dirClasses[parentClass]);
     //Copy to STABLE dirClasses[parentClass]
     foreach (string key in dirClasses[parentClass].variables.Keys)
     {
         //putSymbol(string name, int type,                  int kind, int dim1, int dim2, int access)
-        st.putSymbol(key, dirClasses[parentClass].variables[key][0], 0, 0, 0,       dirClasses[parentClass].variables[key][1]);
+        st.putSymbol(key, dirClasses[parentClass].variables[key][0], dirClasses[parentClass].variables[key][2], 0, 0, dirClasses[parentClass].variables[key][1]);
+        if(dirClasses[parentClass].variables[key][2] == func){
+            dirFunc[childClass+"."+key] = dirFunc[parentClass+"."+key];
+        }
     }
 }
 
@@ -690,21 +694,21 @@ DEC_FUNC  <string className>	       (. string name; int type; bool solvedReturn;
     TYPE_FUNC		< out type > (. solvedReturn = (type == t_void); .)
     IDENT			< out name > (. if(!sTable.putSymbol(name, type, func, 0, 0, 1)) { SemErr(name + " already exists"); }
                                     dirFunc.Add(className+name, new Function(program.Count));
-                                    if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); }
+                                    if (className.Length == 0) { if(!sTable.putSymbol("_" + name, type, var, 0, 0, 1)) { SemErr(name + " already exists"); } }
+                                    else { sTable.putSymbol("_" + type, type, var, 0, 0, 1); }
                                     sTable = sTable.newChildSymbolTable();
                                     if (className.Length != 0) { sTable.updateLocalOffsetsFromParent(); } .)
     pl [ PARAMS_FUNC <className+name> ] pr
     cbl [
-     ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
-      IF( IsDecVars() ) DEC_VARS <1> |
+     ( IF( IsDecVars() ) DEC_VARS <1> |
       STATUTE) 
-      { ( RETURN <name, out returnVar> (. solvedReturn = true; checkReturn(sTable, "_" + name, returnVar); .) | 
-       IF( IsDecVars() ) DEC_VARS <1> |
+      { ( IF( IsDecVars() ) DEC_VARS <1> |
        STATUTE 
        ) } ] 
+       [ RETURN <(className.Length == 0) ? name : ""+type, out returnVar> (. solvedReturn = true; checkReturn(sTable, (className.Length == 0) ? ("_" + name) : ("_" + type), returnVar); .) ]
      (. if (!solvedReturn) { SemErr("Function requires return"); } .)
     cbr					(. dirFunc[className+name].countVars(sTable);
-                           if (className.Length != 0) { sTable.updateLocalOffsetsToParent(); }
+                           if (className.Length != 0  && false) { sTable.updateLocalOffsetsToParent(); }
                            sTable = sTable.parentSymbolTable;
                            program.Add(new EndFunc()); .)
 .
@@ -922,12 +926,12 @@ METHOD_CALL         (. string name, objectName, methodName, className; int param
         program.Add(new GoSub(name)); 
         // If not void create temp to store result of call
         if(sTable.getType(objectName+"."+methodName) != t_void){
-            pushToOperandStack(createTemp(sTable.getType(objectName+"._"+methodName), sTable), sTable);
-            string leftOper = stackOperand.Peek();
-            Assign assign = new Assign(_equal, objectName+"._"+methodName, leftOper, sTable, operandInts);
-            assign.setDirOut(sTable, leftOper);
-            program.Add(assign);
-        }
+		   pushToOperandStack(createTemp(sTable.getType(objectName + "." + methodName), sTable), sTable);
+		   string leftOper = stackOperand.Peek();
+		   Assign assign = new Assign(_equal, objectName+"._"+ sTable.getType(objectName + "." + methodName), leftOper, sTable, operandInts);
+		   assign.setDirOut(sTable, leftOper);
+		   program.Add(assign);
+		}
     .)
 .
 

@@ -29,19 +29,12 @@ namespace AGRO_GRAMM
         //Constant variables
         int constInt = 44000;
         int constFloat = 46000;
-        int constChar = 480000;
+        int constChar = 48000;
         int constString = 50000;
 
         //Pointers
         int pointersMem = 52000;
         /*
-         * 
-            INT     = 1001-5000, 12001-16000, 28001-30000, 34001-36000 ,42001-44000
-            FLOAT   = 5001-9000, 16001-20000, 30001-32000, 36001-38000 ,44001-46000
-            CHAR    = 9001-12000, 20001-24000, 32001-34000, 38001-40000 ,46001-50000
-            STRING  = 24001-28000, 40001-42000
-            POINTERS = 50001-x
-         * 
           "symbols": {
             id: [type, kind, dir, dim1?0, dim2?0, access:[-1|1]]
             symbols.len(6)

@@ -25,6 +25,16 @@ main {
         print("b *= 2   = ", b, "\n");
         b /= 2;
         print("b /= 2   = ", b, "\n");
+        print("a ** 2   = ", a ** 2, "\n");
         print("------", "\n");
     }
+
+    string name, lname;
+    %% print("Ingresa tu nombre: ", "\n");
+    %% input(name);
+    
+    %% print("Ingresa tu apellido: ", "\n");
+    %% input(lname);
+
+    %% print("Hola ", name + " " + lname, "\n");
 }

@@ -1,15 +1,51 @@
+class Pokemon{
+	- int attack, defense, hp;
+
+	+ int calculateCP2() {
+		return attack + defense + hp;
+	}
+
+	+ int calculateCP(int x) {
+		return attack + defense + hp;
+	}
+
+	+ void setAttack(int a) {
+		attack = a;
+	}
+
+	+ void setDefense(int d) {
+		defense = d;
+	}
+
+	+ void setHP(int h) {
+		hp = h;
+	}
+}
+
+class AGGRON : Pokemon{
+
+}
+
 string a;
 
 main{
 	char aa;
 	string a;
 	string b;
-	a = a*3;
+	a = "text ";
+	a = 5 * a + 3.1416;
 	aa = 'a';
 	b = "Perro";
 	if(a != b){
-		print("diferentes");
+		print("diferentes", "\n");
 	}
-	input(a);
-	print(a);
+
+	AGGRON aggro;
+
+	aggro.setAttack(80);
+	aggro.setDefense(100);
+	aggro.setHP(77);
+
+	print("Aggro has a CP of: " + aggro.calculateCP2(), "\n");
+
 }

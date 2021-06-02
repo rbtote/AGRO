@@ -67,10 +67,10 @@ class MemoryContext:
     # Setters
 
     def setInt(self, index, value):
-        self.int[index] = int(value)
+        self.int[index] = (int(value) if value is not None else None) 
 
     def setFloat(self, index, value):
-        self.float[index] = float(value)
+        self.float[index] = (float(value) if value is not None else None)
 
     def setChar(self, index, value):
         self.char[index] = value
@@ -113,31 +113,33 @@ class Memory:
         self.pointersMemory = MemoryContext()
 
         # Global variables lower limit
-        self.globalInt = 1001
-        self.globalFloat = 5001
-        self.globalChar = 9001
-        self.globalTempInt = 12001
-        self.globalTempFloat = 16001
-        self.globalTempChar = 20001
-        self.globalTempString = 24001
+        self.globalInt = 0
+        self.globalFloat = 2000
+        self.globalChar = 4000
+        self.globalString = 6000
+        self.globalTempInt = 8000
+        self.globalTempFloat = 9000
+        self.globalTempChar = 10000
+        self.globalTempString = 11000
 
         # Local variables lower limit
-        self.localInt = 28001
-        self.localFloat = 30001
-        self.localChar = 32001
-        self.localTempInt = 34001
-        self.localTempFloat = 36001
-        self.localTempChar = 38001
-        self.localTempString = 40001
+        self.localInt = 12000
+        self.localFloat = 16000
+        self.localChar = 20000
+        self.localString = 24000
+        self.localTempInt = 28000
+        self.localTempFloat = 32000
+        self.localTempChar = 36000
+        self.localTempString = 40000
 
         # Constant variables lower limit
-        self.constInt = 42001
-        self.constFloat = 44001
-        self.constChar = 46001
-        self.constString = 48001
+        self.constInt = 44000
+        self.constFloat = 46000
+        self.constChar = 48000
+        self.constString = 50000
 
         # Pointers lower limit
-        self.pointersMem = 50001
+        self.pointersMem = 52000
 
     def allocateLocalMemory(self, intCount, floatCount, charCount, stringCount):
         "Abstraction of allocateSpace method for local memory"
@@ -171,6 +173,7 @@ class Memory:
             ("int",         self.globalInt,         self.globalMemory.getInt,           self.globalMemory.setInt),
             ("float",       self.globalFloat,       self.globalMemory.getFloat,         self.globalMemory.setFloat),
             ("char",        self.globalChar,        self.globalMemory.getChar,          self.globalMemory.setChar),
+            ("string",      self.globalString,      self.globalMemory.getString,        self.globalMemory.setString),
 
             ("int",         self.globalTempInt,     self.globalTempMemory.getInt,       self.globalTempMemory.setInt),
             ("float",       self.globalTempFloat,   self.globalTempMemory.getFloat,     self.globalTempMemory.setFloat),
@@ -180,6 +183,7 @@ class Memory:
             ("int",         self.localInt,          self.localMemory[-1].getInt,        self.localMemory[-1].setInt),
             ("float",       self.localFloat,        self.localMemory[-1].getFloat,      self.localMemory[-1].setFloat),
             ("char",        self.localChar,         self.localMemory[-1].getChar,       self.localMemory[-1].setChar),
+            ("string",      self.localString,       self.localMemory[-1].getString,     self.localMemory[-1].setString),
 
             ("int",         self.localTempInt,      self.localTempMemory[-1].getInt,    self.localTempMemory[-1].setInt),
             ("float",       self.localTempFloat,    self.localTempMemory[-1].getFloat,  self.localTempMemory[-1].setFloat),
@@ -394,6 +398,7 @@ class CodeProcessor:
             "&&":       self.simpleOperator,
             "||":       self.simpleOperator,
             "%":        self.simpleOperator,
+            "**":       self.simpleOperator,
             "goto":     self.goto,
             "gotoFalse":self.gotoFalse,
             "gotoTrue": self.gotoTrue,
@@ -408,6 +413,10 @@ class CodeProcessor:
             "object":   self._object
         }
 
+        for x in self.instructions:
+            print(x, end=", ")
+        print("")
+
         # Processor simple operator methods
         self.simpleOperators = {
             "+":    operator.add,
@@ -415,6 +424,7 @@ class CodeProcessor:
             "/":    operator.truediv,
             "//":   operator.floordiv,
             "*":    operator.mul,
+            "**":   operator.pow,
             ">":    operator.gt,
             "<":    operator.lt,
             "==":   operator.eq,
@@ -468,8 +478,6 @@ class CodeProcessor:
                 c_float += 1
             elif (outputTuple[1] == self.memory.constChar):
                 c_char += 1
-                # Erase char quote
-                line[1] = line[1][1:-1]
             elif (outputTuple[1] == self.memory.constString):
                 c_string += 1
                 # Erase string quote
@@ -603,6 +611,7 @@ class CodeProcessor:
         intCount = 0
         floatCount = 0
         charCount = 0
+        stringCount = 0
 
         for i in range(len(currentObjectReturnDirs)):
             if currentObjectReturnDirs[i][0] == "int":
@@ -614,6 +623,9 @@ class CodeProcessor:
             elif currentObjectReturnDirs[i][0] == "char":
                 values.append(self.memory.getValue(self.memory.localChar + charCount))
                 charCount += 1
+            elif currentObjectReturnDirs[i][0] == "string":
+                values.append(self.memory.getValue(self.memory.localString + stringCount))
+                stringCount += 1
 
         # Drop method context and return to previous context
         self.memory.popContext()
@@ -622,6 +634,7 @@ class CodeProcessor:
         intCount = 0
         floatCount = 0
         charCount = 0
+        stringCount = 0
 
         for i in range(len(currentObjectReturnDirs)):
             if currentObjectReturnDirs[i][0] == "int":
@@ -636,6 +649,10 @@ class CodeProcessor:
                 if values[i] is not None:
                     self.memory.setValue(currentObjectReturnDirs[i][1], values[i])
                 charCount += 1
+            elif currentObjectReturnDirs[i][0] == "string":
+                if values[i] is not None:
+                    self.memory.setValue(currentObjectReturnDirs[i][1], values[i])
+                stringCount += 1
 
         self.codeLine = self.jumpStack.pop()[1]
 
@@ -754,6 +771,7 @@ class CodeProcessor:
         intCount = 0
         floatCount = 0
         charCount = 0
+        stringCount = 0
         for i in range(len(paramTypes)):
             if paramTypes[i] == "int":
                 self.memory.setValue(self.memory.localInt + intCount, paramValues[i])
@@ -764,6 +782,9 @@ class CodeProcessor:
             elif paramTypes[i] == "char":
                 self.memory.setValue(self.memory.localChar + charCount, paramValues[i])
                 charCount += 1
+            elif paramTypes[i] == "string":
+                self.memory.setValue(self.memory.localString + stringCount, paramValues[i])
+                stringCount += 1
             
         # Save function name and next instruction pointer to continue program after endfunc
         self.jumpStack.append((quadArray[1], self.codeLine + 1))
@@ -817,6 +838,7 @@ class CodeProcessor:
         intCount = 0
         floatCount = 0
         charCount = 0
+        stringCount = 0
 
         # Add object params to method call
         for i in range(len(objectParams)):
@@ -832,6 +854,10 @@ class CodeProcessor:
                 if values["char"][i] is not None:
                     self.memory.setValue(self.memory.localChar + charCount, values["char"][i])
                 charCount += 1
+            elif objectParams[i][0] == "string":
+                if values["string"][i] is not None:
+                    self.memory.setValue(self.memory.localString + stringCount, values["string"][i])
+                stringCount += 1
 
         # Add function params to method call
         for i in range(len(paramTypes)):
@@ -844,6 +870,9 @@ class CodeProcessor:
             elif paramTypes[i] == "char":
                 self.memory.setValue(self.memory.localChar + charCount, paramValues[i])
                 charCount += 1
+            elif paramTypes[i] == "string":
+                self.memory.setValue(self.memory.localString + stringCount, paramValues[i])
+                stringCount += 1
 
         self.objectReturnDir.append(objectParams)
 
@@ -879,6 +908,32 @@ class CodeProcessor:
         # Move to next instruction
         self.codeLine += 1
 
+    def strOperations(self, op, left, right):
+        " + (int, 1) (str, 'text') 12345"
+        " * (str, 'text') (int, 1) 12345"
+        result = ""
+        if op == '+':
+            # concat
+            result = str(left[1]) + str(right[1])
+        elif op == '*':
+            # generate and concat N of same string
+            times = 0
+            _str = ""
+            if left[0] == int:
+                times = left[1]
+                _str = right[1]
+            else:
+                times = right[1]
+                _str = left[1]
+            
+            for _ in range(times):
+                result += _str
+            
+
+        return result
+        
+
+
     def simpleOperator(self, quadArray):
         "Resolves quad depending on a simple Operator method of the form <operator leftOperand rightOperand outputDirectory>"
 
@@ -893,20 +948,30 @@ class CodeProcessor:
 
         # Left Value
         lVal = self.memory.getValue(lDir)
+        lValType = type(lVal)
 
         # Right Value
         rVal = self.memory.getValue(rDir)
+        rValType = type(rVal)
 
         # Directory Out
         dirOut = int(quadArray[3])
 
         # Log operation
         self.consoleLog("{0} = {1} {2} {3}\n{0} = {4} {2} {5}".format(dirOut, lDir, op, rDir, lVal, rVal))
-        
+
+        outputValue = None
+
+        # Run special string operations between types
+        if (lValType != rValType) and (lValType == str or rValType == str):
+            outputValue = self.strOperations(op, (lValType, lVal), (rValType, rVal))
+        else:
+            outputValue = self.simpleOperators[op](lVal, rVal)
+
         # Runs setValue on outputDirectory, use flag usePointerOut=False to make value is not resolved as pointer
         self.memory.setValue(
             dirOut,
-            self.simpleOperators[op](lVal, rVal),
+            outputValue,
             usePointerOut=False
         )
 

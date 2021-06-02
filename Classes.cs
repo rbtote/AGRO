@@ -41,6 +41,7 @@ namespace AGRO_GRAMM
                 //              { TYPE, ACCESS, KIND}
                 int[] varsKey = { 0, 0, 0 };
                 variables[key] = varsKey;
+                variables[key][0] = st.getType(key);
                 variables[key][1] = st.getAccess(key);
                 variables[key][2] = st.getKind(key);
 
@@ -51,22 +52,18 @@ namespace AGRO_GRAMM
                 {
                     // INT
                     case 1:
-                        variables[key][0] = 1;
                         intCount++;
                         break;
                     // FLOAT
                     case 2:
-                        variables[key][0] = 2;
                         floatCount++;
                         break;
                     // CHAR
                     case 3:
-                        variables[key][0] = 3;
                         charCount++;
                         break;
                     // VOID
                     case 4:
-                        variables[key][0] = 4;
                         break;
                     // STRING
                     case 6:
