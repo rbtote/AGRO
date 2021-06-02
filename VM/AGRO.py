@@ -426,10 +426,6 @@ class CodeProcessor:
             "object":   self._object
         }
 
-        for x in self.instructions:
-            print(x, end=", ")
-        print("")
-
         # Processor simple operator methods
         self.simpleOperators = {
             "+":    operator.add,

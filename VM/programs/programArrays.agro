@@ -84,4 +84,11 @@ main{
 
 	print("Arr mean: ", df.mean(n), "\n");
 
+	int nice[5], reallynice[3];
+	nice[4] = 3;
+	reallynice[2] = 4;
+	print("nice[4] = 3", "\n");
+	print("reallynice[2] = 4", "\n");
+	print("nice[reallynice[2]] = ", nice[reallynice[2]], "\n");
+
 }

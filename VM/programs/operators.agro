@@ -9,7 +9,7 @@ main {
     text = "Lucas";
 
     char face;
-    face = 'wx';
+    face = 'w';
 
     print("b        = ", b, "\n");
     print("c        = ", c, "\n");
