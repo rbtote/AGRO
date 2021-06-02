@@ -483,11 +483,11 @@ void addParentClass(string childClass, string parentClass, SymbolTable st){
 
     dirClasses[childClass].setParentClass(dirClasses[parentClass]);
     //Copy to STABLE dirClasses[parentClass]
-    foreach (string key in dirClasses[parentClass].variables.Keys)
+    foreach (string key in dirClasses[parentClass].symbolsClass.Keys)
     {
-        //putSymbol(string name, int type,                  int kind, int dim1, int dim2, int access)
-        st.putSymbol(key, dirClasses[parentClass].variables[key][0], dirClasses[parentClass].variables[key][2], 0, 0, dirClasses[parentClass].variables[key][1]);
-        if(dirClasses[parentClass].variables[key][2] == func){
+        //putSymbol(string name,    int type,   int kind,   int dim1,   int dim2,   int access)
+        st.putSymbol(key, dirClasses[parentClass].symbolsClass[key][0], dirClasses[parentClass].symbolsClass[key][1], dirClasses[parentClass].symbolsClass[key][3], dirClasses[parentClass].symbolsClass[key][4], dirClasses[parentClass].symbolsClass[key][5]);
+        if(dirClasses[parentClass].symbolsClass[key][1] == func){
             dirFunc[childClass+"."+key] = dirFunc[parentClass+"."+key];
         }
     }
@@ -944,32 +944,36 @@ SHORT_ASSIGN=
     sadd (. stackOperator.Push(_sadd); .) | ssub (. stackOperator.Push(_ssub); .) | smul (. stackOperator.Push(_smul); .) | sdiv (. stackOperator.Push(_sdiv); .)
 .
 
-VARIABLE_ASSIGN   (. string name; string attrName; int dim1Size=0; int dim2Size=0;.)
+VARIABLE_ASSIGN   (. string name; string attrName; int dim1Size=0; int dim2Size=0; string newName;.)
 =
-    IDENT	< out name >            (. pushToOperandStack(name, sTable); .)
+    IDENT	< out name >            (. pushToOperandStack(name, sTable); newName = name;.)
     [
-    ( dot IDENT < out attrName >   (.  stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); .)
-      /*{ dot IDENT }*/ ) | 
+    [
+      dot IDENT < out attrName >   (. newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); .)
+      /*{ dot IDENT }*/ 
+    ] 
     ( 
-    bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
-        [ (. dim2Size = checkMatrix(sTable, name); .) bl EXP (. verifyLimit2(sTable, name, dim2Size); .)  br ]
-        (. endArray(sTable, name); .)
+    bl (. dim1Size = checkArray(sTable, newName); .) EXP (. verifyLimit(sTable, newName, dim1Size); .) br 
+        [ (. dim2Size = checkMatrix(sTable, newName); .) bl EXP (. verifyLimit2(sTable, newName, dim2Size); .)  br ]
+        (. endArray(sTable, newName); .)
     ) 
     ]
 .
 
-VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0;.)
+VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0; string newName;.)
 =
     IF( IsTypedFunctionCall(sTable) )   (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
     IF( IsMethodCall() ) (. stackOperator.Push(_pl); .) METHOD_CALL (. stackOperator.Pop(); .) |
-    IDENT	< out name >                (. pushToOperandStack(name, sTable); .)
+    IDENT	< out name >                (. pushToOperandStack(name, sTable);  newName=name;.)
     [ 
-    ( dot IDENT < out attrName >        (.  stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); .)
-    /*{ dot IDENT }*/ ) |
+    [
+      dot IDENT < out attrName >        (. newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); .)
+      /*{ dot IDENT }*/ 
+    ]
     (
-    bl (. dim1Size = checkArray(sTable, name); .) EXP (. verifyLimit(sTable, name, dim1Size); .) br 
-        [ (. dim2Size = checkMatrix(sTable, name); .) bl EXP (. verifyLimit2(sTable, name, dim2Size); .)  br ] 
-        (. endArray(sTable, name); .)
+    bl (. dim1Size = checkArray(sTable, newName); .) EXP (. verifyLimit(sTable, newName, dim1Size); .) br 
+        [ (. dim2Size = checkMatrix(sTable, newName); .) bl EXP (. verifyLimit2(sTable, newName, dim2Size); .)  br ] 
+        (. endArray(sTable, newName); .)
     )
     ]
 .

@@ -105,11 +105,19 @@ namespace AGRO_GRAMM
         /// <returns></returns>
         public bool putSymbol(string name, int type, int kind, int dim1, int dim2, int access)
         {
+            int dir = 0;
             if (symbols.ContainsKey(name))
             {
                 return false;
             }
-            int dir = assignDir(type, kind);
+            if (dim1 > 0)
+            {
+                dir = assignDirArray(type, dim1, dim2);
+            }
+            else
+            {
+                dir = assignDir(type, kind);
+            }
             int[] symbol = { type, kind, dir, dim1, dim2, access };
             symbols.Add(name, symbol);
 
@@ -223,14 +231,14 @@ namespace AGRO_GRAMM
             objects[objName] = attributes;
             // Check all the variables of the class
             //     structure <varName, type>
-            foreach (string varName in classObj.variables.Keys)
+            foreach (string varName in classObj.symbolsClass.Keys)
             {
                 string nameObjVar = objName + "." + varName;
                 //Assign direction to all variables of the class, maintaining access
                 // t_int = 1, t_float = 2, t_char = 3
 
                 // Jump if
-                putSymbol(nameObjVar, classObj.variables[varName][0], classObj.variables[varName][2], 0, 0, classObj.variables[varName][1]);
+                putSymbol(nameObjVar, classObj.symbolsClass[varName][0], classObj.symbolsClass[varName][1], classObj.symbolsClass[varName][3], classObj.symbolsClass[varName][4], classObj.symbolsClass[varName][5]);
                 //Ej:     miCarro.Velocidad, type=2, kind=0, dim1=0, dim2=0, access=-1
 
                 //Save these directions in the objects dictionary

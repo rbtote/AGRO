@@ -539,11 +539,11 @@ void addParentClass(string childClass, string parentClass, SymbolTable st){
 
     dirClasses[childClass].setParentClass(dirClasses[parentClass]);
     //Copy to STABLE dirClasses[parentClass]
-    foreach (string key in dirClasses[parentClass].variables.Keys)
+    foreach (string key in dirClasses[parentClass].symbolsClass.Keys)
     {
-        //putSymbol(string name, int type,                  int kind, int dim1, int dim2, int access)
-        st.putSymbol(key, dirClasses[parentClass].variables[key][0], dirClasses[parentClass].variables[key][2], 0, 0, dirClasses[parentClass].variables[key][1]);
-        if(dirClasses[parentClass].variables[key][2] == func){
+        //putSymbol(string name,    int type,   int kind,   int dim1,   int dim2,   int access)
+        st.putSymbol(key, dirClasses[parentClass].symbolsClass[key][0], dirClasses[parentClass].symbolsClass[key][1], dirClasses[parentClass].symbolsClass[key][3], dirClasses[parentClass].symbolsClass[key][4], dirClasses[parentClass].symbolsClass[key][5]);
+        if(dirClasses[parentClass].symbolsClass[key][1] == func){
             dirFunc[childClass+"."+key] = dirFunc[parentClass+"."+key];
         }
     }
@@ -1184,29 +1184,28 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_ASSIGN() {
-		string name; string attrName; int dim1Size=0; int dim2Size=0;
+		string name; string attrName; int dim1Size=0; int dim2Size=0; string newName;
 		IDENT(out name );
-		pushToOperandStack(name, sTable); 
+		pushToOperandStack(name, sTable); newName = name;
 		if (la.kind == 8 || la.kind == 22) {
 			if (la.kind == 22) {
 				Get();
 				IDENT(out attrName );
-				stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); 
-			} else {
-				Get();
-				dim1Size = checkArray(sTable, name); 
-				EXP();
-				verifyLimit(sTable, name, dim1Size); 
-				Expect(9);
-				if (la.kind == 8) {
-					dim2Size = checkMatrix(sTable, name); 
-					Get();
-					EXP();
-					verifyLimit2(sTable, name, dim2Size); 
-					Expect(9);
-				}
-				endArray(sTable, name); 
+				newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); 
 			}
+			Expect(8);
+			dim1Size = checkArray(sTable, newName); 
+			EXP();
+			verifyLimit(sTable, newName, dim1Size); 
+			Expect(9);
+			if (la.kind == 8) {
+				dim2Size = checkMatrix(sTable, newName); 
+				Get();
+				EXP();
+				verifyLimit2(sTable, newName, dim2Size); 
+				Expect(9);
+			}
+			endArray(sTable, newName); 
 		}
 	}
 
@@ -1297,7 +1296,7 @@ bool IsDecVars(){
 	}
 
 	void VARIABLE_FACT() {
-		string name; string attrName; int dim1Size=0; int dim2Size=0;
+		string name; string attrName; int dim1Size=0; int dim2Size=0; string newName;
 		if (IsTypedFunctionCall(sTable) ) {
 			stackOperator.Push(_pl); 
 			FUNC_CALL();
@@ -1308,27 +1307,26 @@ bool IsDecVars(){
 			stackOperator.Pop(); 
 		} else if (la.kind == 1) {
 			IDENT(out name );
-			pushToOperandStack(name, sTable); 
+			pushToOperandStack(name, sTable);  newName=name;
 			if (la.kind == 8 || la.kind == 22) {
 				if (la.kind == 22) {
 					Get();
 					IDENT(out attrName );
-					stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(name+"."+attrName, sTable); 
-				} else {
-					Get();
-					dim1Size = checkArray(sTable, name); 
-					EXP();
-					verifyLimit(sTable, name, dim1Size); 
-					Expect(9);
-					if (la.kind == 8) {
-						dim2Size = checkMatrix(sTable, name); 
-						Get();
-						EXP();
-						verifyLimit2(sTable, name, dim2Size); 
-						Expect(9);
-					}
-					endArray(sTable, name); 
+					newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); 
 				}
+				Expect(8);
+				dim1Size = checkArray(sTable, newName); 
+				EXP();
+				verifyLimit(sTable, newName, dim1Size); 
+				Expect(9);
+				if (la.kind == 8) {
+					dim2Size = checkMatrix(sTable, newName); 
+					Get();
+					EXP();
+					verifyLimit2(sTable, newName, dim2Size); 
+					Expect(9);
+				}
+				endArray(sTable, newName); 
 			}
 		} else SynErr(69);
 	}

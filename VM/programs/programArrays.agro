@@ -1,5 +1,6 @@
 class Pokemon{
 	- int attack, defense, hp;
+	+ int ivs[3], hapiness;
 
 	+ int calculateCP2() {
 		return attack + defense + hp;
@@ -46,6 +47,8 @@ main{
 	aggro.setDefense(100);
 	aggro.setHP(77);
 
-	print("Aggro has a CP of: " + aggro.calculateCP2(), "\n");
+	aggro.ivs[1] = 0;
+
+	print("Aggro has a CP of: " + aggro.calculateCP(5), "\n");
 
 }
