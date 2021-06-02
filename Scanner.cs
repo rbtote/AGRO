@@ -401,7 +401,7 @@ public class Scanner {
 			case 5:
 				{t.kind = 4; break;}
 			case 6:
-				if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z') {AddCh(); goto case 7;}
+				if (ch <= 9 || ch >= 11 && ch <= 12 || ch >= 14 && ch <= '!' || ch >= '#' && ch <= 65535) {AddCh(); goto case 7;}
 				else {goto case 0;}
 			case 7:
 				if (ch == 39) {AddCh(); goto case 8;}

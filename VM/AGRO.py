@@ -198,6 +198,19 @@ class Memory:
             ("int",         self.pointersMem,       self.pointersMemory.getInt,         self.pointersMemory.setInt)
         ]
 
+    def getType(self, address):
+        "Iterate through memory address limits to find appropiate memory segment offset and get value"
+        # (var_type, lower_limit_address, getter, setter)
+        outputTuple = ()
+
+        # Find lower limit and return tuple with memory space
+        for limitTuple in self.getOrderedDir():
+            if (address < limitTuple[1]):
+                break
+            outputTuple = limitTuple
+
+        return outputTuple[0]
+
     def getValue(self, address, usePointerOut=True):
         "Iterate through memory address limits to find appropiate memory segment offset and get value"
         # (var_type, lower_limit_address, getter, setter)
@@ -805,13 +818,22 @@ class CodeProcessor:
         for t in varTypes:
             totalToAssign[t] += self.classes[className][t]
             
+        varTypeCountdown = totalToAssign.copy()
+        if len(self.objectParamStack) > 0:
+            tmpObjParam = self.objectParamStack[-1]
+            tmpObjParamType = self.memory.getType(tmpObjParam)
             # For each type
             # Pop the amount of needed variables for the object from the object param stack. 
-            for _ in range(self.classes[className][t]):
-                objectParams.append((t, self.objectParamStack.pop()))
-        
-        # Reverse object params to make it in order
-        objectParams.reverse()
+            while varTypeCountdown[tmpObjParamType] > 0:
+                self.objectParamStack.pop()
+                varTypeCountdown[tmpObjParamType] -= 1
+                objectParams.append((tmpObjParamType, tmpObjParam))
+                if len(self.objectParamStack) == 0: break
+                tmpObjParam = self.objectParamStack[-1]
+                tmpObjParamType = self.memory.getType(tmpObjParam)
+                
+            # Reverse object params to make it in order
+            objectParams.reverse()
 
         for t in varTypes:
             # Assign values in order for each var type
@@ -843,20 +865,20 @@ class CodeProcessor:
         # Add object params to method call
         for i in range(len(objectParams)):
             if objectParams[i][0] == "int":
-                if values["int"][i] is not None:
-                    self.memory.setValue(self.memory.localInt + intCount, values["int"][i])
+                if values["int"][intCount] is not None:
+                    self.memory.setValue(self.memory.localInt + intCount, values["int"][intCount])
                 intCount += 1
             elif objectParams[i][0] == "float":
-                if values["float"][i] is not None:
-                    self.memory.setValue(self.memory.localFloat + floatCount, values["float"][i])
+                if values["float"][floatCount] is not None:
+                    self.memory.setValue(self.memory.localFloat + floatCount, values["float"][floatCount])
                 floatCount += 1
             elif objectParams[i][0] == "char":
-                if values["char"][i] is not None:
-                    self.memory.setValue(self.memory.localChar + charCount, values["char"][i])
+                if values["char"][charCount] is not None:
+                    self.memory.setValue(self.memory.localChar + charCount, values["char"][charCount])
                 charCount += 1
             elif objectParams[i][0] == "string":
-                if values["string"][i] is not None:
-                    self.memory.setValue(self.memory.localString + stringCount, values["string"][i])
+                if values["string"][stringCount] is not None:
+                    self.memory.setValue(self.memory.localString + stringCount, values["string"][stringCount])
                 stringCount += 1
 
         # Add function params to method call
@@ -947,11 +969,11 @@ class CodeProcessor:
         rDir = int(quadArray[2])
 
         # Left Value
-        lVal = self.memory.getValue(lDir)
+        lVal = self.memory.getValue(lDir, usePointerOut=True)
         lValType = type(lVal)
 
         # Right Value
-        rVal = self.memory.getValue(rDir)
+        rVal = self.memory.getValue(rDir, usePointerOut=True)
         rValType = type(rVal)
 
         # Directory Out

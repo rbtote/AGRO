@@ -40,8 +40,7 @@ namespace AGRO_GRAMM
         {
             foreach (string key in st.symbols.Keys)
             {
-                // Omit func allocation
-                if (st.symbols[key][2] == 1) continue;
+
 
                 // TYPES:   t_int = 1, t_float = 2, t_char = 3, t_void = 4 ,t_obj = 5, t_string = 6
                 // KINDS:   var = 0, func = 1
@@ -49,6 +48,9 @@ namespace AGRO_GRAMM
                 //              [type, kind, dir, dim1?0, dim2?0, access:[-1|1]]
 
                 symbolsClass[key] = st.getSymbol(key);
+
+                // Omit func allocation
+                if (st.symbols[key][1] == 1) continue;
 
                 int dims = 1;
 
@@ -70,22 +72,22 @@ namespace AGRO_GRAMM
                 {
                     // INT
                     case 1:
-                        intCount+= dims;
+                        intCount += dims;
                         break;
                     // FLOAT
                     case 2:
-                        floatCount+=dims;
+                        floatCount += dims;
                         break;
                     // CHAR
                     case 3:
-                        charCount+=dims;
+                        charCount += dims;
                         break;
                     // VOID
                     case 4:
                         break;
                     // STRING
                     case 6:
-                        stringCount+=dims;
+                        stringCount += dims;
                         break;
                 }
             }

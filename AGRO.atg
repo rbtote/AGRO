@@ -523,7 +523,7 @@ void checkMethodCall(string objectName, string methodName, SymbolTable st){
     foreach (string varname in objectVars.Keys){
         if(objectVars[varname]!= 0)
         {
-            program.Add(new Param("object",objectName+"."+varname, paramCount, st));
+            new Param("object",objectName+"."+varname, paramCount, st, program);
             paramCount ++;
         }
     }
@@ -596,7 +596,7 @@ id			= letter { letter | digit }.
 cte_I		= digit { digit }.
 cte_F		= digit { digit } "." digit { digit }.
 ctr_Str 	= '"' {notQuote} '"'.
-ctr_Chr 	= '\'' letter '\''.
+ctr_Chr 	= '\'' notQuote '\''.
 cbl         = "{".
 cbr         = "}".
 bl          = "[".
@@ -848,7 +848,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                         if (localParamType  != funcParamType) { 
                             SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                         } 
-                        program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+                        new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
                         paramCount ++; 
                     .) 
         { comma HYPER_EXP 
@@ -861,7 +861,7 @@ FUNC_CALL	(. string name; int paramCount = 0; string localParamType; string func
                             if (localParamType  != funcParamType) { 
                                 SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
                             } 
-                            program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+                            new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
                             paramCount ++;
                         }
                     .) 
@@ -901,7 +901,7 @@ METHOD_CALL         (. string name, objectName, methodName, className; int param
         if (localParamType  != funcParamType) { 
             SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
         } 
-        program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+        new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
         paramCount ++; 
     .)
     { comma HYPER_EXP 
@@ -914,7 +914,7 @@ METHOD_CALL         (. string name, objectName, methodName, className; int param
             if (localParamType  != funcParamType) { 
                 SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
             } 
-            program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+            new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
             paramCount ++;
         }
     .) 

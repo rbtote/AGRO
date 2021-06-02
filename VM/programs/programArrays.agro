@@ -27,6 +27,21 @@ class AGGRON : Pokemon{
 
 }
 
+class DataFrame {
+	+ int arr[20];
+	+ float mean(int n) {
+		int i;
+		float mean;
+		mean = 0;
+		for (i = 0; i < n; i++;) {
+			mean = mean + arr[i];
+		}
+
+		mean /= n;
+		return mean;
+	}
+}
+
 string a;
 
 main{
@@ -47,8 +62,26 @@ main{
 	aggro.setDefense(100);
 	aggro.setHP(77);
 
-	aggro.ivs[1] = 0;
+	aggro.ivs[0] = 15;
+	aggro.ivs[1] = 14;
+	aggro.ivs[2] = 13;
 
-	print("Aggro has a CP of: " + aggro.calculateCP(5), "\n");
+	print("Attack: ", aggro.ivs[0], "\n");
+	print("Defense: ", aggro.ivs[1], "\n");
+	print("HP: ", aggro.ivs[2], "\n");
+
+	print("Aggro has a CP of: " + aggro.calculateCP2(), "\n");
+
+	DataFrame df;
+
+	int n, i;
+	n = 10;
+
+	for (i = 0; i < n; i++;) {
+		df.arr[i] = i+1;
+		print("arr[" + i + "] = ", df.arr[i], "\n");
+	}
+
+	print("Arr mean: ", df.mean(n), "\n");
 
 }

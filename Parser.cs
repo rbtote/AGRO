@@ -579,7 +579,7 @@ void checkMethodCall(string objectName, string methodName, SymbolTable st){
     foreach (string varname in objectVars.Keys){
         if(objectVars[varname]!= 0)
         {
-            program.Add(new Param("object",objectName+"."+varname, paramCount, st));
+            new Param("object",objectName+"."+varname, paramCount, st, program);
             paramCount ++;
         }
     }
@@ -1000,7 +1000,7 @@ bool IsDecVars(){
 			if (localParamType  != funcParamType) { 
 			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 			} 
-			program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+			new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
 			paramCount ++; 
 			
 			while (la.kind == 12) {
@@ -1014,7 +1014,7 @@ bool IsDecVars(){
 				   if (localParamType  != funcParamType) { 
 				       SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 				   } 
-				   program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+				   new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
 				   paramCount ++;
 				}
 				
@@ -1053,7 +1053,7 @@ bool IsDecVars(){
 			if (localParamType  != funcParamType) { 
 			   SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 			} 
-			program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+			new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
 			paramCount ++; 
 			
 			while (la.kind == 12) {
@@ -1067,7 +1067,7 @@ bool IsDecVars(){
 				   if (localParamType  != funcParamType) { 
 				       SemErr("Parameter type mismatch. Expected <" + funcParamType + ">. Found <" + localParamType + ">"); 
 				   } 
-				   program.Add(new Param("param", stackOperand.Pop(), paramCount, sTable)); 
+				   new Param("param", stackOperand.Pop(), paramCount, sTable, program); 
 				   paramCount ++;
 				}
 				
