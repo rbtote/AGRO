@@ -1,5 +1,5 @@
 class Pokemon{
-	- int attack, defense, hp;
+	+ int attack, defense, hp;
 	+ int ivs[3], hapiness;
 
 	+ int calculateCP2() {
@@ -58,7 +58,7 @@ main{
 
 	AGGRON aggro;
 
-	aggro.setAttack(80);
+	aggro.attack = 100;
 	aggro.setDefense(100);
 	aggro.setHP(77);
 

@@ -948,16 +948,14 @@ VARIABLE_ASSIGN   (. string name; string attrName; int dim1Size=0; int dim2Size=
 =
     IDENT	< out name >            (. pushToOperandStack(name, sTable); newName = name;.)
     [
-    [
       dot IDENT < out attrName >   (. newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); .)
       /*{ dot IDENT }*/ 
     ] 
-    ( 
+    [ 
     bl (. dim1Size = checkArray(sTable, newName); .) EXP (. verifyLimit(sTable, newName, dim1Size); .) br 
         [ (. dim2Size = checkMatrix(sTable, newName); .) bl EXP (. verifyLimit2(sTable, newName, dim2Size); .)  br ]
         (. endArray(sTable, newName); .)
-    ) 
-    ]
+    ] 
 .
 
 VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0; string newName;.)
@@ -965,16 +963,14 @@ VARIABLE_FACT	(. string name; string attrName; int dim1Size=0; int dim2Size=0; s
     IF( IsTypedFunctionCall(sTable) )   (. stackOperator.Push(_pl); .) FUNC_CALL (. stackOperator.Pop(); .) |
     IF( IsMethodCall() ) (. stackOperator.Push(_pl); .) METHOD_CALL (. stackOperator.Pop(); .) |
     IDENT	< out name >                (. pushToOperandStack(name, sTable);  newName=name;.)
-    [ 
     [
       dot IDENT < out attrName >        (. newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); .)
       /*{ dot IDENT }*/ 
     ]
-    (
+    [
     bl (. dim1Size = checkArray(sTable, newName); .) EXP (. verifyLimit(sTable, newName, dim1Size); .) br 
         [ (. dim2Size = checkMatrix(sTable, newName); .) bl EXP (. verifyLimit2(sTable, newName, dim2Size); .)  br ] 
         (. endArray(sTable, newName); .)
-    )
     ]
 .
 

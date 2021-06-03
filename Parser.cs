@@ -1187,13 +1187,13 @@ bool IsDecVars(){
 		string name; string attrName; int dim1Size=0; int dim2Size=0; string newName;
 		IDENT(out name );
 		pushToOperandStack(name, sTable); newName = name;
-		if (la.kind == 8 || la.kind == 22) {
-			if (la.kind == 22) {
-				Get();
-				IDENT(out attrName );
-				newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); 
-			}
-			Expect(8);
+		if (la.kind == 22) {
+			Get();
+			IDENT(out attrName );
+			newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); 
+		}
+		if (la.kind == 8) {
+			Get();
 			dim1Size = checkArray(sTable, newName); 
 			EXP();
 			verifyLimit(sTable, newName, dim1Size); 
@@ -1308,13 +1308,13 @@ bool IsDecVars(){
 		} else if (la.kind == 1) {
 			IDENT(out name );
 			pushToOperandStack(name, sTable);  newName=name;
-			if (la.kind == 8 || la.kind == 22) {
-				if (la.kind == 22) {
-					Get();
-					IDENT(out attrName );
-					newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); 
-				}
-				Expect(8);
+			if (la.kind == 22) {
+				Get();
+				IDENT(out attrName );
+				newName=name+"."+attrName; stackOperand.Pop(); stackTypes.Pop(); checkAttAccess(newName, sTable); 
+			}
+			if (la.kind == 8) {
+				Get();
 				dim1Size = checkArray(sTable, newName); 
 				EXP();
 				verifyLimit(sTable, newName, dim1Size); 

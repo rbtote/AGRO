@@ -5,33 +5,50 @@
 # AGRO
 by Aglahir Jiménez and Roberto Ramírez
 
-- [AGRO LANGUAGE](#AGRO)
-  - [Tipos de Datos](#memo-Tipos-de-datos)
-  - [Estructura del Programa](#clipboard-Estructura-del-programa)
-  - [Contextos en AGRO](#bookmark_tabs-Contextos-en-AGRO)
-    - [Global](#Globales)
-    - [Clases](#Clases)
+- [AGRO](#agro)
+  - [:hammer: ¿Cómo usar AGRO?](#hammer-cómo-usar-agro)
+  - [:memo: Tipos de datos](#memo-tipos-de-datos)
+  - [:clipboard: Estructura del Programa](#clipboard-estructura-del-programa)
+  - [:bookmark_tabs: Contextos en AGRO](#bookmark_tabs-contextos-en-agro)
+    - [Globales](#globales)
+    - [Clases](#clases)
     - [Funciones](#funciones)
-  - [Variables dimensionadas](#1234-Variables-dimensionadas)
-  - [Estatutos en AGRO](#pencil2-Estatutos-en-AGRO)
-    - [Asignación](#Asignación)
-    - [Input / Output](#Input-/-Output)
-    - [Condiciones](#Condiciones)
-    - [Ciclos](#Ciclos-(While-/-For))
-    - [LLamadas](#Llamadas-(Funciones-/-Métodos))
-  - [Expresiones en AGRO](#triangular_ruler-Expresiones-en-AGRO)
-  - [Comentarios en AGRO](#triangular_flag_on_post-Comentarios-en-AGRO)
+  - [:1234: Variables dimensionadas](#1234-variables-dimensionadas)
+  - [:pencil2: Estatutos en AGRO](#pencil2-estatutos-en-agro)
+    - [Asignación](#asignación)
+    - [Input / Output](#input--output)
+    - [Condiciones](#condiciones)
+    - [Ciclos (While / For)](#ciclos-while--for)
+    - [Llamadas (Funciones / Métodos)](#llamadas-funciones--métodos)
+  - [:triangular_ruler: Expresiones en AGRO](#triangular_ruler-expresiones-en-agro)
+    - [Operadores Aritméticos](#operadores-aritméticos)
+  - [|Exponenciación|**|](#exponenciación)
+    - [Operadores Lógicos](#operadores-lógicos)
+  - [|Or| &#124;&#124; |](#or--)
+    - [Operadores Relacionales](#operadores-relacionales)
+  - [:triangular_flag_on_post: Comentarios en AGRO](#triangular_flag_on_post-comentarios-en-agro)
 
-## :beginner: Introducción
+## :hammer: ¿Cómo usar AGRO?
 
+1. Escribe un código en lenguaje AGRO y guárdalo en un archivo `nombre_programa.agro`
+
+2. Usa los archivos de la carpeta RELEASE para ejecutar el comando de compilación
+
+> `AGRO_GRAMM.exe directorio\nombre_programa`
+
+3. Al compilar correctamente se generan los archivos `nombre_programa.agro.code`, `nombre_programa.agro.constants`, `nombre_programa.agro.dirfunc`, `nombre_programa.agro.classes` en el directorio del código
+
+4. Ejecutar máquina virtual pasando como parámetros el nombre del programa y opcional "-d" para mostrar los cuádruplos que está procesando mientras ejecuta el código
+
+> `python AGRO.py directorio\nombre_programa [-d]`
 
 ## :memo: Tipos de datos
 
 El lenguaje AGRO consta de los siguientes tipos de datos primitivos
 |Tipo |Descripción|Ejemplo|
 |-----|--------|-------|
-|int  |Valor númerico sin puntos decimales     |0, 1, 2, 3,...
-|float|Valor númerio con puntos decimales      |0.5, 1.1, 4.5, 1.0...
+|int  |Valor numérico sin puntos decimales     |0, 1, 2, 3,...
+|float|Valor numérico con puntos decimales      |0.5, 1.1, 4.5, 1.0...
 |char|Cualquier letra rodeada por comillas simples| 'c', 'a', ...
 |string|Cualquier combinación de letras rodeada por comillas dobles| "str", "a", ...
 
@@ -84,7 +101,7 @@ Cada definición de clase debe tener la estructura: (**class** + `nombre de la c
 
 De igual manera, se puede especificar que la clase tiene herencia simple de otra clase, con la estructura: (**class** + `nombre de la clase` **:** `nombre clase parent`). Lo que hará que la clase que estamos definiendo tenga los métodos y atributos de su clase parent.
 
-&nbsp;&nbsp;&nbsp;&nbsp;*class = nombreClase : claseParent {  
+&nbsp;&nbsp;&nbsp;&nbsp;*class nombreClase : claseParent {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;&nbsp;&nbsp;}*
@@ -116,6 +133,7 @@ class MathSon : Math{
 ```
 
 ### Funciones
+
 Cada definición de funcion debe tener la estructura: (**tipo** + `nombre de la función`) seguido de paréntesis que pueden contener los parámetros necesarios de la función y llaves.
 Recordando que las funciones pueden retornar cualquier tipo primitivo de datos o no regresar nada si se declaran como tipo void.
 
@@ -186,7 +204,7 @@ int a;
 input(a);
 ```
 
-`Output`: Este es el estatuo que usamos para poder imprimir en pantalla los valores de alguna variable interna, podemos imprimir varios valores si los separamos con **,**, de igual manera podemos imprimir letreros, especificados con palabras entre comillas, la sintaxis es:
+`Output`: Este es el estatuto que usamos para poder imprimir en pantalla los valores de alguna variable interna, podemos imprimir varios valores si los separamos con **,**, de igual manera podemos imprimir letreros, especificados con palabras entre comillas, la sintaxis es:
 *print(variable,variable ,...)*
 ```
 int a;
@@ -194,10 +212,12 @@ print("El valor de a es: ",a);
 ```
 
 ### Condiciones
+
 El estatuto de condicion es una evaluación de una expresión, y entra al bloque entre llaves si la expresión se evalua como verdadera, se define de la siguiente manera:   
 &nbsp;&nbsp;*if(expresion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
+
 Y si es necesario, se puede incluir una parte de else a la que se entrará en el caso de que la expresión se evalue como falso, teniendo la siguiente estructura:   
 &nbsp;&nbsp;*if(expresion) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
@@ -233,7 +253,8 @@ while (i <= mid) {
 ```
 
 `for`: Este estatuto es un ciclo, con una variable de control y su paso definido en la definición.
-Primero hacemos una asignación inicial, después entraremos al bloque mientras la expresión definida se evalue como verdadera, y al final de cada iteración, ejecutaremos la asignación que se encuentra despues de la expresión a evaluar.
+Primero hacemos una asignación inicial, después entraremos al bloque mientras la expresión definida se evalúe como verdadera, y al final de cada iteración, ejecutaremos la asignación que se encuentra después de la expresión a evaluar.
+
 &nbsp;&nbsp;*for(asignación; expresión; asignación;) {  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...  
 &nbsp;&nbsp;}*
@@ -248,14 +269,14 @@ for (i = 0; i < n; i += 2;) {
 El comportamiento de las llamadas a funciones globales y a métodos de objetos es básicamente igual, se pueden usar como parte de expresiones solamente si éstas regresan algún valor(no son declaradas como void). Se valida que el número de parámetros que se envían coincida con el número de parámetros que la función o método necesitan.
 
 `Llamada a función`: Es la llamada a una función definida de manera global antes del contexto de main con la siguiente sintaxis:   
-&nbsp;&nbsp;*nombreFuncion(parametro,...)*
+&nbsp;&nbsp;*nombreFunción(parámetro,...)*
 
 ```
 mergeSort(n);
 ```
 
 `Llamada a método`: Es la llamada a un método definido en alguna clase, se requiere que se especifique el objeto del que se tomará el método y el nombre del método.   
-&nbsp;&nbsp;*nombreObjeto.nombreMetodo(parametro,...)*
+&nbsp;&nbsp;*nombreObjeto.nombreMétodo(parámetro,...)*
 
 ```
 i = b.getc(7) + 10;
@@ -281,7 +302,7 @@ i = b.getc(7) + 10;
 |Operación |Token|
 |-----|--------|
 |And|&&|
-|Or| || |
+|Or| &#124;&#124; |
 ----
 ### Operadores Relacionales 
 **Operadores Binarios**

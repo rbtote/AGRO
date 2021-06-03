@@ -1,21 +1,9 @@
-void outOfBounds() {
-    int arr[5];
-    arr[6] = 1;
+class A{
+    + int a;
 }
-
-void zeroDivision() {
-    print(1/0);
-}
-
-
-
-
-
-
-
-
 
 main {
-    int arr[5];
-    arr[6] = 1;
+    A a;
+    a.a = 5;
+    print(a.a);
 }
