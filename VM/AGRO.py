@@ -999,7 +999,7 @@ class CodeProcessor:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python AGRO.py programName")
+        print("Usage: python AGRO.py programName [-d]")
     else:
 
         # Program name without extension
