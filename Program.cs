@@ -12,13 +12,13 @@ namespace AGRO_GRAMM
 
         static void Main(string[] args)
         {
-
+            
             if (args.Length < 1)
             {
                 Console.WriteLine("Usage: AGRO.exe programName");
                 return;
             }
-
+            
 
             string programName = args[0];
             //string programName = @".\..\..\..\VM\programs\programArrays";
@@ -36,7 +36,7 @@ namespace AGRO_GRAMM
             parser.Parse();
 
             if (parser.errors.count == 0) Console.WriteLine("No errors in program");
-            Console.WriteLine(parser.errors.count + " errors detected");
+            else { Console.WriteLine(parser.errors.count + " errors detected"); return; }
 
 
             // Write output code file

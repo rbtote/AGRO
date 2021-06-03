@@ -7,37 +7,34 @@ namespace AGRO_GRAMM
     public class SymbolTable
     {
         // Counters for variables
-        int globalInt = 1001;
-        int globalFloat = 5001;
-        int globalChar = 9001;
-        int globalTempInt = 12001;
-        int globalTempFloat = 16001;
-        int globalTempChar = 20001;
+        int globalInt = 0;
+        int globalFloat = 2000;
+        int globalChar = 4000;
+        int globalString = 6000;
+        int globalTempInt = 8000;
+        int globalTempFloat = 9000;
+        int globalTempChar = 10000;
+        int globalTempString = 11000;
 
         //Local variables
-        public int localInt = 28001;
-        public int localFloat = 30001;
-        public int localChar = 32001;
-        public int localTempInt = 34001;
-        public int localTempFloat = 36001;
-        public int localTempChar = 38001;
+        public int localInt = 12000;
+        public int localFloat = 16000;
+        public int localChar = 20000;
+        public int localString = 24000;
+        public int localTempInt = 28000;
+        public int localTempFloat = 32000;
+        public int localTempChar = 36000;
+        public int localTempString = 40000;
 
         //Constant variables
-        int constInt = 42001;
-        int constFloat = 44001;
-        int constChar = 46001;
-        int constString = 48001;
+        int constInt = 44000;
+        int constFloat = 46000;
+        int constChar = 48000;
+        int constString = 50000;
 
         //Pointers
-        int pointersMem = 50001;
+        int pointersMem = 52000;
         /*
-         * 
-            INT     = 1001-5000, 12001-16000, 28001-30000, 34001-36000 ,42001-44000
-            FLOAT   = 5001-9000, 16001-20000, 30001-32000, 36001-38000 ,44001-46000
-            CHAR    = 9001-12000, 20001-24000, 32001-34000, 38001-40000 ,46001-50000
-            STRING  = 24001-28000, 40001-42000
-            POINTERS = 50001-x
-         * 
           "symbols": {
             id: [type, kind, dir, dim1?0, dim2?0, access:[-1|1]]
             symbols.len(6)
@@ -108,11 +105,19 @@ namespace AGRO_GRAMM
         /// <returns></returns>
         public bool putSymbol(string name, int type, int kind, int dim1, int dim2, int access)
         {
+            int dir = 0;
             if (symbols.ContainsKey(name))
             {
                 return false;
             }
-            int dir = assignDir(type, kind);
+            if (dim1 > 0)
+            {
+                dir = assignDirArray(type, dim1, dim2);
+            }
+            else
+            {
+                dir = assignDir(type, kind);
+            }
             int[] symbol = { type, kind, dir, dim1, dim2, access };
             symbols.Add(name, symbol);
 
@@ -179,6 +184,26 @@ namespace AGRO_GRAMM
             return true;
         }
 
+        public bool putConstantChar(string name, int type, int kind, char value)
+        {
+            bool flag = false;
+            if (id > 0)
+                parentSymbolTable.putConstantChar(name, type, kind, value);
+            else
+                flag = true;
+            if (flag)
+            {
+                if (symbols.ContainsKey(name))
+                    return false;
+                int dir = assignDir(type, kind);
+                int[] symbol = { type, kind, dir, 0, 0, 1 };
+                Program.constants[dir] = "" + value;
+                symbols.Add(name, symbol);
+                return true;
+            }
+            return true;
+        }
+
         public bool putSymbolArray(string name, int type, int kind, int dim1, int dim2, int access)
         {
             if (symbols.ContainsKey(name))
@@ -206,14 +231,14 @@ namespace AGRO_GRAMM
             objects[objName] = attributes;
             // Check all the variables of the class
             //     structure <varName, type>
-            foreach (string varName in classObj.variables.Keys)
+            foreach (string varName in classObj.symbolsClass.Keys)
             {
                 string nameObjVar = objName + "." + varName;
                 //Assign direction to all variables of the class, maintaining access
                 // t_int = 1, t_float = 2, t_char = 3
 
                 // Jump if
-                putSymbol(nameObjVar, classObj.variables[varName][0], classObj.variables[varName][2], 0, 0, classObj.variables[varName][1]);
+                putSymbol(nameObjVar, classObj.symbolsClass[varName][0], classObj.symbolsClass[varName][1], classObj.symbolsClass[varName][3], classObj.symbolsClass[varName][4], classObj.symbolsClass[varName][5]);
                 //Ej:     miCarro.Velocidad, type=2, kind=0, dim1=0, dim2=0, access=-1
 
                 //Save these directions in the objects dictionary
@@ -318,6 +343,10 @@ namespace AGRO_GRAMM
                                 dir = globalTempChar;
                                 globalTempChar++;
                                 break;
+                            case t_string:
+                                dir = globalTempString;
+                                globalTempString++;
+                                break;
                         }
                         break;
                     case constant:
@@ -357,6 +386,10 @@ namespace AGRO_GRAMM
                                 dir = globalChar;
                                 globalChar++;
                                 break;
+                            case t_string:
+                                dir = globalString;
+                                globalString++;
+                                break;
                         }
                         break;
                 }
@@ -381,6 +414,10 @@ namespace AGRO_GRAMM
                                 dir = localChar;
                                 localChar++;
                                 break;
+                            case t_string:
+                                dir = localString;
+                                localString++;
+                                break;
                         }
                         break;
                     case temporal:
@@ -397,6 +434,10 @@ namespace AGRO_GRAMM
                             case t_char:
                                 dir = localTempChar;
                                 localTempChar++;
+                                break;
+                            case t_string:
+                                dir = localTempString;
+                                localTempString++;
                                 break;
                         }
                         break;

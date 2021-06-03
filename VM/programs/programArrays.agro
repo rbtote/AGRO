@@ -1,84 +1,94 @@
-int i, j;
-int mat1[3][3];
-float mat2[3][3];
+class Pokemon{
+	+ int attack, defense, hp;
+	+ int ivs[3], hapiness;
 
-class Math{
-    + int a;
-    - int b;
+	+ int calculateCP2() {
+		return attack + defense + hp;
+	}
+
+	+ int calculateCP(int x) {
+		return attack + defense + hp;
+	}
+
+	+ void setAttack(int a) {
+		attack = a;
+	}
+
+	+ void setDefense(int d) {
+		defense = d;
+	}
+
+	+ void setHP(int h) {
+		hp = h;
+	}
 }
 
-class MathSon : Math{
-    + int c;
-    
-    + void printC(){
-        print(c, "\n");
-    }
-    
-    + int getc(int ok){
-        print("a: ", a, "\n");
-        print("ok: ", ok, "\n");
-        return c;
-    }
+class AGGRON : Pokemon{
 
-    + void printA(){
-        int x;
-        print(a, "\n");
-    }
 }
 
+class DataFrame {
+	+ int arr[20];
+	+ float mean(int n) {
+		int i;
+		float mean;
+		mean = 0;
+		for (i = 0; i < n; i++;) {
+			mean = mean + arr[i];
+		}
 
-void printMat(int matN) {
-    for (i = 0; i < 3; i = i + 1;)
-    {
-        for (j = 0; j < 3; j = j + 1;)
-        {
-            if (matN == 1){
-                print(mat1[i][j], " ");
-            }
-            else {
-                print(mat2[i][j], " ");
-            }
-        }
-        print("\n");
-    }
+		mean /= n;
+		return mean;
+	}
 }
 
-void owo(int toAssign){
-    Math a;
-    a.a = toAssign;
-}
+string a;
 
-int generateOne() {
-    int one;
-    one = 7;
-    return one;
-}
+main{
+	char aa;
+	string a;
+	string b;
+	a = "text ";
+	a = 5 * a + 3.1416;
+	aa = 'a';
+	b = "Perro";
+	if(a != b){
+		print("diferentes", "\n");
+	}
 
-main {
+	AGGRON aggro;
 
-    for (i = 1; i < 4; i ++;)
-    {
-        for (j = 1; j < 4; j ++;)
-        {
-            mat1[i-1][j-1] = i * j;
-            mat2[i-1][j-1] = i / j;
-        }
-    }
+	aggro.attack = 100;
+	aggro.setDefense(100);
+	aggro.setHP(77);
 
-    printMat(1);
-    printMat(2);
+	aggro.ivs[0] = 15;
+	aggro.ivs[1] = 14;
+	aggro.ivs[2] = 13;
 
-    print(mat1[1][1], "\n");
-    print(mat1[1][2], "\n");
+	print("Attack: ", aggro.ivs[0], "\n");
+	print("Defense: ", aggro.ivs[1], "\n");
+	print("HP: ", aggro.ivs[2], "\n");
 
-    MathSon b;
-    b.a = 3;
-    b.c = 5;
+	print("Aggro has a CP of: " + aggro.calculateCP2(), "\n");
 
-    i = generateOne();
-    i = b.getc(7) + 10;
+	DataFrame df;
 
-    print("C: ", b.c, "\n");
+	int n, i;
+	n = 10;
 
-    print("i: ", i, "\n");
+	for (i = 0; i < n; i++;) {
+		df.arr[i] = i+1;
+		print("arr[" + i + "] = ", df.arr[i], "\n");
+	}
+
+	print("Arr mean: ", df.mean(n), "\n");
+
+	int nice[5], reallynice[3];
+	nice[4] = 3;
+	reallynice[2] = 4;
+	print("nice[4] = 3", "\n");
+	print("reallynice[2] = 4", "\n");
+	print("nice[reallynice[2]] = ", nice[reallynice[2]], "\n");
+
 }
